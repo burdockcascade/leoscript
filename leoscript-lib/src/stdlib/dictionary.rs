@@ -31,7 +31,7 @@ pub fn compile_dictionary_class() -> Variant {
 
     let mut dict_class = HashMap::new();
 
-    dict_class.insert(String::from("_value"), Variant::Map(HashMap::new()));
+    dict_class.insert(String::from(INTERNAL_CLASS_VALUE), Variant::Map(HashMap::new()));
 
     // new
     dict_class.insert(String::from("constructor"), Variant::NativeFunction(|p| {
@@ -78,15 +78,4 @@ pub fn compile_dictionary_class() -> Variant {
     }));
 
     Variant::Class(dict_class)
-}
-
-fn set_object_value(this: &Variant, value: HashMap<String, Variant>) -> Option<()> {
-
-    let Variant::Object(obj) = this else {
-        return None;
-    };
-
-    let mut borrowed = obj.borrow_mut();
-    borrowed.insert(String::from(INTERNAL_CLASS_VALUE), Variant::Map(value));
-    return None;
 }
