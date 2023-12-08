@@ -3,6 +3,30 @@ use std::collections::HashMap;
 use crate::common::variant::Variant;
 use crate::stdlib::{PARAM_2, PARAM_3, PARAM_4, PARAM_1, INTERNAL_CLASS_VALUE};
 
+macro_rules! get_object_value {
+    ($p:ident) => {
+        if let Variant::Object(obj) =  $p[PARAM_1].clone() {
+            let borrowed = obj.borrow();
+            if let Variant::Map(value) = borrowed.get(INTERNAL_CLASS_VALUE).unwrap() {
+                Some(value.clone())
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    };
+}
+
+macro_rules! set_object_value {
+    ($p:ident, $value:ident) => {
+        if let Variant::Object(obj) =  $p[PARAM_1].clone() {
+            let mut borrowed = obj.borrow_mut();
+            borrowed.insert(String::from(INTERNAL_CLASS_VALUE), Variant::Map($value));
+        }
+    };
+}
+
 pub fn compile_dictionary_class() -> Variant {
 
     let mut dict_class = HashMap::new();
@@ -20,9 +44,7 @@ pub fn compile_dictionary_class() -> Variant {
     // get
     dict_class.insert(String::from("get"), Variant::NativeFunction(|p| {
 
-        let this = p[PARAM_1].clone();
-
-        let Some(value) = get_object_value(&this) else {
+        let Some(value) = get_object_value!(p) else {
             return None;
         };
 
@@ -40,9 +62,7 @@ pub fn compile_dictionary_class() -> Variant {
     // set (self, key, value)
     dict_class.insert(String::from("set"), Variant::NativeFunction(|p| {
 
-        let this = p[PARAM_1].clone();
-
-        let Some(mut value) = get_object_value(&this) else {
+        let Some(mut value) = get_object_value!(p) else {
             return None;
         };
 
@@ -52,25 +72,12 @@ pub fn compile_dictionary_class() -> Variant {
 
         value.insert(key, p[PARAM_3].clone());
 
-        set_object_value(&this, value);
+        set_object_value!(p, value);
 
         None
     }));
 
     Variant::Class(dict_class)
-}
-
-fn get_object_value(this: &Variant) -> Option<HashMap<String, Variant>> {
-
-    let Variant::Object(obj) = this else {
-        return None;
-    };
-
-    let borrowed = obj.borrow();
-    match borrowed.get(INTERNAL_CLASS_VALUE) {
-        Some(Variant::Map(map)) => Some(map.clone()),
-        _ => None,
-    }
 }
 
 fn set_object_value(this: &Variant, value: HashMap<String, Variant>) -> Option<()> {
