@@ -1,0 +1,6 @@
+[workspace]
+resolver = "2"
+members = [
+    "leoscript-lib",
+    "leoscript-cli",
+]
