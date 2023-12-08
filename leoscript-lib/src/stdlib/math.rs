@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::common::variant::Variant;
-use crate::stdlib::{PARAM_1, PARAM_2};
+use crate::stdlib::{PARAM_2, PARAM_3};
 
 pub fn compile_math_module() -> Variant {
 
@@ -9,8 +9,8 @@ pub fn compile_math_module() -> Variant {
 
     // min
     mhash.insert(String::from("min"), Variant::NativeFunction(|p| {
-        if let Variant::Integer(i) = p[PARAM_1] {
-            if let Variant::Integer(j) = p[PARAM_2] {
+        if let Variant::Integer(i) = p[PARAM_2] {
+            if let Variant::Integer(j) = p[PARAM_3] {
                 return Some(Variant::Integer(i.min(j)));
             }
         }
@@ -19,8 +19,8 @@ pub fn compile_math_module() -> Variant {
 
     // max
     mhash.insert(String::from("max"), Variant::NativeFunction(|p| {
-        if let Variant::Integer(i) = p[PARAM_1] {
-            if let Variant::Integer(j) = p[PARAM_2] {
+        if let Variant::Integer(i) = p[PARAM_2] {
+            if let Variant::Integer(j) = p[PARAM_3] {
                 return Some(Variant::Integer(i.max(j)));
             }
         }
@@ -29,7 +29,7 @@ pub fn compile_math_module() -> Variant {
 
     // sqrt
     mhash.insert(String::from("sqrt"), Variant::NativeFunction(|p| {
-        if let Variant::Integer(i) = p[PARAM_1] {
+        if let Variant::Integer(i) = p[PARAM_2] {
             return Some(Variant::Float((i as f32).sqrt()));
         }
         None
@@ -37,7 +37,7 @@ pub fn compile_math_module() -> Variant {
 
     // abs
     mhash.insert(String::from("abs"), Variant::NativeFunction(|p| {
-        if let Variant::Integer(i) = p[PARAM_1] {
+        if let Variant::Integer(i) = p[PARAM_2] {
             return Some(Variant::Integer(i.abs()));
         }
         None

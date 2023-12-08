@@ -372,7 +372,6 @@ impl Thread {
 
                             // push result to stack
                             if let Some(result) = result {
-                                println!("result: {:?}", result);
                                 stack.push(result);
                             }
 

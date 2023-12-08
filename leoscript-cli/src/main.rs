@@ -10,13 +10,13 @@ fn cli() -> Command {
         .allow_external_subcommands(true)
         .subcommand(
             Command::new("run")
-                .about("Clones repos")
+                .about("Run the script")
                 .arg(arg!(<REMOTE> "The remote to clone"))
                 .arg_required_else_help(true),
         )
         .subcommand(
             Command::new("compile")
-                .about("Clones repos")
+                .about("Compile the script")
                 .arg(arg!(<REMOTE> "The remote to clone"))
                 .arg_required_else_help(true),
         )
@@ -24,7 +24,7 @@ fn cli() -> Command {
 
 fn main() {
 
-    //let matches = cli().get_matches();
+    let matches = cli().get_matches();
 
     let output = run_script(include_str!("example.leo"), "main", None);
 

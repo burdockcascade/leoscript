@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::common::variant::Variant;
-use crate::stdlib::{PARAM_1, PARAM_2, PARAM_3, PARAM_SELF};
+use crate::stdlib::{PARAM_2, PARAM_3, PARAM_4, PARAM_1, INTERNAL_CLASS_VALUE};
 
 pub fn compile_dictionary_class() -> Variant {
 
@@ -11,63 +11,75 @@ pub fn compile_dictionary_class() -> Variant {
 
     // new
     dict_class.insert(String::from("constructor"), Variant::NativeFunction(|p| {
-        if let Variant::Map(d) = p[PARAM_SELF].clone() {
-            return Some(Variant::Map(d));
-        }
-        None
-    }));
-
-    // set
-    dict_class.insert(String::from("set"), Variant::NativeFunction(|p| {
-        if let Variant::Map(mut d) = p[PARAM_1].clone() {
-            d.insert(p[PARAM_2].to_string(), p[PARAM_3].clone());
-            return Some(Variant::Map(d));
+        if let Variant::Object(d) = p[PARAM_1].clone() {
+            return Some(p[PARAM_1].clone());
         }
         None
     }));
 
     // get
     dict_class.insert(String::from("get"), Variant::NativeFunction(|p| {
-        if let Variant::Map(d) = p[PARAM_1].clone() {
-            if let Some(v) = d.get(&p[PARAM_2].to_string()) {
-                return Some(v.clone());
-            }
+
+        let this = p[PARAM_1].clone();
+
+        let Some(value) = get_object_value(&this) else {
+            return None;
+        };
+
+        let Variant::String(key) = p[PARAM_2].clone() else {
+            return None;
+        };
+
+        if let Some(v) = value.get(&key) {
+            return Some(v.clone());
         }
+
         None
     }));
 
-    // remove
-    dict_class.insert(String::from("remove"), Variant::NativeFunction(|p| {
-        if let Variant::Map(mut d) = p[PARAM_1].clone() {
-            d.remove(&p[PARAM_2].to_string());
-            return Some(Variant::Map(d));
-        }
-        None
-    }));
+    // set (self, key, value)
+    dict_class.insert(String::from("set"), Variant::NativeFunction(|p| {
 
-    // keys
-    dict_class.insert(String::from("keys"), Variant::NativeFunction(|p| {
-        if let Variant::Map(d) = p[PARAM_1].clone() {
-            let mut keys = Vec::new();
-            for k in d.keys() {
-                keys.push(Variant::String(k.clone()));
-            }
-            return Some(Variant::Array(keys));
-        }
-        None
-    }));
+        let this = p[PARAM_1].clone();
 
-    // values
-    dict_class.insert(String::from("values"), Variant::NativeFunction(|p| {
-        if let Variant::Map(d) = p[PARAM_1].clone() {
-            let mut values = Vec::new();
-            for v in d.values() {
-                values.push(v.clone());
-            }
-            return Some(Variant::Array(values));
-        }
+        let Some(mut value) = get_object_value(&this) else {
+            return None;
+        };
+
+        let Variant::String(key) = p[PARAM_2].clone() else {
+            return None;
+        };
+
+        value.insert(key, p[PARAM_3].clone());
+
+        set_object_value(&this, value);
+
         None
     }));
 
     Variant::Class(dict_class)
+}
+
+fn get_object_value(this: &Variant) -> Option<HashMap<String, Variant>> {
+
+    let Variant::Object(obj) = this else {
+        return None;
+    };
+
+    let borrowed = obj.borrow();
+    match borrowed.get(INTERNAL_CLASS_VALUE) {
+        Some(Variant::Map(map)) => Some(map.clone()),
+        _ => None,
+    }
+}
+
+fn set_object_value(this: &Variant, value: HashMap<String, Variant>) -> Option<()> {
+
+    let Variant::Object(obj) = this else {
+        return None;
+    };
+
+    let mut borrowed = obj.borrow_mut();
+    borrowed.insert(String::from(INTERNAL_CLASS_VALUE), Variant::Map(value));
+    return None;
 }
