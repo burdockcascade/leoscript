@@ -1,3 +1,4 @@
+use crate::common::error::ScriptError;
 use crate::common::variant::Variant;
 
 pub mod error;
@@ -7,4 +8,4 @@ pub mod program;
 pub mod counter;
 pub mod stacktrace;
 
-pub type NativeFunctionType = fn(Vec<Variant>) -> Option<Variant>;
+pub type NativeFunctionType = fn(Vec<Variant>) -> Result<Option<Variant>, ScriptError>;

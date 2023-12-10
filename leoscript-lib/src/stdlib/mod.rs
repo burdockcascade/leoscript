@@ -1,4 +1,7 @@
+use std::collections::HashMap;
 use crate::common::error::ScriptError;
+use crate::common::variant::Variant;
+use crate::script_native_function_error;
 use crate::stdlib::dictionary::compile_dictionary_class;
 use crate::stdlib::math::compile_math_module;
 use crate::vm::thread::Thread;
@@ -6,11 +9,24 @@ use crate::vm::thread::Thread;
 mod math;
 mod dictionary;
 
-const INTERNAL_CLASS_VALUE: &str = "_value";
-const PARAM_1: usize = 0;
-const PARAM_2: usize = 1;
-const PARAM_3: usize = 2;
+const INTERNAL_CLASS_VALUE: &str = "#value";
+const PARAM_0: usize = 0;
+const PARAM_1: usize = 1;
+const PARAM_2: usize = 2;
 const PARAM_4: usize = 3;
+
+
+// generic class as hashmap with internal class value
+#[macro_export]
+macro_rules! generic_native_class {
+    () => {
+        {
+            let mut class = HashMap::new();
+            class.insert(String::from(INTERNAL_CLASS_VALUE), Variant::Map(HashMap::new()));
+            class
+        }
+    };
+}
 
 pub fn add_standard_library(t: &mut Thread) -> Result<(), ScriptError> {
 
@@ -19,3 +35,4 @@ pub fn add_standard_library(t: &mut Thread) -> Result<(), ScriptError> {
 
     Ok(())
 }
+

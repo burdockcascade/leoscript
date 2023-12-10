@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 
 use crate::common::variant::Variant;
-use crate::stdlib::{PARAM_2, PARAM_3};
+use crate::script_native_function_error;
+use crate::stdlib::{PARAM_1, PARAM_2};
+use crate::common::error::{NativeFunctionError, ScriptError};
 
 pub fn compile_math_module() -> Variant {
 
@@ -9,38 +11,38 @@ pub fn compile_math_module() -> Variant {
 
     // min
     mhash.insert(String::from("min"), Variant::NativeFunction(|p| {
-        if let Variant::Integer(i) = p[PARAM_2] {
-            if let Variant::Integer(j) = p[PARAM_3] {
-                return Some(Variant::Integer(i.min(j)));
+        if let Variant::Integer(i) = p[PARAM_1] {
+            if let Variant::Integer(j) = p[PARAM_2] {
+                return Ok(Some(Variant::Integer(i.min(j))));
             }
         }
-        None
+        script_native_function_error!(NativeFunctionError::UnknownParameterToken)
     }));
 
     // max
     mhash.insert(String::from("max"), Variant::NativeFunction(|p| {
-        if let Variant::Integer(i) = p[PARAM_2] {
-            if let Variant::Integer(j) = p[PARAM_3] {
-                return Some(Variant::Integer(i.max(j)));
+        if let Variant::Integer(i) = p[PARAM_1] {
+            if let Variant::Integer(j) = p[PARAM_2] {
+                return Ok(Some(Variant::Integer(i.max(j))));
             }
         }
-        None
+        script_native_function_error!(NativeFunctionError::UnknownParameterToken)
     }));
 
     // sqrt
     mhash.insert(String::from("sqrt"), Variant::NativeFunction(|p| {
-        if let Variant::Integer(i) = p[PARAM_2] {
-            return Some(Variant::Float((i as f32).sqrt()));
+        if let Variant::Integer(i) = p[PARAM_1] {
+            return Ok(Some(Variant::Float((i as f32).sqrt())));
         }
-        None
+        script_native_function_error!(NativeFunctionError::UnknownParameterToken)
     }));
 
     // abs
     mhash.insert(String::from("abs"), Variant::NativeFunction(|p| {
-        if let Variant::Integer(i) = p[PARAM_2] {
-            return Some(Variant::Integer(i.abs()));
+        if let Variant::Integer(i) = p[PARAM_1] {
+            return Ok(Some(Variant::Integer(i.abs())));
         }
-        None
+        script_native_function_error!(NativeFunctionError::UnknownParameterToken)
     }));
 
     Variant::Module(mhash)

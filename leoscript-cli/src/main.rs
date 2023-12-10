@@ -4,7 +4,7 @@ use leoscript_lib::run_script;
 
 fn cli() -> Command {
     Command::new("git")
-        .about("A fictional versioning CLI")
+        .about("Leo Script CLI")
         .subcommand_required(true)
         .arg_required_else_help(true)
         .allow_external_subcommands(true)
@@ -24,7 +24,7 @@ fn cli() -> Command {
 
 fn main() {
 
-    let matches = cli().get_matches();
+    //let matches = cli().get_matches();
 
     let output = run_script(include_str!("example.leo"), "main", None);
 

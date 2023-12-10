@@ -14,7 +14,6 @@ fn if_true() {
             end
             return output
         end
-
     "#;
 
     let test_matrix = vec![
@@ -33,17 +32,12 @@ fn if_bool() {
 
     let script = r#"
          function main(input)
-
             var output = 2
-
             if input then
                 output = 1
             end
-
             return output
-
         end
-
     "#;
 
     let test_matrix = vec![

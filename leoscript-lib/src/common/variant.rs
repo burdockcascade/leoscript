@@ -9,6 +9,7 @@ use std::rc::Rc;
 use log::error;
 
 use crate::common::counter::Counter;
+use crate::common::error::NativeFunctionError;
 use crate::common::NativeFunctionType;
 
 // Value
@@ -32,6 +33,7 @@ pub enum Variant {
     // References and Pointers
     FunctionRef(String),
     FunctionPointer(usize),
+
     NativeFunction(NativeFunctionType),
 
     // counter with start, step, end

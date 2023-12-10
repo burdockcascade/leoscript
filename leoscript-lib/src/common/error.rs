@@ -23,6 +23,15 @@ macro_rules! script_runtime_error {
     };
 }
 
+#[macro_export]
+macro_rules! script_native_function_error {
+    ($error:expr) => {
+        Err(ScriptError::NativeFunctionError {
+            error: $error,
+        })
+    };
+}
+
 #[derive(Debug, PartialEq)]
 pub enum ScriptError {
     SystemError {
@@ -41,6 +50,17 @@ pub enum ScriptError {
         trace: Option<Vec<StackTrace>>,
         error: RuntimeError,
     },
+    NativeFunctionError {
+        error: NativeFunctionError,
+    },
+}
+
+#[derive(Debug, PartialEq)]
+pub enum NativeFunctionError {
+    InvalidSelf,
+    UnknownParameterToken,
+    InvalidInternalValue,
+    InvalidNativeFunction(String),
 }
 
 #[derive(Debug, PartialEq)]

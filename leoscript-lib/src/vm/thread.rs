@@ -368,11 +368,15 @@ impl Thread {
                             ip = fptr;
                         },
                         Variant::NativeFunction(func) => {
-                            let result = func(args);
 
-                            // push result to stack
-                            if let Some(result) = result {
-                                stack.push(result);
+                            match func(args) {
+                                Ok(Some(result)) => {
+                                    stack.push(result);
+                                },
+                                Ok(None) => {},
+                                Err(error) => {
+                                    return Err(error);
+                                }
                             }
 
                             ip += 1;
