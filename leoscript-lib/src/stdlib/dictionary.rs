@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use log::error;
 
 use crate::common::variant::Variant;
 use crate::{generic_native_class,  script_native_function_error};

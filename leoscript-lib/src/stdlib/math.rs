@@ -2,49 +2,123 @@ use std::collections::HashMap;
 
 use crate::common::variant::Variant;
 use crate::script_native_function_error;
-use crate::stdlib::{PARAM_1, PARAM_2};
+use crate::stdlib::{PARAM_0, PARAM_1, PARAM_2};
 use crate::common::error::{NativeFunctionError, ScriptError};
 
 pub fn compile_math_module() -> Variant {
 
     let mut mhash = HashMap::new();
-
-    // min
-    mhash.insert(String::from("min"), Variant::NativeFunction(|p| {
-        if let Variant::Integer(i) = p[PARAM_1] {
-            if let Variant::Integer(j) = p[PARAM_2] {
-                return Ok(Some(Variant::Integer(i.min(j))));
-            }
-        }
-        script_native_function_error!(NativeFunctionError::UnknownParameterToken)
-    }));
-
-    // max
-    mhash.insert(String::from("max"), Variant::NativeFunction(|p| {
-        if let Variant::Integer(i) = p[PARAM_1] {
-            if let Variant::Integer(j) = p[PARAM_2] {
-                return Ok(Some(Variant::Integer(i.max(j))));
-            }
-        }
-        script_native_function_error!(NativeFunctionError::UnknownParameterToken)
-    }));
-
-    // sqrt
-    mhash.insert(String::from("sqrt"), Variant::NativeFunction(|p| {
-        if let Variant::Integer(i) = p[PARAM_1] {
-            return Ok(Some(Variant::Float((i as f32).sqrt())));
-        }
-        script_native_function_error!(NativeFunctionError::UnknownParameterToken)
-    }));
-
-    // abs
-    mhash.insert(String::from("abs"), Variant::NativeFunction(|p| {
-        if let Variant::Integer(i) = p[PARAM_1] {
-            return Ok(Some(Variant::Integer(i.abs())));
-        }
-        script_native_function_error!(NativeFunctionError::UnknownParameterToken)
-    }));
+    mhash.insert(String::from("min"), Variant::NativeFunction(math_min));
+    mhash.insert(String::from("max"), Variant::NativeFunction(math_max));
+    mhash.insert(String::from("sqrt"), Variant::NativeFunction(math_sqrt));
+    mhash.insert(String::from("abs"), Variant::NativeFunction(math_abs));
 
     Variant::Module(mhash)
+}
+
+fn math_max(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
+    if let Variant::Integer(i) = p[PARAM_0] {
+        if let Variant::Integer(j) = p[PARAM_1] {
+            return Ok(Some(Variant::Integer(i.max(j))));
+        }
+    }
+    script_native_function_error!(NativeFunctionError::UnknownParameterToken)
+}
+
+fn math_min(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
+    if let Variant::Integer(i) = p[PARAM_0] {
+        if let Variant::Integer(j) = p[PARAM_1] {
+            return Ok(Some(Variant::Integer(i.min(j))));
+        }
+    }
+    script_native_function_error!(NativeFunctionError::UnknownParameterToken)
+}
+
+fn math_sqrt(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
+    if let Variant::Integer(i) = p[PARAM_0] {
+        return Ok(Some(Variant::Float((i as f32).sqrt())));
+    }
+    script_native_function_error!(NativeFunctionError::UnknownParameterToken)
+}
+
+fn math_abs(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
+    if let Variant::Integer(i) = p[PARAM_0] {
+        return Ok(Some(Variant::Integer(i.abs())));
+    }
+    script_native_function_error!(NativeFunctionError::UnknownParameterToken)
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::common::variant::Variant;
+    use crate::stdlib::math::{math_abs, math_max, math_min, math_sqrt};
+
+    #[test]
+    fn test_math_max() {
+
+        let input = vec![
+            Variant::Integer(1),
+            Variant::Integer(2),
+        ];
+
+        let expected = Variant::Integer(2);
+
+        match math_max(input) {
+            Ok(Some(v)) => assert_eq!(v, expected),
+            _ => assert!(false),
+        }
+
+    }
+
+    #[test]
+    fn test_math_min() {
+
+        let input = vec![
+            Variant::Integer(1),
+            Variant::Integer(2),
+        ];
+
+        let expected = Variant::Integer(1);
+
+        match math_min(input) {
+            Ok(Some(v)) => assert_eq!(v, expected),
+            _ => assert!(false),
+        }
+
+    }
+
+    #[test]
+    fn test_math_abs() {
+
+        let input = vec![
+            Variant::Integer(-1),
+        ];
+
+        let expected = Variant::Integer(1);
+
+        match math_abs(input) {
+            Ok(Some(v)) => assert_eq!(v, expected),
+            _ => assert!(false),
+        }
+
+    }
+
+    #[test]
+    fn test_math_sqrt() {
+
+        let input = vec![
+            Variant::Integer(4),
+        ];
+
+        let expected = Variant::Float(2.0);
+
+        match math_sqrt(input) {
+            Ok(Some(v)) => assert_eq!(v, expected),
+            _ => assert!(false),
+        }
+
+    }
+
+
 
 }
