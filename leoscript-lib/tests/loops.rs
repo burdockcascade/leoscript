@@ -106,6 +106,7 @@ fn for_in_array() {
     "#);
 }
 
+#[test]
 fn for_in_dict() {
     test_success!(r#"
 
@@ -114,11 +115,11 @@ fn for_in_dict() {
             var counter as Integer = 0
 
             var numbers = new Dictionary()
-            numbers.insert("one", 1)
-            numbers.insert("two", 2)
-            numbers.insert("three", 3)
-            numbers.insert("four", 4)
-            numbers.insert("five", 5)
+            numbers.set("one", 1)
+            numbers.set("two", 2)
+            numbers.set("three", 3)
+            numbers.set("four", 4)
+            numbers.set("five", 5)
 
             for num in numbers.keys() do
                 counter = counter + 1
@@ -130,6 +131,7 @@ fn for_in_dict() {
     "#);
 }
 
+#[test]
 fn for_in_dict_with_continue() {
     test_success!(r#"
          function main()
@@ -139,12 +141,12 @@ fn for_in_dict_with_continue() {
 
             -- set an array of numbers
             var numbers = new Dictionary()
-            numbers.insert("one", 1)
-            numbers.insert("two", 2)
-            numbers.insert("three", 3)
-            numbers.insert("four", 4)
-            numbers.insert("five", 5)
-            numbers.insert("six", 6)
+            numbers.set("one", 1)
+            numbers.set("two", 2)
+            numbers.set("three", 3)
+            numbers.set("four", 4)
+            numbers.set("five", 5)
+            numbers.set("six", 6)
 
             -- for in loop
             for x in numbers.keys() do
