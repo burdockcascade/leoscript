@@ -1,7 +1,4 @@
-use std::collections::HashMap;
 use crate::common::error::ScriptError;
-use crate::common::variant::Variant;
-use crate::script_native_function_error;
 use crate::stdlib::dictionary::compile_dictionary_class;
 use crate::stdlib::math::compile_math_module;
 use crate::vm::thread::Thread;
@@ -13,7 +10,6 @@ const INTERNAL_CLASS_VALUE: &str = "#value";
 const PARAM_0: usize = 0;
 const PARAM_1: usize = 1;
 const PARAM_2: usize = 2;
-const PARAM_4: usize = 3;
 
 
 // generic class as hashmap with internal class value

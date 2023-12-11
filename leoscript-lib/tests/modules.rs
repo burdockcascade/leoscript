@@ -9,7 +9,7 @@ mod common;
 #[test]
 fn simple_module() {
 
-    let _ = TermLogger::init(LevelFilter::Debug, Config::default(), TerminalMode::Mixed, ColorChoice::Auto);
+    //let _ = TermLogger::init(LevelFilter::Debug, Config::default(), TerminalMode::Mixed, ColorChoice::Auto);
 
     test_success!(r#"
         function main()
