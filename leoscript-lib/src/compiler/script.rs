@@ -270,6 +270,8 @@ mod test {
 
         let program = compile_script(script).unwrap();
 
+        // fixme
+
     }
 
     #[test]
@@ -277,10 +279,10 @@ mod test {
 
         let script = r#"
             function main()
-                var p = new Hotel.Person("John", 30)
+                var p = new Company.Person("John", 30)
             end
 
-            module Hotel
+            module Company
 
                 class Person
 
@@ -306,6 +308,8 @@ mod test {
         "#;
 
         let program = compile_script(script).unwrap();
+
+        // fixme
 
     }
 }

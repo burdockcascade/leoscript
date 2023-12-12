@@ -259,7 +259,7 @@ mod tests {
 
         // get value
         match dict_get(vec![class.clone(), test_key.clone()]) {
-            Ok(Some(test_value)) => assert!(true),
+            Ok(Some(Variant::Integer(i))) => assert_eq!(i, 10),
             _ => assert!(false, "get failed")
         }
 

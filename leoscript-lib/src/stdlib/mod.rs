@@ -29,6 +29,8 @@ pub fn add_standard_library(t: &mut Thread) -> Result<(), ScriptError> {
     t.add_global("Math", compile_math_module())?;
     t.add_global("Dictionary", compile_dictionary_class())?;
 
+
+
     Ok(())
 }
 

@@ -1,5 +1,3 @@
-use log::LevelFilter;
-use simplelog::{ColorChoice, Config, TerminalMode, TermLogger};
 use leoscript_lib::common::variant::Variant;
 use leoscript_lib::run_script;
 
