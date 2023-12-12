@@ -17,8 +17,8 @@ pub fn compile_math_module() -> Variant {
 }
 
 fn math_max(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
-    if let Variant::Integer(i) = p[PARAM_0] {
-        if let Variant::Integer(j) = p[PARAM_1] {
+    if let Variant::Integer(i) = p[PARAM_1] {
+        if let Variant::Integer(j) = p[PARAM_2] {
             return Ok(Some(Variant::Integer(i.max(j))));
         }
     }
@@ -26,8 +26,8 @@ fn math_max(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
 }
 
 fn math_min(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
-    if let Variant::Integer(i) = p[PARAM_0] {
-        if let Variant::Integer(j) = p[PARAM_1] {
+    if let Variant::Integer(i) = p[PARAM_1] {
+        if let Variant::Integer(j) = p[PARAM_2] {
             return Ok(Some(Variant::Integer(i.min(j))));
         }
     }
@@ -35,14 +35,14 @@ fn math_min(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
 }
 
 fn math_sqrt(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
-    if let Variant::Integer(i) = p[PARAM_0] {
+    if let Variant::Integer(i) = p[PARAM_1] {
         return Ok(Some(Variant::Float((i as f32).sqrt())));
     }
     script_native_function_error!(NativeFunctionError::UnknownParameterToken)
 }
 
 fn math_abs(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
-    if let Variant::Integer(i) = p[PARAM_0] {
+    if let Variant::Integer(i) = p[PARAM_1] {
         return Ok(Some(Variant::Integer(i.abs())));
     }
     script_native_function_error!(NativeFunctionError::UnknownParameterToken)
@@ -57,6 +57,7 @@ mod tests {
     fn test_math_max() {
 
         let input = vec![
+            Variant::Module(std::collections::HashMap::new()),
             Variant::Integer(1),
             Variant::Integer(2),
         ];
@@ -74,6 +75,7 @@ mod tests {
     fn test_math_min() {
 
         let input = vec![
+            Variant::Module(std::collections::HashMap::new()),
             Variant::Integer(1),
             Variant::Integer(2),
         ];
@@ -91,6 +93,7 @@ mod tests {
     fn test_math_abs() {
 
         let input = vec![
+            Variant::Module(std::collections::HashMap::new()),
             Variant::Integer(-1),
         ];
 
@@ -107,6 +110,7 @@ mod tests {
     fn test_math_sqrt() {
 
         let input = vec![
+            Variant::Module(std::collections::HashMap::new()),
             Variant::Integer(4),
         ];
 

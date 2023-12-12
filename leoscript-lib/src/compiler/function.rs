@@ -267,7 +267,6 @@ impl Function {
 
     // compile a function call
     fn compile_call(&mut self, position: TokenPosition, name: Box<Token>, args: Vec<Token>) -> Result<(), ScriptError> {
-        trace!("compile_call({:?}, {:?}, {:?})", position, name, args);
 
         self.compile_stack_trace_push(position.line)?;
 

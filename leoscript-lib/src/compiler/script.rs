@@ -19,6 +19,11 @@ pub struct FunctionGroup {
     pub instructions: Vec<Instruction>,
 }
 
+pub struct FunctionSignature {
+    pub name: String,
+    pub input: Vec<Token>,
+}
+
 pub fn compile_script(source: &str) -> Result<Program, ScriptError> {
 
     let result = parse_script(source);
@@ -36,6 +41,22 @@ pub fn compile_script(source: &str) -> Result<Program, ScriptError> {
 
     let mut p = Program::default();
 
+    // collect function signatures
+    let mut function_signatures = Vec::new();
+
+    for token in tokens.clone() {
+        match token {
+            Token::Function { function_name, input, .. } => {
+                function_signatures.push(FunctionSignature {
+                    name: function_name.to_string(),
+                    input,
+                });
+            },
+            _ => {}
+        }
+    }
+
+    // compile script
     for token in tokens.clone() {
         match token {
             Token::Function { position, function_name, input, body, .. } => {
@@ -285,8 +306,6 @@ mod test {
         "#;
 
         let program = compile_script(script).unwrap();
-
-        println!("{:#?}", program.instructions);
 
     }
 }
