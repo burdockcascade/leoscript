@@ -4,7 +4,7 @@ use leoscript_lib::run_script;
 mod common;
 
 #[test]
-fn class_with_constructor_with_parameters() {
+fn class_with_constructor_and_parameters() {
 
     let script = r#"
         class Dimension
@@ -45,7 +45,7 @@ fn class_with_constructor_with_parameters() {
 }
 
 #[test]
-fn class_without_constructor() {
+fn class_with_fields_but_without_constructor() {
 
     let script = r#"
         class myservice

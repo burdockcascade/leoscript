@@ -26,10 +26,13 @@ macro_rules! generic_native_class {
 
 pub fn add_standard_library(t: &mut Thread) -> Result<(), ScriptError> {
 
+    t.add_native_function("println", |p| {
+        println!("{}", p[PARAM_0]);
+        Ok(None)
+    })?;
+
     t.add_global("Math", compile_math_module())?;
     t.add_global("Dictionary", compile_dictionary_class())?;
-
-
 
     Ok(())
 }

@@ -4,7 +4,55 @@ use leoscript_lib::run_script;
 mod common;
 
 #[test]
-fn simple_module() {
+fn module_with_functions() {
+    test_success!(r#"
+        function main()
+            return Calculator.add(10, 20) == 30 and Calculator.sub(20, 10) == 10
+        end
+
+        module Calculator
+
+            function add(v1, v2)
+                return v1 + v2
+            end
+
+            function sub(v1, v2)
+                return v1 - v2
+            end
+
+        end
+    "#);
+}
+
+#[test]
+fn module_with_inner_module_and_functions() {
+    test_success!(r#"
+        function main()
+            return MyApp.Calculator.add(10, 20) == 30 and MyApp.Calculator.sub(20, 10) == 10
+        end
+
+        module MyApp
+
+            module Calculator
+
+                function add(v1, v2)
+                    return v1 + v2
+                end
+
+                function sub(v1, v2)
+                    return v1 - v2
+                end
+
+            end
+
+        end
+
+
+    "#);
+}
+
+#[test]
+fn module_with_class() {
 
     test_success!(r#"
         function main()
