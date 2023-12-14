@@ -35,6 +35,29 @@ fn test_match_case_and_default() {
 }
 
 #[test]
+fn test_match_no_match_and_no_default() {
+
+    test_success!(r#"
+        function main()
+
+            var a = 2
+            var b = false
+
+            match a
+
+                case 1 then
+                    b = false
+                end
+
+            end
+
+            return not b
+
+        end
+    "#);
+}
+
+#[test]
 fn test_match_case_with_mixed_values() {
 
     test_success!(r#"
