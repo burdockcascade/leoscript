@@ -49,6 +49,15 @@ macro_rules! script_runtime_error {
 }
 
 #[macro_export]
+macro_rules! script_system_error {
+    ($error:expr) => {
+        Err(ScriptError::SystemError {
+            error: $error,
+        })
+    };
+}
+
+#[macro_export]
 macro_rules! script_native_function_error {
     ($error:expr) => {
         Err(ScriptError::NativeFunctionError {
@@ -92,6 +101,7 @@ pub enum NativeFunctionError {
 #[derive(Debug, PartialEq)]
 pub enum SystemError {
     ExpectedNativeFunction,
+    UnableToGetLocalDirectory
 }
 
 #[derive(Debug, PartialEq)]
@@ -123,7 +133,10 @@ pub enum CompilerError {
     InvalidChainItem,
     InvalidDefaultCase,
     InvalidMatchArm,
+
+    InvalidImportExpression(String),
     InvalidImportPath(String),
+    UnableToImportFile(String),
 
 }
 

@@ -3,7 +3,7 @@ use std::env::current_dir;
 use std::fs;
 use std::path::Path;
 
-use crate::common::error::{ParseError, ScriptError, CompilerError};
+use crate::common::error::{ParseError, ScriptError, SystemError};
 use crate::common::instruction::Instruction;
 use crate::common::program::Program;
 use crate::common::variant::Variant;
@@ -13,7 +13,8 @@ use crate::compiler::module::compile_module;
 use crate::compiler::parser::parse_script;
 use crate::compiler::r#enum::compile_enum;
 use crate::compiler::token::Token;
-use crate::{script_compile_error, script_parse_error};
+use crate::{script_compile_error, script_parse_error, script_system_error};
+use crate::common::error::CompilerError::{InvalidImportExpression, InvalidImportPath, UnableToImportFile};
 
 pub const CONSTRUCTOR_NAME: &str = "constructor";
 pub const SELF_CONSTANT: &str = "self";
@@ -63,36 +64,50 @@ fn compile_script(source: &str, offset: usize) -> Result<Script, ScriptError> {
 
         let local_offset = script.instructions.len() + offset;
 
+        // set path separator based on local system
+        let path_separator = match std::env::consts::OS {
+            "windows" => "\\",
+            _ => "/"
+        };
+
         match token {
             Token::Import { position, source, .. } => {
 
-                let mut dir = current_dir().unwrap().display().to_string() + "/";
+                // get current directory
+                let Ok(dir) = current_dir() else {
+                    return script_system_error!(SystemError::UnableToGetLocalDirectory);
+                };
 
+                // get file path
+                let mut filepath = dir.display().to_string() + path_separator;
+
+                // get file name
                 match *source {
                     Token::DotChain { start, chain, .. } => {
-
-                        dir = dir + &*start.to_string() + "/" + &chain.iter().map(|t| match t {
+                        filepath = filepath + &*start.to_string() + path_separator + &chain.iter().map(|t| match t {
                             Token::Identifier { name, .. } => name,
                             _ => ""
-                        }).collect::<Vec<&str>>().join("/");
+                        }).collect::<Vec<&str>>().join(path_separator);
                     },
                     Token::Identifier { name, .. } => {
-                        println!("Importing {}", name);
+                        filepath = filepath + &*name;
                     },
                     _ => {
-                        return script_compile_error!(CompilerError::InvalidImportPath(source.to_string()), position)
+                        return script_compile_error!(InvalidImportExpression(source.to_string()), position)
                     }
                 }
 
-                let filename = dir.clone() + ".leo";
-
-                let path = Path::new(&filename);
+                let filename = filepath.clone() + ".leo";
 
                 // check if file exists
-                if path.exists() {
-                    let contents = fs::read_to_string(filename)
-                        .expect("Should have been able to read the file");
+                if Path::new(&filename).exists() {
 
+                    // read file contents
+                    let Ok(contents) = fs::read_to_string(filename.clone()) else {
+                        return script_compile_error!(UnableToImportFile(filename.clone()), position);
+                    };
+
+                    // compile imported script
                     let mut imported_script = compile_script(&contents, local_offset)?;
 
                     // add imported script globals to script globals
@@ -100,10 +115,11 @@ fn compile_script(source: &str, offset: usize) -> Result<Script, ScriptError> {
                         script.globals.insert(key.to_string(), value.clone());
                     }
 
+                    // add imported script instructions to script instructions
                     script.instructions.append(&mut imported_script.instructions);
 
                 } else {
-                    return script_compile_error!(CompilerError::InvalidImportPath(filename), position);
+                    return script_compile_error!(InvalidImportPath(filename), position);
                 }
 
             }
