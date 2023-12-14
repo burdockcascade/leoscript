@@ -182,7 +182,7 @@ mod tests {
     use crate::stdlib::dictionary::{dict_clear, dict_constructor, dict_contains_key, dict_get, dict_keys, dict_length, dict_set, dict_values};
     use crate::stdlib::INTERNAL_CLASS_VALUE;
 
-    macro_rules! construct_dictionary_object {
+    macro_rules! construct_object {
         () => {
             {
                 let mut test_map = HashMap::new();
@@ -202,7 +202,7 @@ mod tests {
     fn test_constructor() {
 
         let input = vec![
-            construct_dictionary_object!(),
+            construct_object!(),
         ];
 
         match dict_constructor(input) {
@@ -228,7 +228,7 @@ mod tests {
     fn test_dict_get() {
 
         let input = vec![
-            construct_dictionary_object!(),
+            construct_object!(),
             Variant::String(String::from("a")),
         ];
 
@@ -244,7 +244,7 @@ mod tests {
 
         let test_key = Variant::String(String::from("d"));
         let test_value = Variant::Integer(10);
-        let class = construct_dictionary_object!();
+        let class = construct_object!();
         let input = vec![
             class.clone(),
             test_key.clone(),
@@ -266,37 +266,21 @@ mod tests {
     }
 
     #[test]
-    fn test_dict_length() {
-
-        let input = vec![
-            construct_dictionary_object!(),
-        ];
-
-        match dict_length(input) {
-            Ok(Some(Variant::Integer(3))) => assert!(true),
-            _ => assert!(false, "length failed")
-        }
-
+    fn test_length() {
+        let input = vec![construct_object!()];
+        assert_eq!(dict_length(input), Ok(Some(Variant::Integer(3))));
     }
 
     #[test]
     fn test_dict_clear() {
 
         let input = vec![
-            construct_dictionary_object!(),
+            construct_object!(),
         ];
 
-        // get value
-        match dict_clear(input.clone()) {
-            Ok(None) => assert!(true),
-            _ => assert!(false, "clear failed")
-        }
+        dict_clear(input.clone());
 
-        // clear
-        match dict_length(input.clone()) {
-            Ok(Some(Variant::Integer(0))) => assert!(true),
-            _ => assert!(false, "length failed")
-        }
+        assert_eq!(dict_length(input.clone()), Ok(Some(Variant::Integer(0))));
 
     }
 
@@ -304,7 +288,7 @@ mod tests {
     fn test_dict_keys() {
 
         let input = vec![
-            construct_dictionary_object!(),
+            construct_object!(),
         ];
 
         match dict_keys(input) {
@@ -326,7 +310,7 @@ mod tests {
     fn test_dict_values() {
 
         let input = vec![
-            construct_dictionary_object!(),
+            construct_object!(),
         ];
 
         match dict_values(input) {
@@ -348,7 +332,7 @@ mod tests {
     fn test_dict_contains_key() {
 
         let input = vec![
-            construct_dictionary_object!(),
+            construct_object!(),
             Variant::String(String::from("a")),
         ];
 

@@ -1,10 +1,12 @@
 use crate::common::error::ScriptError;
 use crate::stdlib::dictionary::compile_dictionary_class;
 use crate::stdlib::math::compile_math_module;
+use crate::stdlib::string::compile_string_class;
 use crate::vm::thread::Thread;
 
 mod math;
 mod dictionary;
+mod string;
 
 const INTERNAL_CLASS_VALUE: &str = "#value";
 const PARAM_0: usize = 0;
@@ -33,6 +35,7 @@ pub fn add_standard_library(t: &mut Thread) -> Result<(), ScriptError> {
 
     t.add_global("Math", compile_math_module())?;
     t.add_global("Dictionary", compile_dictionary_class())?;
+    t.add_global("String", compile_string_class())?;
 
     Ok(())
 }
