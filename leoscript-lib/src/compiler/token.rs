@@ -131,6 +131,24 @@ pub enum Token {
         body: Vec<Token>,
     },
 
+    Match {
+        position: TokenPosition,
+        expr: Box<Token>,
+        arms: Vec<Token>,
+        default: Option<Box<Token>>,
+    },
+
+    Case {
+        position: TokenPosition,
+        condition: Box<Token>,
+        body: Vec<Token>,
+    },
+
+    DefaultCase {
+        position: TokenPosition,
+        body: Vec<Token>,
+    },
+
     WhileLoop {
         position: TokenPosition,
         condition: Box<Token>,

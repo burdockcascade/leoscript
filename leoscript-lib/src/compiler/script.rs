@@ -266,11 +266,25 @@ mod test {
             function main()
                 var z = new Vector2(10, 20)
             end
+
+            class Vector2
+
+                var x
+                var y
+
+                constructor(x, y)
+                    self.x = x
+                    self.y = y
+                end
+
+            end
+
         "#;
 
         let program = compile_script(script).unwrap();
 
         // fixme
+        assert!(program.globals.contains_key("Vector2"));
 
     }
 

@@ -92,6 +92,7 @@ impl Function {
             Token::ForI { position, ident, start, step, end, body } => self.compile_iterator(position, ident, start, step, end, body)?,
             Token::ForEach { position, ident, collection, body } => self.compile_iterator(position, ident, Box::new(Token::Integer(0)), Box::new(Token::Integer(1)), collection, body)?,
             Token::IfChain { position, chain } => self.compile_if_else(position, chain)?,
+            Token::Match { position, expr, arms, default } => self.compile_match(position, expr, arms, default)?,
             Token::Comment(_) => {}
             Token::DotChain { position, start, chain } => self.compile_chain(position, start, chain)?,
             Token::Break { position } => self.compile_break(position)?,
@@ -384,6 +385,64 @@ impl Function {
         }
 
         Ok(())
+    }
+
+    //==============================================================================================
+    // MATCH
+
+    fn compile_match(&mut self, position: TokenPosition, expr: Box<Token>, arms: Vec<Token>, default: Option<Box<Token>>) -> Result<(), ScriptError> {
+
+        let mut jump_to_end = vec![];
+
+        for arm in arms {
+            match arm {
+                Token::Case { position, condition, body } => {
+
+                    // Compile Expression
+                    self.compile_expression(position, expr.clone())?;
+
+                    // Compile If Statement
+                    self.compile_expression(position, condition)?;
+
+                    // Compare
+                    self.instructions.push(Instruction::Equal);
+
+                    // jump to next condition if false
+                    let jump_to_next = self.instructions.len();
+                    self.instructions.push(Instruction::Halt(String::from("unknown next condition to jump to")));
+
+                    // Compile statements
+                    self.compile_statements(body)?;
+
+                    // jump to end
+                    jump_to_end.push(self.instructions.len());
+                    self.instructions.push(Instruction::Halt(String::from("can not jump to end")));
+
+                    // Update Jump to next condition
+                    self.instructions[jump_to_next] = Instruction::JumpForwardIfFalse(self.instructions.len() - jump_to_next);
+                }
+                _ => return script_compile_error!(CompilerError::InvalidMatchArm, position)
+            }
+        }
+
+        // if default exists then execute it
+        if let Some(def) = default {
+            match *def {
+                Token::DefaultCase { body, .. } => {
+                    self.compile_statements(body)?;
+                }
+                _ => return script_compile_error!(CompilerError::InvalidDefaultCase, position)
+            }
+        }
+
+        // Update End Jumps
+        for jump in jump_to_end {
+            trace!("updating jump to end: {}", jump);
+            self.instructions[jump] = Instruction::JumpForward(self.instructions.len() - jump);
+        }
+
+        Ok(())
+
     }
 
     //==============================================================================================

@@ -92,7 +92,9 @@ pub enum CompilerError {
     BreakOutsideOfLoop,
     ContinueOutsideOfLoop,
 
-    InvalidChainItem
+    InvalidChainItem,
+    InvalidDefaultCase,
+    InvalidMatchArm
 
 }
 

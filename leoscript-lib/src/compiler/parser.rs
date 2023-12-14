@@ -312,6 +312,29 @@ fn parse_enum(input: Span) -> IResult<Span, Token> {
 //===========================
 // CODE BLOCK
 
+fn parse_then_block_end(input: Span) -> IResult<Span, Vec<Token>> {
+    delimited(
+        tuple((tag_no_case("then"), multispace0)),
+        parse_code_block,
+        tuple((multispace0, tag_no_case("end"))),
+    )(input)
+}
+
+fn parse_do_block_end(input: Span) -> IResult<Span, Vec<Token>> {
+    delimited(
+        tuple((tag_no_case("do"), multispace0)),
+        parse_code_block,
+        tuple((multispace0, tag_no_case("end"))),
+    )(input)
+}
+
+fn parse_silent_block_end(input: Span) -> IResult<Span, Vec<Token>> {
+    terminated(
+        parse_code_block,
+        tuple((multispace0, tag_no_case("end"))),
+    )(input)
+}
+
 fn parse_code_block(input: Span) -> IResult<Span, Vec<Token>> {
     many1(
         delimited(
@@ -324,6 +347,7 @@ fn parse_code_block(input: Span) -> IResult<Span, Vec<Token>> {
                 parse_assignment,
                 parse_call_function,
                 parse_if_chain,
+                parse_match_statement,
                 parse_while_loop,
                 parse_for_in_loop,
                 parse_for_to_step,
@@ -527,6 +551,76 @@ fn parse_if_chain(input: Span) -> IResult<Span, Token> {
     )(input)
 }
 
+fn parse_match_statement(input: Span) -> IResult<Span, Token> {
+    map(
+        terminated(
+            tuple((
+                preceded(position, terminated(tag_no_case("match"), multispace1)),
+                delimited(multispace0, parse_expression, multispace0),
+                many0(delimited(multispace0, alt((parse_match_case, parse_default_case)), multispace0))
+            )),
+            preceded(multispace0, tag_no_case("end"))
+        ),
+        |(pos, expr, arms)| {
+            Token::Match {
+                position: TokenPosition::new(&pos),
+                expr: Box::from(expr),
+
+                // remove default case
+                arms: arms.clone().into_iter().filter(|arm| {
+                    match arm {
+                        Token::DefaultCase { .. } => false,
+                        _ => true
+                    }
+                }).collect(),
+
+                // find the first default
+                default: arms.clone().into_iter().find(|arm| {
+                    match arm {
+                        Token::DefaultCase { .. } => true,
+                        _ => false
+                    }
+                }).map(|arm| Box::from(arm))
+            }
+        },
+    )(input)
+}
+
+fn parse_match_case(input: Span) -> IResult<Span, Token> {
+    map(
+        tuple((
+            position,
+            delimited(
+                terminated(tag_no_case("case"), multispace1),
+                parse_expression,
+                multispace0
+            ),
+            parse_then_block_end,
+        )),
+        |(pos, cond, body)| Token::Case {
+            position: TokenPosition::new(&pos),
+            condition: Box::from(cond),
+            body,
+        },
+    )(input)
+}
+
+fn parse_default_case(input: Span) -> IResult<Span, Token> {
+    map(
+        tuple((
+            position,
+            preceded(
+                tuple((tag_no_case("default"), multispace1)),
+                parse_then_block_end
+            ),
+        )),
+        |(pos, block)| Token::DefaultCase {
+            position: TokenPosition::new(&pos),
+            body: block,
+        },
+    )(input)
+}
+
 //===========================
 // LOOPS
 
@@ -538,7 +632,7 @@ fn parse_while_loop(input: Span) -> IResult<Span, Token> {
                 tag_no_case("while"),
                 parse_expression,
             ),
-            parse_loop_block
+            parse_do_block_end
         )),
         |(cond, block)| Token::WhileLoop {
             position: TokenPosition::new(&input),
@@ -560,7 +654,7 @@ fn parse_for_in_loop(input: Span) -> IResult<Span, Token> {
                 tag_no_case("in"),
                 parse_expression,
             ),
-            parse_loop_block
+            parse_do_block_end
         )),
         |(ident, target, block)| Token::ForEach {
             position: TokenPosition::new(&input),
@@ -591,7 +685,7 @@ fn parse_for_to_step(input: Span) -> IResult<Span, Token> {
                 tag_no_case("step"),
                 parse_expression,
             )),
-            parse_loop_block
+            parse_do_block_end
         )),
         |(ident, start, end, step, body)| Token::ForI {
             position: TokenPosition::new(&input),
@@ -604,14 +698,6 @@ fn parse_for_to_step(input: Span) -> IResult<Span, Token> {
             end: Box::from(end),
             body,
         },
-    )(input)
-}
-
-fn parse_loop_block(input: Span) -> IResult<Span, Vec<Token>> {
-    delimited(
-        tag_no_case("do"),
-        parse_code_block,
-        tag_no_case("end"),
     )(input)
 }
 
@@ -1519,6 +1605,151 @@ mod test {
                        ],
                    }
         )
+    }
+
+    #[test]
+    fn test_match_statement() {
+
+        let (_, token) = parse_match_statement(Span::new(r#"match a
+
+            case 1 then
+                print("one")
+            end
+
+            case 2 then
+                print("two")
+            end
+
+            case 3 then
+                print("three")
+            end
+
+            default then
+                print("other")
+            end
+
+        end"#)).unwrap();
+
+        assert_eq!(token, Token::Match {
+            position: TokenPosition { line: 1, column: 1 },
+            expr: Box::from(Token::Identifier {
+                position: TokenPosition { line: 1, column: 7 },
+                name: String::from("a"),
+            }),
+            arms: vec![
+                Token::Case {
+                    position: TokenPosition { line: 3, column: 13 },
+                    condition: Box::from(Token::Integer(1)),
+                    body: vec![
+                        Token::Call {
+                            position: TokenPosition { line: 4, column: 17 },
+                            name: Box::from(Token::Identifier {
+                                position: TokenPosition { line: 4, column: 17 },
+                                name: String::from("print"),
+                            }),
+                            input: vec![
+                                Token::String(String::from("one"))
+                            ],
+                        }
+                    ],
+                },
+                Token::Case {
+                    position: TokenPosition { line: 7, column: 13 },
+                    condition: Box::from(Token::Integer(2)),
+                    body: vec![
+                        Token::Call {
+                            position: TokenPosition { line: 8, column: 17 },
+                            name: Box::from(Token::Identifier {
+                                position: TokenPosition { line: 8, column: 17 },
+                                name: String::from("print"),
+                            }),
+                            input: vec![
+                                Token::String(String::from("two"))
+                            ],
+                        }
+                    ],
+                },
+                Token::Case {
+                    position: TokenPosition { line: 11, column: 13 },
+                    condition: Box::from(Token::Integer(3)),
+                    body: vec![
+                        Token::Call {
+                            position: TokenPosition { line: 12, column: 17 },
+                            name: Box::from(Token::Identifier {
+                                position: TokenPosition { line: 12, column: 17 },
+                                name: String::from("print"),
+                            }),
+                            input: vec![
+                                Token::String(String::from("three"))
+                            ],
+                        }
+                    ],
+                }
+            ],
+            default: Some(Box::new(Token::DefaultCase {
+                position: TokenPosition { line: 15, column: 13 },
+                body: vec![
+                    Token::Call {
+                        position: TokenPosition { line: 16, column: 17 },
+                        name: Box::from(Token::Identifier {
+                            position: TokenPosition { line: 16, column: 17 },
+                            name: String::from("print"),
+                        }),
+                        input: vec![
+                            Token::String(String::from("other"))
+                        ],
+                    }
+                ],
+            }))
+        })
+
+    }
+
+    #[test]
+    fn test_parse_match_case() {
+        let (_, token) = parse_match_case(Span::new(r#"case 1 then
+            print("one")
+        end"#)).unwrap();
+
+        assert_eq!(token, Token::Case {
+            position: TokenPosition { line: 1, column: 1 },
+            condition: Box::from(Token::Integer(1)),
+            body: vec![
+                Token::Call {
+                    position: TokenPosition { line: 2, column: 13 },
+                    name: Box::from(Token::Identifier {
+                        position: TokenPosition { line: 2, column: 13 },
+                        name: String::from("print"),
+                    }),
+                    input: vec![
+                        Token::String(String::from("one"))
+                    ],
+                }
+            ],
+        })
+    }
+
+    #[test]
+    fn test_parse_default_case() {
+        let (_, token) = parse_default_case(Span::new(r#"default then
+            print("other")
+        end"#)).unwrap();
+
+        assert_eq!(token, Token::DefaultCase {
+            position: TokenPosition { line: 1, column: 1 },
+            body: vec![
+                Token::Call {
+                    position: TokenPosition { line: 2, column: 13 },
+                    name: Box::from(Token::Identifier {
+                        position: TokenPosition { line: 2, column: 13 },
+                        name: String::from("print"),
+                    }),
+                    input: vec![
+                        Token::String(String::from("other"))
+                    ],
+                }
+            ],
+        })
     }
 
     #[test]
