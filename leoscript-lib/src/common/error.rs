@@ -123,7 +123,7 @@ pub enum CompilerError {
     InvalidChainItem,
     InvalidDefaultCase,
     InvalidMatchArm,
-    InvalidImportPath
+    InvalidImportPath(String),
 
 }
 

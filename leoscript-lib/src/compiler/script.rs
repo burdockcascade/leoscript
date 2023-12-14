@@ -64,7 +64,7 @@ fn compile_script(source: &str, offset: usize) -> Result<Script, ScriptError> {
         let local_offset = script.instructions.len() + offset;
 
         match token {
-            Token::Import { source, .. } => {
+            Token::Import { position, source, .. } => {
 
                 let mut dir = current_dir().unwrap().display().to_string() + "/";
 
@@ -79,13 +79,17 @@ fn compile_script(source: &str, offset: usize) -> Result<Script, ScriptError> {
                     Token::Identifier { name, .. } => {
                         println!("Importing {}", name);
                     },
-                    _ => {}
+                    _ => {
+                        return script_compile_error!(CompilerError::InvalidImportPath(source.to_string()), position)
+                    }
                 }
 
                 let filename = dir.clone() + ".leo";
 
+                let path = Path::new(&filename);
+
                 // check if file exists
-                if Path::new(&filename).exists() {
+                if path.exists() {
                     let contents = fs::read_to_string(filename)
                         .expect("Should have been able to read the file");
 
@@ -99,7 +103,7 @@ fn compile_script(source: &str, offset: usize) -> Result<Script, ScriptError> {
                     script.instructions.append(&mut imported_script.instructions);
 
                 } else {
-                    return script_compile_error!(CompilerError::InvalidImportPath);
+                    return script_compile_error!(CompilerError::InvalidImportPath(filename), position);
                 }
 
             }
