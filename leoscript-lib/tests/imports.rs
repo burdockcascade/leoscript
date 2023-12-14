@@ -7,8 +7,8 @@ mod common;
 fn test_import_module() {
 
     test_success!(r#"
-        import tests.imports.graphics
-        import tests.imports.person
+        import tests.scripts.graphics
+        import tests.scripts.person
 
         function main()
 

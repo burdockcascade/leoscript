@@ -13,8 +13,9 @@ use crate::compiler::module::compile_module;
 use crate::compiler::parser::parse_script;
 use crate::compiler::r#enum::compile_enum;
 use crate::compiler::token::Token;
-use crate::{script_compile_error, script_parse_error, script_system_error};
+use crate::{script_compile_error, script_compile_warning, script_parse_error, script_system_error};
 use crate::common::error::CompilerError::{InvalidImportExpression, InvalidImportPath, UnableToImportFile};
+use crate::common::warning::{CompilerWarning, ScriptWarning};
 
 pub const CONSTRUCTOR_NAME: &str = "constructor";
 pub const SELF_CONSTANT: &str = "self";
@@ -32,6 +33,7 @@ pub struct FunctionSignature {
 struct Script {
     pub instructions: Vec<Instruction>,
     pub globals: HashMap<String, Variant>,
+    pub warnings: Vec<ScriptWarning>,
 }
 
 pub fn compile_program(source: &str) -> Result<Program, ScriptError> {
@@ -42,6 +44,7 @@ pub fn compile_program(source: &str) -> Result<Program, ScriptError> {
     Ok(Program {
         instructions: script.instructions,
         globals: script.globals,
+        warnings: script.warnings,
     })
 
 }
@@ -51,6 +54,7 @@ fn compile_script(source: &str, offset: usize) -> Result<Script, ScriptError> {
     let mut script = Script {
         instructions: Vec::new(),
         globals: HashMap::new(),
+        warnings: Vec::new(),
     };
 
     // get tokens
@@ -109,6 +113,10 @@ fn compile_script(source: &str, offset: usize) -> Result<Script, ScriptError> {
 
                     // compile imported script
                     let mut imported_script = compile_script(&contents, local_offset)?;
+
+                    if imported_script.globals.len() == 0 {
+                        script.warnings.push(script_compile_warning!(CompilerWarning::NothingToImport, position))
+                    }
 
                     // add imported script globals to script globals
                     for (key, value) in imported_script.globals.iter() {
