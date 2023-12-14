@@ -1,6 +1,9 @@
 use std::collections::HashMap;
+use std::env::current_dir;
+use std::fs;
+use std::path::Path;
 
-use crate::common::error::ScriptError;
+use crate::common::error::{ParseError, ScriptError, CompilerError};
 use crate::common::instruction::Instruction;
 use crate::common::program::Program;
 use crate::common::variant::Variant;
@@ -10,6 +13,7 @@ use crate::compiler::module::compile_module;
 use crate::compiler::parser::parse_script;
 use crate::compiler::r#enum::compile_enum;
 use crate::compiler::token::Token;
+use crate::{script_compile_error, script_parse_error};
 
 pub const CONSTRUCTOR_NAME: &str = "constructor";
 pub const SELF_CONSTANT: &str = "self";
@@ -24,73 +28,123 @@ pub struct FunctionSignature {
     pub input: Vec<Token>,
 }
 
-pub fn compile_script(source: &str) -> Result<Program, ScriptError> {
+struct Script {
+    pub instructions: Vec<Instruction>,
+    pub globals: HashMap<String, Variant>,
+}
 
-    let result = parse_script(source);
+pub fn compile_program(source: &str) -> Result<Program, ScriptError> {
 
-    // get tokens
-    let tokens = match result {
-        Ok((_, tokens)) => {
-            tokens
-        },
-        Err(_e) => return Err(ScriptError::ParserError {
-            line: 0,
-            column: 0,
-        }),
+    // compile master script
+    let script = compile_script(source, 0)?;
+
+    Ok(Program {
+        instructions: script.instructions,
+        globals: script.globals,
+    })
+
+}
+
+fn compile_script(source: &str, offset: usize) -> Result<Script, ScriptError> {
+
+    let mut script = Script {
+        instructions: Vec::new(),
+        globals: HashMap::new(),
     };
 
-    let mut p = Program::default();
+    // get tokens
+    let tokens = match parse_script(source) {
+        Ok((_, tokens)) => tokens,
+        Err(_e) => return script_parse_error!(ParseError::UnableToParseTokens),
+    };
 
-    // collect function signatures
-    let mut function_signatures = Vec::new();
-
+    // compile imports
     for token in tokens.clone() {
+
+        let local_offset = script.instructions.len() + offset;
+
         match token {
-            Token::Function { function_name, input, .. } => {
-                function_signatures.push(FunctionSignature {
-                    name: function_name.to_string(),
-                    input,
-                });
-            },
+            Token::Import { source, .. } => {
+
+                let mut dir = current_dir().unwrap().display().to_string() + "/";
+
+                match *source {
+                    Token::DotChain { start, chain, .. } => {
+
+                        dir = dir + &*start.to_string() + "/" + &chain.iter().map(|t| match t {
+                            Token::Identifier { name, .. } => name,
+                            _ => ""
+                        }).collect::<Vec<&str>>().join("/");
+                    },
+                    Token::Identifier { name, .. } => {
+                        println!("Importing {}", name);
+                    },
+                    _ => {}
+                }
+
+                let filename = dir.clone() + ".leo";
+
+                // check if file exists
+                if Path::new(&filename).exists() {
+                    let contents = fs::read_to_string(filename)
+                        .expect("Should have been able to read the file");
+
+                    let mut imported_script = compile_script(&contents, local_offset)?;
+
+                    // add imported script globals to script globals
+                    for (key, value) in imported_script.globals.iter() {
+                        script.globals.insert(key.to_string(), value.clone());
+                    }
+
+                    script.instructions.append(&mut imported_script.instructions);
+
+                } else {
+                    return script_compile_error!(CompilerError::InvalidImportPath);
+                }
+
+            }
             _ => {}
         }
     }
 
     // compile script
     for token in tokens.clone() {
+
+        let local_offset = script.instructions.len() + offset;
+
         match token {
             Token::Function { position, function_name, input, body, .. } => {
 
                 let func = Function::new(position, function_name.to_string(), input, body)?;
-                p.globals.insert(function_name.to_string(), Variant::FunctionPointer(p.instructions.len()));
-                p.instructions.append(&mut func.instructions.clone());
+                script.globals.insert(function_name.to_string(), Variant::FunctionPointer(local_offset));
+                script.instructions.append(&mut func.instructions.clone());
 
             },
             Token::Module { position, module_name, body, .. } => {
                 let class_name_as_string = module_name.to_string();
-                let mod_struct = compile_module(position, module_name, body, p.instructions.len())?;
+                let mod_struct = compile_module(position, module_name, body, local_offset)?;
 
-                p.globals.insert(class_name_as_string, Variant::Module(mod_struct.structure));
-                p.instructions.append(&mut mod_struct.instructions.clone());
+                script.globals.insert(class_name_as_string, Variant::Module(mod_struct.structure));
+                script.instructions.append(&mut mod_struct.instructions.clone());
             }
             Token::Class {position, class_name, body, .. } => {
 
                 let class_name_as_string = class_name.to_string();
-                let class_struct = compile_class(position, class_name, body, p.instructions.len())?;
+                let class_struct = compile_class(position, class_name, body, local_offset)?;
 
-                p.globals.insert(class_name_as_string, Variant::Class(class_struct.structure));
-                p.instructions.append(&mut class_struct.instructions.clone());
+                script.globals.insert(class_name_as_string, Variant::Class(class_struct.structure));
+                script.instructions.append(&mut class_struct.instructions.clone());
 
             },
             Token::Enum { position, name, items } => {
                 let enum_def = compile_enum(position, name.clone(), items)?;
-                p.globals.insert(name, enum_def);
+                script.globals.insert(name, enum_def);
             }
             _ => {}
         }
     }
 
-    Ok(p)
+    Ok(script)
 
 }
 
@@ -233,9 +287,9 @@ mod test {
         "#;
 
         // assert compile script returns ok
-        assert!(compile_script(source).is_ok());
+        assert!(compile_program(source).is_ok());
 
-        let program = compile_script(source).unwrap();
+        let program = compile_program(source).unwrap();
 
         // assert program has 4 globals
         assert_eq!(program.globals.len(), 6);
@@ -281,7 +335,7 @@ mod test {
 
         "#;
 
-        let program = compile_script(script).unwrap();
+        let program = compile_program(script).unwrap();
 
         // fixme
         assert!(program.globals.contains_key("Vector2"));
@@ -321,7 +375,7 @@ mod test {
             end
         "#;
 
-        let program = compile_script(script).unwrap();
+        let program = compile_program(script).unwrap();
 
         // fixme
 

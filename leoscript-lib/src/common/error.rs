@@ -11,6 +11,31 @@ macro_rules! script_compile_error {
             column: $position.column,
         })
     };
+    ($error:expr) => {
+        Err(ScriptError::CompilerError {
+            error: $error,
+            line: 0,
+            column: 0,
+        })
+    };
+}
+
+#[macro_export]
+macro_rules! script_parse_error {
+    ($error:expr, $position:expr) => {
+        Err(ScriptError::ParserError {
+            error: $error,
+            line: $position.line,
+            column: $position.column,
+        })
+    };
+    ($error:expr) => {
+        Err(ScriptError::ParserError {
+            error: $error,
+            line: 0,
+            column: 0,
+        })
+    };
 }
 
 #[macro_export]
@@ -38,6 +63,7 @@ pub enum ScriptError {
         error: SystemError,
     },
     ParserError {
+        error: ParseError,
         line: usize,
         column: usize,
     },
@@ -70,6 +96,7 @@ pub enum SystemError {
 
 #[derive(Debug, PartialEq)]
 pub enum ParseError {
+    UnableToParseTokens,
     ExpectedBlockEnd,
 }
 
@@ -86,6 +113,7 @@ pub enum CompilerError {
 
     FeatureNotImplemented,
     UnableToCompile,
+    UnableToCompileScript,
     IfStatementInvalid,
     UnrecognizedItem,
 
@@ -94,7 +122,8 @@ pub enum CompilerError {
 
     InvalidChainItem,
     InvalidDefaultCase,
-    InvalidMatchArm
+    InvalidMatchArm,
+    InvalidImportPath
 
 }
 

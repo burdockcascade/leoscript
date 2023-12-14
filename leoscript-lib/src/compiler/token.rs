@@ -5,6 +5,12 @@ use crate::compiler::Span;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
+
+    Import {
+        position: TokenPosition,
+        source: Box<Token>,
+    },
+
     Comment(String),
     Print {
         position: TokenPosition,

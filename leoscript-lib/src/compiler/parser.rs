@@ -18,6 +18,7 @@ pub fn parse_script(input: &str) -> IResult<Span, Vec<Token>> {
         delimited(
             multispace0,
             alt((
+                parse_import,
                 parse_comment,
                 parse_enum,
                 parse_function,
@@ -27,6 +28,19 @@ pub fn parse_script(input: &str) -> IResult<Span, Vec<Token>> {
             multispace0,
         )
     )(Span::new(input))
+}
+
+fn parse_import(input: Span) -> IResult<Span, Token> {
+    map(
+        preceded(
+            terminated(tag_no_case("import"), multispace1),
+            alt((parse_identifier_chain, parse_identifier))
+        ),
+        |source| Token::Import {
+            position: TokenPosition::new(&input),
+            source: Box::from(source),
+        },
+    )(input)
 }
 
 // parse comment starting with double dash till end of line or end of file
@@ -1012,6 +1026,13 @@ mod test {
     #[test]
     fn test_program() {
         let input = r#"
+
+            import enterprise.people
+
+            function main()
+                var myc = new MyClass()
+            end
+
             class MyClass
                 function main()
                     books.read()
@@ -2059,6 +2080,41 @@ mod test {
                     name: String::from("Newspaper"),
                 },
             ],
+        })
+    }
+
+    #[test]
+    fn test_import_statement() {
+        let (_, tokens) = parse_import(Span::new(r#"import graphics.vector2"#)).unwrap();
+
+        assert_eq!(tokens, Token::Import {
+            position: TokenPosition { line: 1, column: 1 },
+            source: Box::new(Token::DotChain {
+                position: TokenPosition { line: 1, column: 8 },
+                start: Box::new(Token::Identifier {
+                    position: TokenPosition { line: 1, column: 8 },
+                    name: String::from("graphics"),
+                }),
+                chain: vec![
+                    Token::Identifier {
+                        position: TokenPosition { line: 1, column: 17 },
+                        name: String::from("vector2"),
+                    },
+                ],
+            }),
+        })
+    }
+
+    #[test]
+    fn test_import_statement_single_identifier() {
+        let (_, tokens) = parse_import(Span::new(r#"import graphics"#)).unwrap();
+
+        assert_eq!(tokens, Token::Import {
+            position: TokenPosition { line: 1, column: 1 },
+            source: Box::new(Token::Identifier {
+                position: TokenPosition { line: 1, column: 8 },
+                name: String::from("graphics"),
+            }),
         })
     }
 }

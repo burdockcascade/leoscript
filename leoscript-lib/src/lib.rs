@@ -1,6 +1,6 @@
 use crate::common::error::ScriptError;
 use crate::common::variant::Variant;
-use crate::compiler::script::compile_script;
+use crate::compiler::script::compile_program;
 use crate::stdlib::add_standard_library;
 use crate::vm::thread::Thread;
 
@@ -15,7 +15,7 @@ pub struct ScriptResult {
 }
 
 pub fn run_script(source: &str, entrypoint: &str, parameters: Option<Vec<Variant>>) -> Result<ScriptResult, ScriptError> {
-    let program = compile_script(source)?;
+    let program = compile_program(source)?;
 
     let mut t = Thread::load_program(program)?;
 
