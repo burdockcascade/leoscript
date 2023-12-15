@@ -14,27 +14,11 @@ macro_rules! test_success {
     };
 
     ($script:expr, $parameters:expr) => {
-        match run_script($script, "main", $parameters) {
-            Ok(result) => {
-                assert_eq!(result.result, Some(Variant::Bool(true)));
-            }
-            Err(e) => {
-                println!("Error: {:?}", e);
-                assert!(false);
-            }
-        }
+        test_success!(script, $parameters, Variant::Bool(true));
     };
 
     ($script:expr) => {
-        match run_script($script, "main", None) {
-            Ok(result) => {
-                assert_eq!(result.result, Some(Variant::Bool(true)));
-            }
-            Err(e) => {
-                println!("Error: {:?}", e);
-                assert!(false);
-            }
-        }
+        test_success!($script, None, Variant::Bool(true));
     };
 }
 
