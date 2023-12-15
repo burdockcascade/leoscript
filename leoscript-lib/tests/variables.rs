@@ -107,3 +107,21 @@ fn enums() {
         end
     "#);
 }
+
+#[test]
+fn pass_by_value() {
+    test_success!(r#"
+        function main()
+            var x = 5
+            var y = 10
+            swap(x, y)
+            return x == 5 and y == 10
+        end
+
+        function swap(a, b)
+            var temp = a
+            a = b
+            b = temp
+        end
+    "#);
+}
