@@ -34,6 +34,11 @@ impl Default for ThreadOptions {
     }
 }
 
+pub struct ExecutionResult {
+    pub output: Option<Variant>,
+    pub execution_time: std::time::Duration,
+}
+
 // macro that pops the top of the stack or returns an error with the trace
 macro_rules! pop_tos {
     ($stack:ident, $trace:ident) => {
@@ -94,16 +99,32 @@ impl Thread {
         self.program.globals.insert(name.to_string(), Variant::NativeFunction(callback));
         Ok(())
     }
+    pub fn run(&mut self,  entry: &str, parameters: Option<Vec<Variant>>) -> Result<ExecutionResult, ScriptError> {
 
-    pub fn add_global(&mut self, name: &str, value: Variant) -> Result<(), ScriptError> {
-        self.program.globals.insert(name.to_string(), value);
-        Ok(())
+        // start timer
+        let start_execution = std::time::Instant::now();
+
+        // run
+        let result = self.execute(entry, parameters);
+
+        // end timer
+        let end_execution = std::time::Instant::now();
+
+        // return result
+        match result {
+            Ok(v) => Ok(ExecutionResult {
+                output: v,
+                execution_time: end_execution - start_execution,
+            }),
+            Err(e) => Err(e),
+        }
+
     }
 
-    pub fn run(&mut self,  entry: &str, parameters: Option<Vec<Variant>>) -> Result<Option<Variant>, ScriptError> {
+    fn execute(&mut self,  entry: &str, parameters: Option<Vec<Variant>>) -> Result<Option<Variant>, ScriptError> {
 
-        let mut stack: Vec<Variant> = Vec::default();
-        let mut trace: Vec<StackTrace> = Vec::default();
+        let mut stack: Vec<Variant> = Vec::with_capacity(64);
+        let mut trace: Vec<StackTrace> = Vec::with_capacity(64);
 
         let mut ip: usize;
         let mut fp: usize = 1;
@@ -453,7 +474,6 @@ impl Thread {
 
                     // get class
                     let Variant::Class(class_template) = tos else {
-                        print!("{:?}", tos);
                         return script_runtime_error!(trace, RuntimeError::ExpectedClassOnStack);
                     };
 

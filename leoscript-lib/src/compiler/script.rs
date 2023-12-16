@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::env::current_dir;
 use std::fs;
 use std::path::Path;
+use std::time::Duration;
 
 use crate::common::error::{ParseError, ScriptError, SystemError};
 use crate::common::instruction::Instruction;
@@ -25,25 +26,36 @@ pub struct FunctionGroup {
     pub instructions: Vec<Instruction>,
 }
 
-pub struct FunctionSignature {
-    pub name: String,
-    pub input: Vec<Token>,
-}
-
 struct Script {
     pub instructions: Vec<Instruction>,
     pub globals: HashMap<String, Variant>,
     pub warnings: Vec<ScriptWarning>,
 }
 
-pub fn compile_program(source: &str) -> Result<Program, ScriptError> {
+pub struct CompilerResult {
+    pub program: Program,
+    pub compile_time: Duration,
+    pub warnings: Vec<ScriptWarning>,
+}
+
+pub fn compile_program(source: &str) -> Result<CompilerResult, ScriptError> {
+
+    // start timer
+    let start_compiler = std::time::Instant::now();
 
     // compile master script
     let script = compile_script(source, 0)?;
 
-    Ok(Program {
-        instructions: script.instructions,
-        globals: script.globals,
+    // end timer
+    let end_compiler = std::time::Instant::now();
+
+    // return script result
+    Ok(CompilerResult {
+        program: Program {
+            instructions: script.instructions,
+            globals: script.globals
+        },
+        compile_time: end_compiler - start_compiler,
         warnings: script.warnings,
     })
 
@@ -317,7 +329,8 @@ mod test {
         // assert compile script returns ok
         assert!(compile_program(source).is_ok());
 
-        let program = compile_program(source).unwrap();
+        let compiler_result = compile_program(source).unwrap();
+        let program = compiler_result.program;
 
         // assert program has 4 globals
         assert_eq!(program.globals.len(), 6);
@@ -363,7 +376,8 @@ mod test {
 
         "#;
 
-        let program = compile_program(script).unwrap();
+        let result = compile_program(script).unwrap();
+        let program = result.program;
 
         // fixme
         assert!(program.globals.contains_key("Vector2"));

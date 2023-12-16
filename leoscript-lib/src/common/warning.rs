@@ -17,7 +17,7 @@ macro_rules! script_compile_warning {
     };
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ScriptWarning {
     CompilerWarning {
         warning: CompilerWarning,
@@ -26,7 +26,7 @@ pub enum ScriptWarning {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum CompilerWarning {
     NothingToImport
 }
