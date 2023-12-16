@@ -20,10 +20,10 @@ pub fn parse_script(input: &str) -> IResult<Span, Vec<Token>> {
             alt((
                 parse_import,
                 parse_comment,
-                parse_enum,
                 parse_function,
                 parse_class,
-                parse_module
+                parse_module,
+                parse_enum
             )),
             multispace0,
         )
@@ -342,21 +342,12 @@ fn parse_do_block_end(input: Span) -> IResult<Span, Vec<Token>> {
     )(input)
 }
 
-fn parse_silent_block_end(input: Span) -> IResult<Span, Vec<Token>> {
-    terminated(
-        parse_code_block,
-        tuple((multispace0, tag_no_case("end"))),
-    )(input)
-}
-
 fn parse_code_block(input: Span) -> IResult<Span, Vec<Token>> {
     many1(
         delimited(
             multispace0,
             alt((
                 parse_comment,
-                parse_print,
-                parse_sleep,
                 parse_variable,
                 parse_assignment,
                 parse_call_function,
@@ -365,10 +356,12 @@ fn parse_code_block(input: Span) -> IResult<Span, Vec<Token>> {
                 parse_while_loop,
                 parse_for_in_loop,
                 parse_for_to_step,
+                parse_print,
+                parse_sleep,
                 parse_break,
                 parse_continue,
-                parse_function_return,
-                parse_identifier_chain
+                parse_identifier_chain,
+                parse_function_return
             )),
             multispace0)
     )(input)
