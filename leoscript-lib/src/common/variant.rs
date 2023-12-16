@@ -38,6 +38,8 @@ pub enum Variant {
     // counter with start, step, end
     Iterator(Box<Counter>),
 
+    Type(String),
+
     FramePointer(usize),
     ReturnPointer(usize),
 }

@@ -8,12 +8,17 @@ use crate::compiler::r#enum::compile_enum;
 use crate::compiler::script::{FunctionGroup, SELF_CONSTANT};
 use crate::compiler::token::{Token, TokenPosition};
 
-pub fn compile_module(_position: TokenPosition, _name: Box<Token>, body: Vec<Token>, ip_offset: usize) -> Result<FunctionGroup, ScriptError> {
+const MODULE_TYPE_FIELD: &str = "_type";
+
+pub fn compile_module(_position: TokenPosition, name: Box<Token>, body: Vec<Token>, ip_offset: usize) -> Result<FunctionGroup, ScriptError> {
 
     let mut fgroup = FunctionGroup {
         structure: HashMap::default(),
         instructions: Vec::default(),
     };
+
+    // set module type
+    fgroup.structure.insert(String::from(MODULE_TYPE_FIELD), Variant::Type(name.to_string()));
 
     for item in body.clone() {
         match item {
