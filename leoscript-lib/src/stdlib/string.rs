@@ -4,15 +4,19 @@ use crate::compiler::script::CONSTRUCTOR_NAME;
 use crate::{generic_native_class, script_native_function_error};
 use crate::stdlib::{INTERNAL_CLASS_VALUE, PARAM_0, PARAM_1};
 use std::collections::HashMap;
+use crate::vm::thread::Thread;
 
-pub fn compile_string_class() -> Variant {
+pub fn compile_string_class(t: &mut Thread) {
 
+    // add native functions
+    t.add_native_function("std_string_constructor", string_constructor);
+    t.add_native_function("std_string_length", string_constructor);
+
+    // add class
     let mut class = generic_native_class!();
-
-    class.insert(String::from(CONSTRUCTOR_NAME), Variant::NativeFunction(string_constructor));
-    class.insert(String::from("length"), Variant::NativeFunction(string_length));
-
-    Variant::Class(class)
+    class.insert(String::from(CONSTRUCTOR_NAME), Variant::NativeFunctionRef(String::from("std_string_constructor")));
+    class.insert(String::from("length"), Variant::NativeFunctionRef(String::from("std_string_length")));
+    t.add_global("String", Variant::Class(class));
 
 }
 

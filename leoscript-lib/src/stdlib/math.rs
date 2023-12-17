@@ -4,16 +4,21 @@ use crate::common::variant::Variant;
 use crate::script_native_function_error;
 use crate::stdlib::{PARAM_1, PARAM_2};
 use crate::common::error::{NativeFunctionError, ScriptError};
+use crate::vm::thread::Thread;
 
-pub fn compile_math_module() -> Variant {
+pub fn compile_math_module(t: &mut Thread) {
+
+    t.add_native_function("std_math_max", math_max);
+    t.add_native_function("std_math_min", math_min);
+    t.add_native_function("std_math_sqrt", math_sqrt);
+    t.add_native_function("std_math_abs", math_abs);
 
     let mut mhash = HashMap::new();
-    mhash.insert(String::from("min"), Variant::NativeFunction(math_min));
-    mhash.insert(String::from("max"), Variant::NativeFunction(math_max));
-    mhash.insert(String::from("sqrt"), Variant::NativeFunction(math_sqrt));
-    mhash.insert(String::from("abs"), Variant::NativeFunction(math_abs));
-
-    Variant::Module(mhash)
+    mhash.insert(String::from("min"), Variant::NativeFunctionRef(String::from("std_math_min")));
+    mhash.insert(String::from("max"), Variant::NativeFunctionRef(String::from("std_math_max")));
+    mhash.insert(String::from("sqrt"), Variant::NativeFunctionRef(String::from("std_math_sqrt")));
+    mhash.insert(String::from("abs"), Variant::NativeFunctionRef(String::from("std_math_abs")));
+    t.add_global("Math", Variant::Module(mhash));
 }
 
 fn math_max(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {

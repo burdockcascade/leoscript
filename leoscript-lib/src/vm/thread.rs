@@ -18,6 +18,7 @@ const FP_OFFSET: usize = 1;
 #[derive(Debug, PartialEq)]
 pub struct Thread {
     program: Program,
+    native_functions: HashMap<String, NativeFunctionType>,
     options: ThreadOptions,
 }
 
@@ -90,15 +91,20 @@ impl Thread {
 
         Ok(Thread {
             program,
+            native_functions: Default::default(),
             options: Default::default(),
         })
     }
 
     // add native function to global scope
-    pub fn add_native_function(&mut self, name: &str, callback: NativeFunctionType) -> Result<(), ScriptError> {
-        self.program.globals.insert(name.to_string(), Variant::NativeFunction(callback));
-        Ok(())
+    pub fn add_native_function(&mut self, name: &str, callback: NativeFunctionType) {
+        self.native_functions.insert(name.to_string(), callback);
     }
+
+    pub fn add_global(&mut self, name: &str, value: Variant) {
+        self.program.globals.insert(name.to_string(), value);
+    }
+
     pub fn run(&mut self,  entry: &str, parameters: Option<Vec<Variant>>) -> Result<ExecutionResult, ScriptError> {
 
         // start timer
@@ -356,19 +362,42 @@ impl Thread {
                     // get function reference
                     let mut tos = pop_tos!(stack, trace);
 
-                    // if tos is a FunctionRef then resolve it
+                    // check if tos is FunctionRef
                     tos = match tos {
-                        Variant::FunctionRef(fref) => {
-                            if let Some(function_ref) = self.program.globals.get(&*fref) {
-                                function_ref.clone()
-                            } else {
-                                return script_runtime_error!(trace, RuntimeError::FunctionNotFound(fref));
+
+                        // is FunctionRef and in globals
+                        Variant::FunctionRef(ident) if self.program.globals.contains_key(&ident) => {
+                            self.program.globals.get(&ident).unwrap().clone()
+                        },
+
+                        // is FunctionRef and in native_functions
+                        Variant::NativeFunctionRef(ident) if self.native_functions.contains_key(&ident) => {
+
+                            let func = self.native_functions.get(&ident).unwrap();
+
+                            match func(args) {
+                                Ok(Some(result)) => {
+                                    stack.push(result);
+                                },
+                                Ok(None) => {},
+                                Err(error) => {
+                                    return Err(error);
+                                }
                             }
-                        }
-                        _ => tos,
+
+                            ip += 1;
+                            continue;
+                        },
+
+                        // do nothing
+                        Variant::FunctionPointer(_) => tos,
+
+                        _ => return script_runtime_error!(trace, RuntimeError::InvalidFunctionOnStack(tos))
                     };
 
                     match tos {
+
+                        // jump to function pointer
                         Variant::FunctionPointer(fptr) => {
 
                             // set return pointer
@@ -388,23 +417,10 @@ impl Thread {
                             // set instruction pointer to function
                             ip = fptr;
                         },
-                        Variant::NativeFunction(func) => {
 
-                            match func(args) {
-                                Ok(Some(result)) => {
-                                    stack.push(result);
-                                },
-                                Ok(None) => {},
-                                Err(error) => {
-                                    return Err(error);
-                                }
-                            }
+                        // invalid call destination
+                        _ => return script_runtime_error!(trace, RuntimeError::InvalidCallDestination(tos))
 
-                            ip += 1;
-                        },
-                        _ => {
-                            return script_runtime_error!(trace, RuntimeError::InvalidCallDestination(tos));
-                        }
                     }
                 }
 

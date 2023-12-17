@@ -26,7 +26,7 @@ fn main() {
 
     //let matches = cli().get_matches();
 
-    let output = run_script(include_str!("example.leo"), "main", None);
+    let output = run_script(include_str!("scripts/example.leo"), "main", None);
 
     match output {
         Ok(v) => println!("Script result: {:?}", v),

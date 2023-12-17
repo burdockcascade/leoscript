@@ -31,11 +31,11 @@ pub fn add_standard_library(t: &mut Thread) -> Result<(), ScriptError> {
     t.add_native_function("println", |p| {
         println!("{}", p[PARAM_0]);
         Ok(None)
-    })?;
+    });
 
-    t.add_global("Math", compile_math_module())?;
-    t.add_global("Dictionary", compile_dictionary_class())?;
-    t.add_global("String", compile_string_class())?;
+    compile_string_class(t);
+    compile_math_module(t);
+    compile_dictionary_class(t);
 
     Ok(())
 }

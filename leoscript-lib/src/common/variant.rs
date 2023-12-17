@@ -33,7 +33,8 @@ pub enum Variant {
     FunctionRef(String),
     FunctionPointer(usize),
 
-    NativeFunction(NativeFunctionType),
+    // Native Functions
+    NativeFunctionRef(String),
 
     // counter with start, step, end
     Iterator(Box<Counter>),

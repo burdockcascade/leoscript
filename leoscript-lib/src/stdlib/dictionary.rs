@@ -5,22 +5,31 @@ use crate::{generic_native_class,  script_native_function_error};
 use crate::common::error::{NativeFunctionError, ScriptError};
 use crate::compiler::script::CONSTRUCTOR_NAME;
 use crate::stdlib::{PARAM_1, PARAM_2, PARAM_0, INTERNAL_CLASS_VALUE};
+use crate::vm::thread::Thread;
 
-pub fn compile_dictionary_class() -> Variant {
+pub fn compile_dictionary_class(t: &mut Thread) {
+
+    t.add_native_function("std_dictionary_constructor", dict_constructor);
+    t.add_native_function("std_dictionary_get", dict_get);
+    t.add_native_function("std_dictionary_set", dict_set);
+    t.add_native_function("std_dictionary_length", dict_length);
+    t.add_native_function("std_dictionary_remove", dict_remove);
+    t.add_native_function("std_dictionary_clear", dict_clear);
+    t.add_native_function("std_dictionary_keys", dict_keys);
+    t.add_native_function("std_dictionary_values", dict_values);
+    t.add_native_function("std_dictionary_contains_key", dict_contains_key);
 
     let mut class = generic_native_class!();
-
-    class.insert(String::from(CONSTRUCTOR_NAME), Variant::NativeFunction(dict_constructor));
-    class.insert(String::from("get"), Variant::NativeFunction(dict_get));
-    class.insert(String::from("set"), Variant::NativeFunction(dict_set));
-    class.insert(String::from("length"), Variant::NativeFunction(dict_length));
-    class.insert(String::from("remove"), Variant::NativeFunction(dict_remove));
-    class.insert(String::from("clear"), Variant::NativeFunction(dict_clear));
-    class.insert(String::from("keys"), Variant::NativeFunction(dict_keys));
-    class.insert(String::from("values"), Variant::NativeFunction(dict_values));
-    class.insert(String::from("contains_key"), Variant::NativeFunction(dict_contains_key));
-
-    Variant::Class(class)
+    class.insert(String::from(CONSTRUCTOR_NAME), Variant::NativeFunctionRef(String::from("std_dictionary_constructor")));
+    class.insert(String::from("get"), Variant::NativeFunctionRef(String::from("std_dictionary_get")));
+    class.insert(String::from("set"), Variant::NativeFunctionRef(String::from("std_dictionary_set")));
+    class.insert(String::from("length"), Variant::NativeFunctionRef(String::from("std_dictionary_length")));
+    class.insert(String::from("remove"), Variant::NativeFunctionRef(String::from("std_dictionary_remove")));
+    class.insert(String::from("clear"), Variant::NativeFunctionRef(String::from("std_dictionary_clear")));
+    class.insert(String::from("keys"), Variant::NativeFunctionRef(String::from("std_dictionary_keys")));
+    class.insert(String::from("values"), Variant::NativeFunctionRef(String::from("std_dictionary_values")));
+    class.insert(String::from("contains_key"), Variant::NativeFunctionRef(String::from("std_dictionary_contains_key")));
+    t.add_global("Dictionary", Variant::Class(class));
 
 }
 

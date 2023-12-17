@@ -1,5 +1,4 @@
 use std::time::Duration;
-use log::LevelFilter;
 use crate::common::error::ScriptError;
 use crate::common::program::Program;
 use crate::common::variant::Variant;

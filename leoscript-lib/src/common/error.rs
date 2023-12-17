@@ -150,6 +150,7 @@ pub enum RuntimeError {
     ExpectedIntegerOnStack,
     ExpectedIteratorOnStack,
     ExpectedObjectOnStack,
+    InvalidFunctionOnStack(Variant),
 
     InstructionPointerOutOfBounds(usize),
     EntryPointNotFound(String),
