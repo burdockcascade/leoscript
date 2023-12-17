@@ -1,3 +1,5 @@
+import scripts.person
+
 function main()
 
     var d = new Dictionary()

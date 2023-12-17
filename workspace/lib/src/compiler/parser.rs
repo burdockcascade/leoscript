@@ -14,12 +14,6 @@ use crate::compiler::Span;
 use crate::compiler::token::{Token, TokenPosition};
 use crate::script_parse_error;
 
-const KEYWORD_IMPORT: &str = "import";
-const KEYWORD_FUNCTION: &str = "function";
-const KEYWORD_END: &str = "end";
-const DOT_OPERATOR: &str = ".";
-
-
 pub struct ParserResult {
     pub tokens: Vec<Token>,
     pub parser_time: std::time::Duration,
@@ -56,9 +50,9 @@ pub fn parse_script(input: &str) -> Result<ParserResult, ScriptError> {
 fn parse_import(input: Span) -> IResult<Span, Token> {
     map(
         preceded(
-            terminated(tag_no_case(KEYWORD_IMPORT), multispace1),
+            terminated(tag_no_case("import"), multispace1),
             separated_list1(
-                tag(DOT_OPERATOR),
+                tag("."),
                 parse_identifier,
             )
         ),
@@ -118,12 +112,12 @@ fn parse_function(input: Span) -> IResult<Span, Token> {
         terminated(
             tuple((
                 opt(tuple((tag_no_case("static"), multispace1))),
-                preceded(tuple((tag_no_case(KEYWORD_FUNCTION), multispace1)), parse_identifier),
+                preceded(tuple((tag_no_case("function"), multispace1)), parse_identifier),
                 delimited(multispace0, parse_parameters, multispace0),
                 opt(preceded(tuple((tag_no_case("as"), multispace1)), parse_identifier)),
                 parse_code_block
             )),
-            tag_no_case(KEYWORD_END),
+            tag_no_case("end"),
         ),
         |(is_static, func_name, params, as_type, body)| Token::Function {
             position: TokenPosition::new(&input),
@@ -140,12 +134,12 @@ fn parse_function(input: Span) -> IResult<Span, Token> {
 fn parse_lambda(input: Span) -> IResult<Span, Token> {
     map(
         delimited(
-            tag_no_case(KEYWORD_FUNCTION),
+            tag_no_case("function"),
             tuple((
                 terminated(parse_parameters, multispace0),
                 parse_code_block
             )),
-            tag_no_case(KEYWORD_END),
+            tag_no_case("end"),
         ),
         |(params, body)| Token::AnonFunction {
             position: TokenPosition::new(&input),
@@ -226,7 +220,7 @@ fn parse_module(input: Span) -> IResult<Span, Token> {
                     )
                 ),
             )),
-            tag_no_case(KEYWORD_END)
+            tag_no_case("end")
         ),
         |(name, body)| Token::Module {
             position: TokenPosition::new(&input),
@@ -260,7 +254,7 @@ fn parse_class(input: Span) -> IResult<Span, Token> {
                     )
                 ),
             )),
-            tag_no_case(KEYWORD_END)
+            tag_no_case("end")
         ),
         |(name, body)| Token::Class {
             position: TokenPosition::new(&input),
@@ -277,7 +271,7 @@ fn parse_class_constructor(input: Span) -> IResult<Span, Token> {
                 delimited(tuple((tag_no_case("constructor"), multispace0)), parse_parameters, multispace0),
                 parse_constructor_code_block
             )),
-            tag_no_case(KEYWORD_END),
+            tag_no_case("end"),
         ),
         |(params, body)| Token::Constructor {
             position: TokenPosition::new(&input),
@@ -295,7 +289,7 @@ fn parse_new_keyword(input: Span) -> IResult<Span, Token> {
                 map(
                     tuple((
                         parse_identifier,
-                        many0(preceded(tag(DOT_OPERATOR), parse_identifier))
+                        many0(preceded(tag("."), parse_identifier))
                     )),
                     |(identifier, items)| {
                         Token::DotChain {
@@ -335,7 +329,7 @@ fn parse_enum(input: Span) -> IResult<Span, Token> {
                         parse_identifier,
                         multispace0,
                     ),
-                    tag(KEYWORD_END),
+                    tag("end"),
                 ),
             )),
         ),
@@ -353,18 +347,23 @@ fn parse_enum(input: Span) -> IResult<Span, Token> {
 // CODE BLOCK
 
 fn parse_then_block_end(input: Span) -> IResult<Span, Vec<Token>> {
-    delimited(
+    preceded(
         tuple((tag_no_case("then"), multispace0)),
-        parse_code_block,
-        tuple((multispace0, tag_no_case(KEYWORD_END))),
+        parse_open_code_block
     )(input)
 }
 
 fn parse_do_block_end(input: Span) -> IResult<Span, Vec<Token>> {
-    delimited(
+    preceded(
         tuple((tag_no_case("do"), multispace0)),
+        parse_open_code_block
+    )(input)
+}
+
+fn parse_open_code_block(input: Span) -> IResult<Span, Vec<Token>> {
+    terminated(
         parse_code_block,
-        tuple((multispace0, tag_no_case(KEYWORD_END))),
+        tuple((multispace0, tag_no_case("end")))
     )(input)
 }
 
@@ -580,7 +579,7 @@ fn parse_if_chain(input: Span) -> IResult<Span, Token> {
                 }
             },
         ),
-        tag_no_case(KEYWORD_END),
+        tag_no_case("end"),
     )(input)
 }
 
@@ -592,7 +591,7 @@ fn parse_match_statement(input: Span) -> IResult<Span, Token> {
                 delimited(multispace0, parse_expression, multispace0),
                 many0(delimited(multispace0, alt((parse_match_case, parse_default_case)), multispace0))
             )),
-            preceded(multispace0, tag_no_case(KEYWORD_END))
+            preceded(multispace0, tag_no_case("end"))
         ),
         |(pos, expr, arms)| {
             Token::Match {
@@ -1059,10 +1058,10 @@ mod test {
             end
         "#;
 
-        let (_, tokens) = parse_script(input).unwrap();
+        let result =  parse_script(input);
 
-        assert!(tokens.len() > 0);
-
+        assert!(result.is_ok());
+        assert!(result.unwrap().tokens.len() > 0);
     }
 
     #[test]
