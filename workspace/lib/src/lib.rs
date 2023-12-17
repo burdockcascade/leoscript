@@ -3,7 +3,7 @@ use crate::common::error::ScriptError;
 use crate::common::program::Program;
 use crate::common::variant::Variant;
 use crate::common::warning::ScriptWarning;
-use crate::compiler::script::{compile_program, CompilerResult};
+use crate::compiler::{compile_program, CompilerResult};
 use crate::stdlib::add_standard_library;
 use crate::vm::thread::Thread;
 
@@ -16,6 +16,7 @@ mod stdlib;
 pub struct ScriptResult {
     pub result: Option<Variant>,
     pub warnings: Vec<ScriptWarning>,
+    pub parser_time: Duration,
     pub compile_time: Duration,
     pub execution_time: Duration,
     pub total_time: Duration,
@@ -32,7 +33,8 @@ pub fn execute_program(program: Program, entrypoint: &str, parameters: Option<Ve
     Ok(ScriptResult {
         result: execution_result.output,
         warnings: Vec::new(),
-        compile_time: Duration::new(0, 0),
+        parser_time: Duration::default(),
+        compile_time: Duration::default(),
         execution_time: execution_result.execution_time,
         total_time: execution_result.execution_time,
     })
@@ -50,8 +52,9 @@ pub fn run_script(source: &str, entrypoint: &str, parameters: Option<Vec<Variant
     Ok(ScriptResult {
         result: execution_result.output,
         warnings: compiler_result.warnings,
+        parser_time: compiler_result.parser_time,
         compile_time: compiler_result.compile_time,
         execution_time: execution_result.execution_time,
-        total_time: compiler_result.compile_time + execution_result.execution_time,
+        total_time: compiler_result.parser_time + compiler_result.compile_time + execution_result.execution_time,
     })
 }
