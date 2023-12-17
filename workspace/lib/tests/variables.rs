@@ -1,6 +1,6 @@
-use leoscript_lib::common::error::{CompilerError, ScriptError};
-use leoscript_lib::common::variant::Variant;
-use leoscript_lib::run_script;
+use leoscript::common::error::{CompilerError, ScriptError};
+use leoscript::common::variant::Variant;
+use leoscript::run_script;
 
 mod common;
 

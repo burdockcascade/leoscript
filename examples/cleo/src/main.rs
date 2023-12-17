@@ -1,6 +1,6 @@
 use clap::{arg, Command};
 
-use leoscript_lib::run_script;
+use leoscript::run_script;
 
 fn cli() -> Command {
     Command::new("git")
@@ -24,7 +24,7 @@ fn cli() -> Command {
 
 fn main() {
 
-    //let matches = cli().get_matches();
+    //let matches = cleo().get_matches();
 
     let output = run_script(include_str!("scripts/example.leo"), "main", None);
 

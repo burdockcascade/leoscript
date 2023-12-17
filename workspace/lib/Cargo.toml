@@ -1,5 +1,5 @@
 [package]
-name = "leoscript-lib"
+name = "leoscript"
 version = "0.1.0"
 edition = "2021"
 
