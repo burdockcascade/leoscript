@@ -25,14 +25,8 @@ pub struct CompilerResult {
 
 pub fn compile_program(source: &str) -> Result<CompilerResult, ScriptError> {
 
-    // start timer
-    let start_compiler = std::time::Instant::now();
-
     // compile master script
     let script = compile_script(source, 0)?;
-
-    // end timer
-    let end_compiler = std::time::Instant::now();
 
     // return script result
     Ok(CompilerResult {

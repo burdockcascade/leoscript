@@ -46,7 +46,7 @@ fn string_length(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
     };
 
     if let Variant::String(v) = this.borrow().get(INTERNAL_CLASS_VALUE).unwrap() {
-        return Ok(Some(Variant::Integer(v.len() as i32)));
+        return Ok(Some(Variant::Integer(v.len() as i64)));
     }
 
     script_native_function_error!(NativeFunctionError::InvalidNativeFunction(format!("{}: {}", file!(), line!())))

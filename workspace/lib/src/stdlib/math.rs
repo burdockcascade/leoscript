@@ -41,7 +41,7 @@ fn math_min(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
 
 fn math_sqrt(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
     if let Variant::Integer(i) = p[PARAM_1] {
-        return Ok(Some(Variant::Float((i as f32).sqrt())));
+        return Ok(Some(Variant::Float((i as f64).sqrt())));
     }
     script_native_function_error!(NativeFunctionError::UnknownParameterToken)
 }

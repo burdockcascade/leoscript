@@ -582,7 +582,7 @@ impl Thread {
                         Variant::Enum(obj) => {
                             if let Variant::String(index) = key {
                                 match obj.get(index.as_str()) {
-                                    Some(v) => stack.push(Variant::Integer(*v as i32)),
+                                    Some(v) => stack.push(Variant::Integer(*v as i64)),
                                     None => return script_runtime_error!(trace, RuntimeError::InvalidObjectMember),
                                 }
                             }
@@ -692,7 +692,8 @@ impl Thread {
                 }
 
                 Instruction::Pow => {
-                    // todo: implement
+                    let (v2, v1) = pop_tos2!(stack, trace);
+                    stack.push(v1.pow(v2));
                     ip += 1;
                 }
 

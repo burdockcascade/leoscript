@@ -3,13 +3,13 @@ use crate::common::variant::Variant;
 #[derive(Clone, PartialEq, Debug)]
 pub struct Counter {
     index: usize,
-    start: i32,
-    step: i32,
+    start: i64,
+    step: i64,
     target: Variant,
 }
 
 impl Counter {
-    pub fn new(start: i32, step: i32, target: Variant) -> Self {
+    pub fn new(start: i64, step: i64, target: Variant) -> Self {
 
         Counter {
             index: 0,
@@ -35,11 +35,11 @@ impl Iterator for Counter {
                 Some(value)
             }
             Variant::Integer(end) => {
-                if self.index as i32 >= end {
+                if self.index as i64 >= end {
                     return None;
                 }
 
-                let value = Variant::Integer(self.start + (self.index as i32 * self.step));
+                let value = Variant::Integer(self.start + (self.index as i64 * self.step));
                 self.index += 1;
                 Some(value)
             }

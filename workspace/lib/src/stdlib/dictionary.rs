@@ -130,7 +130,7 @@ fn dict_set(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
 
 fn dict_length(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
     let internal_value = get_object_value(&p)?;
-    Ok(Some(Variant::Integer(internal_value.len() as i32)))
+    Ok(Some(Variant::Integer(internal_value.len() as i64)))
 }
 
 fn dict_remove(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {

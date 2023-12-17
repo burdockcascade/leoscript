@@ -92,8 +92,8 @@ pub enum Token {
     },
 
     Null,
-    Integer(i32),
-    Float(f32),
+    Integer(i64),
+    Float(f64),
     Bool(bool),
     String(String),
 

@@ -17,8 +17,8 @@ pub enum Variant {
 
     // Primitive Types
     Null,
-    Integer(i32),
-    Float(f32),
+    Integer(i64),
+    Float(f64),
     Bool(bool),
     String(String),
     Array(Vec<Variant>),
@@ -124,8 +124,8 @@ impl Sub for Variant {
     fn sub(self, rhs: Variant) -> <Self as Sub<Variant>>::Output {
         match (self, rhs) {
             (Variant::Integer(v1), Variant::Integer(v2)) => Variant::Integer(v1 - v2),
-            (Variant::Integer(v1), Variant::Float(v2)) => Variant::Float(v1 as f32 - v2),
-            (Variant::Float(v1), Variant::Integer(v2)) => Variant::Float(v1 - v2 as f32),
+            (Variant::Integer(v1), Variant::Float(v2)) => Variant::Float(v1 as f64 - v2),
+            (Variant::Float(v1), Variant::Integer(v2)) => Variant::Float(v1 - v2 as f64),
             (Variant::Float(v1), Variant::Float(v2)) => Variant::Float(v1 - v2),
             _ => unreachable!("can not subtract values")
         }
@@ -146,11 +146,11 @@ impl Add for Variant {
 
             // add integers together
             (Variant::Integer(v1), Variant::Integer(v2)) => Variant::Integer(v1 + v2),
-            (Variant::Integer(v1), Variant::Float(v2)) => Variant::Float(v1 as f32 + v2),
+            (Variant::Integer(v1), Variant::Float(v2)) => Variant::Float(v1 as f64 + v2),
             (Variant::Integer(v1), Variant::String(v2)) => Variant::String(v1.to_string().add(v2.as_str())),
 
             // add floats together
-            (Variant::Float(v1), Variant::Integer(v2)) => Variant::Float(v1 + v2 as f32),
+            (Variant::Float(v1), Variant::Integer(v2)) => Variant::Float(v1 + v2 as f64),
             (Variant::Float(v1), Variant::Float(v2)) => Variant::Float(v1 + v2),
 
             // add strings together
@@ -183,8 +183,8 @@ impl Mul for Variant {
 
         match (lhs.clone(), rhs.clone()) {
             (Variant::Integer(v1), Variant::Integer(v2)) => Variant::Integer(v1 * v2),
-            (Variant::Integer(v1), Variant::Float(v2)) => Variant::Float(v1 as f32 * v2),
-            (Variant::Float(v1), Variant::Integer(v2)) => Variant::Float(v1 * v2 as f32),
+            (Variant::Integer(v1), Variant::Float(v2)) => Variant::Float(v1 as f64 * v2),
+            (Variant::Float(v1), Variant::Integer(v2)) => Variant::Float(v1 * v2 as f64),
             (Variant::Float(v1), Variant::Float(v2)) => Variant::Float(v1 * v2),
             _ => {
                 error!("Multiplying {:?} * {:?}", lhs, rhs);
@@ -201,8 +201,8 @@ impl Div for Variant {
     fn div(self, rhs: Variant) -> <Self as Div<Variant>>::Output {
         match (self, rhs) {
             (Variant::Integer(v1), Variant::Integer(v2)) => Variant::Integer(v1 / v2),
-            (Variant::Integer(v1), Variant::Float(v2)) => Variant::Float(v1 as f32 / v2),
-            (Variant::Float(v1), Variant::Integer(v2)) => Variant::Float(v1 / v2 as f32),
+            (Variant::Integer(v1), Variant::Float(v2)) => Variant::Float(v1 as f64 / v2),
+            (Variant::Float(v1), Variant::Integer(v2)) => Variant::Float(v1 / v2 as f64),
             (Variant::Float(v1), Variant::Float(v2)) => Variant::Float(v1 / v2),
             _ => unreachable!("can not divide values")
         }
@@ -218,6 +218,19 @@ impl Not for Variant {
             Variant::Bool(true) => Variant::Bool(false),
             Variant::Bool(false) => Variant::Bool(true),
             _ => Variant::Bool(false),
+        }
+    }
+}
+
+// power of
+impl Variant {
+    pub fn pow(&self, rhs: Variant) -> Variant {
+        match (self, rhs) {
+            (Variant::Integer(v1), Variant::Integer(v2)) => Variant::Integer(v1.pow(v2 as u32)),
+            (Variant::Integer(v1), Variant::Float(v2)) => Variant::Float((*v1 as f64).powf(v2)),
+            (Variant::Float(v1), Variant::Integer(v2)) => Variant::Float(v1.powf(v2 as f64)),
+            (Variant::Float(v1), Variant::Float(v2)) => Variant::Float(v1.powf(v2)),
+            _ => unreachable!("can not pow values")
         }
     }
 }

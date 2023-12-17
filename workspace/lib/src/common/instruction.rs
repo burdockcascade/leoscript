@@ -8,8 +8,8 @@ pub enum Instruction {
 
     // Stack
     PushNull,
-    PushInteger(i32),
-    PushFloat(f32),
+    PushInteger(i64),
+    PushFloat(f64),
     PushBool(bool),
     PushString(String),
     PushFunctionRef(String),

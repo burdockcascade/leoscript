@@ -854,7 +854,7 @@ fn parse_integer(input: Span) -> IResult<Span, Token> {
             if sign.is_some() {
                 s.insert(0, '-');
             }
-            Token::Integer(s.parse::<i32>().unwrap())
+            Token::Integer(s.parse::<i64>().unwrap())
         },
     )(input)
 }
@@ -877,7 +877,7 @@ fn parse_float(input: Span) -> IResult<Span, Token> {
             if sign.is_some() {
                 s.insert(0, '-');
             }
-            Token::Float(s.parse::<f32>().unwrap())
+            Token::Float(s.parse::<f64>().unwrap())
         },
     )(input)
 }
