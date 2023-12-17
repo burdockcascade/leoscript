@@ -11,6 +11,8 @@ use nom_locate::position;
 
 use crate::compiler::Span;
 use crate::compiler::token::{Token, TokenPosition};
+const KEYWORD_IMPORT: &str = "import";
+const DOT_OPERATOR: &str = ".";
 
 pub fn parse_script(input: &str) -> IResult<Span, Vec<Token>> {
 
@@ -33,12 +35,15 @@ pub fn parse_script(input: &str) -> IResult<Span, Vec<Token>> {
 fn parse_import(input: Span) -> IResult<Span, Token> {
     map(
         preceded(
-            terminated(tag_no_case("import"), multispace1),
-            alt((parse_identifier_chain, parse_identifier))
+            terminated(tag_no_case(KEYWORD_IMPORT), multispace1),
+            separated_list0(
+                tag(DOT_OPERATOR),
+                parse_identifier,
+            )
         ),
         |source| Token::Import {
             position: TokenPosition::new(&input),
-            source: Box::from(source),
+            source,
         },
     )(input)
 }
@@ -2082,19 +2087,16 @@ mod test {
 
         assert_eq!(tokens, Token::Import {
             position: TokenPosition { line: 1, column: 1 },
-            source: Box::new(Token::DotChain {
-                position: TokenPosition { line: 1, column: 8 },
-                start: Box::new(Token::Identifier {
+            source: vec![
+                Token::Identifier {
                     position: TokenPosition { line: 1, column: 8 },
                     name: String::from("graphics"),
-                }),
-                chain: vec![
-                    Token::Identifier {
-                        position: TokenPosition { line: 1, column: 17 },
-                        name: String::from("vector2"),
-                    },
-                ],
-            }),
+                },
+                Token::Identifier {
+                    position: TokenPosition { line: 1, column: 17 },
+                    name: String::from("vector2"),
+                }
+            ]
         })
     }
 
@@ -2104,10 +2106,12 @@ mod test {
 
         assert_eq!(tokens, Token::Import {
             position: TokenPosition { line: 1, column: 1 },
-            source: Box::new(Token::Identifier {
-                position: TokenPosition { line: 1, column: 8 },
-                name: String::from("graphics"),
-            }),
+            source: vec![
+                Token::Identifier {
+                    position: TokenPosition { line: 1, column: 8 },
+                    name: String::from("graphics"),
+                },
+            ]
         })
     }
 }

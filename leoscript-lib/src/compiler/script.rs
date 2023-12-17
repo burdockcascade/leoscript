@@ -15,7 +15,7 @@ use crate::compiler::parser::parse_script;
 use crate::compiler::r#enum::compile_enum;
 use crate::compiler::token::Token;
 use crate::{script_compile_error, script_compile_warning, script_parse_error, script_system_error};
-use crate::common::error::CompilerError::{InvalidImportExpression, InvalidImportPath, UnableToImportFile};
+use crate::common::error::CompilerError::{InvalidImportPath, UnableToImportFile};
 use crate::common::warning::{CompilerWarning, ScriptWarning};
 
 pub const CONSTRUCTOR_NAME: &str = "constructor";
@@ -97,19 +97,13 @@ fn compile_script(source: &str, offset: usize) -> Result<Script, ScriptError> {
                 // get file path
                 let mut filepath = dir.display().to_string() + path_separator;
 
-                // get file name
-                match *source {
-                    Token::DotChain { start, chain, .. } => {
-                        filepath = filepath + &*start.to_string() + path_separator + &chain.iter().map(|t| match t {
-                            Token::Identifier { name, .. } => name,
-                            _ => ""
-                        }).collect::<Vec<&str>>().join(path_separator);
-                    },
-                    Token::Identifier { name, .. } => {
-                        filepath = filepath + &*name;
-                    },
-                    _ => {
-                        return script_compile_error!(InvalidImportExpression(source.to_string()), position)
+                // convert list of identifiers to path
+                for (i, identifier) in source.iter().enumerate() {
+                    if let Token::Identifier { name, .. } = identifier {
+                        filepath += name;
+                        if i < source.len() - 1 {
+                            filepath += path_separator;
+                        }
                     }
                 }
 

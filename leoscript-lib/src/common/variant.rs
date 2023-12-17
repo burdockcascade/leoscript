@@ -9,7 +9,6 @@ use std::rc::Rc;
 use log::error;
 
 use crate::common::counter::Counter;
-use crate::common::NativeFunctionType;
 
 // Value
 #[derive(Clone, PartialEq, Debug)]

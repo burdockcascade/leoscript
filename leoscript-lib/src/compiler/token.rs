@@ -8,7 +8,7 @@ pub enum Token {
 
     Import {
         position: TokenPosition,
-        source: Box<Token>,
+        source: Vec<Token>,
     },
 
     Comment(String),
