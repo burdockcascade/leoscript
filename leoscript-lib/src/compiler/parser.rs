@@ -5,7 +5,7 @@ use nom::bytes::complete::{tag, tag_no_case, take_till, take_until};
 use nom::character::complete::{alpha1, alphanumeric1, char, crlf, digit1, multispace0, multispace1};
 use nom::combinator::{map, opt, recognize};
 use nom::IResult;
-use nom::multi::{many0, many1, many_till, separated_list0};
+use nom::multi::{many0, many1, many_till, separated_list0, separated_list1};
 use nom::sequence::{delimited, preceded, separated_pair, terminated, tuple};
 use nom_locate::position;
 
@@ -36,7 +36,7 @@ fn parse_import(input: Span) -> IResult<Span, Token> {
     map(
         preceded(
             terminated(tag_no_case(KEYWORD_IMPORT), multispace1),
-            separated_list0(
+            separated_list1(
                 tag(DOT_OPERATOR),
                 parse_identifier,
             )
@@ -170,11 +170,7 @@ fn parse_call_function(input: Span) -> IResult<Span, Token> {
     map(
         tuple((
             parse_identifier,
-            delimited(
-                tag("("),
-                separated_list0(tuple((multispace0, tag(","), multispace0)), parse_expression),
-                tag(")"),
-            )
+            parse_bracketed_arguments
         )),
         |(name, params)| Token::Call {
             position: TokenPosition::new(&input),
@@ -278,7 +274,7 @@ fn parse_new_keyword(input: Span) -> IResult<Span, Token> {
                 map(
                     tuple((
                         parse_identifier,
-                        many0(preceded(char('.'), parse_identifier))
+                        many0(preceded(tag(DOT_OPERATOR), parse_identifier))
                     )),
                     |(identifier, items)| {
                         Token::DotChain {
@@ -288,14 +284,18 @@ fn parse_new_keyword(input: Span) -> IResult<Span, Token> {
                         }
                     },
                 ),
-                delimited(
-                    tag("("),
-                    separated_list0(tuple((multispace0, tag(","), multispace0)), parse_expression),
-                    tag(")"),
-                )
+                parse_bracketed_arguments
             ))
         ),
         |(id, args)| Token::NewObject { name: Box::from(id), input: args },
+    )(input)
+}
+
+fn parse_bracketed_arguments(input: Span) -> IResult<Span, Vec<Token>> {
+    delimited(
+        tag("("),
+        separated_list0(tuple((multispace0, tag(","), multispace0)), parse_expression),
+        tag(")"),
     )(input)
 }
 
