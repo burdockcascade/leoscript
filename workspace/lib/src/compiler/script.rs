@@ -48,6 +48,11 @@ impl Default for Script {
     }
 }
 
+struct PrecompileResult {
+    tokens: Vec<Token>,
+    parser_time: Duration,
+}
+
 pub(crate) fn compile_script(source: &str, offset: usize) -> Result<Script, ScriptError> {
 
     let mut script = Script::default();
@@ -55,22 +60,21 @@ pub(crate) fn compile_script(source: &str, offset: usize) -> Result<Script, Scri
     // get tokens
     let parser_result = parse_script(source)?;
 
+    // update parser timer
     script.parser_time = parser_result.parser_time;
 
-    // fixme - doesn't split between parser and compiler
-    let start_compiler_timer = std::time::Instant::now();
+    // set local offset
+    let local_offset = script.instructions.len() + offset;
+
+    // set path separator based on local system
+    // fixme - this should be moved to a more global location
+    let path_separator = match std::env::consts::OS {
+        "windows" => "\\",
+        _ => "/"
+    };
 
     // compile imports
     for token in parser_result.tokens.clone() {
-
-        let local_offset = script.instructions.len() + offset;
-
-        // set path separator based on local system
-        // fixme - this should be moved to a more global location
-        let path_separator = match std::env::consts::OS {
-            "windows" => "\\",
-            _ => "/"
-        };
 
         match token {
             Token::Import { position, source, .. } => {
@@ -140,6 +144,8 @@ pub(crate) fn compile_script(source: &str, offset: usize) -> Result<Script, Scri
             _ => {}
         }
     }
+
+    let start_compiler_timer = std::time::Instant::now();
 
     // compile script
     for token in parser_result.tokens.clone() {
