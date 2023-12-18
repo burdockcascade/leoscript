@@ -684,21 +684,7 @@ impl Function {
                 self.instructions.push(Instruction::PushFunctionRef(func_name));
             }
 
-            // Token::CollectionIndex(id, index) => {
-            //
-            //     // load array
-            //     let Token::Identifier(id_name) = *id else { panic!("expected identifier") };
-            //     self.instructions.push(Instruction::LoadLocalVariable(self.get_variable(id_name.as_str())));
-            //
-            //     // compile index
-            //     self.compile_expression(index);
-            //
-            //     // get array value
-            //     self.instructions.push(Instruction::GetCollectionItem);
-            //
-            // }
-
-            Token::NewObject { name, input } => {
+            Token::NewObject { name, input, position } => {
                 self.compile_new_object(position, name, input)?
             }
 
@@ -710,84 +696,84 @@ impl Function {
                 self.compile_call(position, name, input)?;
             }
 
-            Token::Eq(t1, t2) => {
-                self.compile_expression(position, t1)?;
-                self.compile_expression(position, t2)?;
+            Token::Eq { expr1, expr2 } => {
+                self.compile_expression(position, expr1)?;
+                self.compile_expression(position, expr2)?;
                 self.instructions.push(Instruction::Equal);
             }
 
-            Token::Ne(t1, t2) => {
-                self.compile_expression(position, t1)?;
-                self.compile_expression(position, t2)?;
+            Token::Ne { expr1, expr2 }=> {
+                self.compile_expression(position, expr1)?;
+                self.compile_expression(position, expr2)?;
                 self.instructions.push(Instruction::NotEqual);
             }
 
-            Token::Add(t1, t2) => {
-                self.compile_expression(position, t1)?;
-                self.compile_expression(position, t2)?;
+            Token::Add { expr1, expr2 } => {
+                self.compile_expression(position, expr1)?;
+                self.compile_expression(position, expr2)?;
                 self.instructions.push(Instruction::Add);
             }
 
-            Token::Sub(t1, t2) => {
-                self.compile_expression(position, t1)?;
-                self.compile_expression(position, t2)?;
+            Token::Sub { expr1, expr2 } => {
+            self.compile_expression(position, expr1)?;
+            self.compile_expression(position, expr2)?;
                 self.instructions.push(Instruction::Sub);
             }
 
-            Token::Mul(t1, t2) => {
-                self.compile_expression(position, t1)?;
-                self.compile_expression(position, t2)?;
+            Token::Mul { expr1, expr2 } => {
+                self.compile_expression(position, expr1)?;
+                self.compile_expression(position, expr2)?;
                 self.instructions.push(Instruction::Multiply);
             }
 
-            Token::Div(t1, t2) => {
-                self.compile_expression(position, t1)?;
-                self.compile_expression(position, t2)?;
+            Token::Div { expr1, expr2 } => {
+                self.compile_expression(position, expr1)?;
+                self.compile_expression(position, expr2)?;
                 self.instructions.push(Instruction::Divide);
             }
 
-            Token::Pow(t1, t2) => {
-                self.compile_expression(position, t1)?;
-                self.compile_expression(position, t2)?;
+            Token::Pow { expr1, expr2 } => {
+                self.compile_expression(position, expr1)?;
+                self.compile_expression(position, expr2)?;
                 self.instructions.push(Instruction::Pow);
             }
 
-            Token::Lt(a, b) => {
-                self.compile_expression(position, a)?;
-                self.compile_expression(position, b)?;
+            Token::Lt { expr1, expr2 } => {
+                self.compile_expression(position, expr1)?;
+                self.compile_expression(position, expr2)?;
                 self.instructions.push(Instruction::LessThan);
             }
 
-            Token::Le(a, b) => {
-                self.compile_expression(position, a)?;
-                self.compile_expression(position, b)?;
+            Token::Le { expr1, expr2 } => {
+                self.compile_expression(position, expr1)?;
+                self.compile_expression(position, expr2)?;
                 self.instructions.push(Instruction::LessThanOrEqual);
             }
 
-            Token::Gt(a, b) => {
-                self.compile_expression(position, a)?;
-                self.compile_expression(position, b)?;
+            Token::Gt { expr1, expr2 } => {
+                self.compile_expression(position, expr1)?;
+                self.compile_expression(position, expr2)?;
                 self.instructions.push(Instruction::GreaterThan);
             }
 
-            Token::Ge(a, b) => {
-                self.compile_expression(position, a)?;
-                self.compile_expression(position, b)?;
+            Token::Ge { expr1, expr2 } => {
+                self.compile_expression(position, expr1)?;
+                self.compile_expression(position, expr2)?;
                 self.instructions.push(Instruction::GreaterThanOrEqual);
             }
 
-            Token::Not(expr) => {
+            Token::Not { expr } => {
                 self.compile_expression(position, expr)?;
                 self.instructions.push(Instruction::Not);
             }
 
-            Token::And(expr1, expr2) => {
+            Token::And { expr1, expr2 } => {
                 self.compile_expression(position, expr1)?;
                 self.compile_expression(position, expr2)?;
                 self.instructions.push(Instruction::And);
             }
 
-            Token::Or(expr1, expr2) => {
+            Token::Or { expr1, expr2 } => {
                 self.compile_expression(position, expr1)?;
                 self.compile_expression(position, expr2)?;
                 self.instructions.push(Instruction::Or);
@@ -799,6 +785,7 @@ impl Function {
 
         Ok(())
     }
+
 }
 
 #[cfg(test)]

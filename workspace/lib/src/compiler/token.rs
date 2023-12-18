@@ -81,6 +81,7 @@ pub enum Token {
     },
 
     NewObject {
+        position: TokenPosition,
         name: Box<Token>,
         input: Vec<Token>,
     },
@@ -108,20 +109,20 @@ pub enum Token {
         items: Vec<Token>
     },
 
-    Not(Box<Token>),
-    And(Box<Token>, Box<Token>),
-    Or(Box<Token>, Box<Token>),
-    Eq(Box<Token>, Box<Token>),
-    Ne(Box<Token>, Box<Token>),
-    Lt(Box<Token>, Box<Token>),
-    Le(Box<Token>, Box<Token>),
-    Gt(Box<Token>, Box<Token>),
-    Ge(Box<Token>, Box<Token>),
-    Add(Box<Token>, Box<Token>),
-    Sub(Box<Token>, Box<Token>),
-    Mul(Box<Token>, Box<Token>),
-    Div(Box<Token>, Box<Token>),
-    Pow(Box<Token>, Box<Token>),
+    Not { expr: Box<Token> },
+    And { expr1: Box<Token>, expr2: Box<Token> },
+    Or { expr1: Box<Token>, expr2: Box<Token> },
+    Eq { expr1: Box<Token>, expr2: Box<Token> },
+    Ne { expr1: Box<Token>, expr2: Box<Token> },
+    Lt { expr1: Box<Token>, expr2: Box<Token> },
+    Le { expr1: Box<Token>, expr2: Box<Token> },
+    Gt { expr1: Box<Token>, expr2: Box<Token> },
+    Ge { expr1: Box<Token>, expr2: Box<Token> },
+    Add { expr1: Box<Token>, expr2: Box<Token> },
+    Sub { expr1: Box<Token>, expr2: Box<Token> },
+    Mul { expr1: Box<Token>, expr2: Box<Token> },
+    Div { expr1: Box<Token>, expr2: Box<Token> },
+    Pow { expr1: Box<Token>, expr2: Box<Token> },
 
     IfChain {
         position: TokenPosition,

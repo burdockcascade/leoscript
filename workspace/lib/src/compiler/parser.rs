@@ -302,7 +302,11 @@ fn parse_new_keyword(input: Span) -> IResult<Span, Token> {
                 parse_bracketed_arguments
             ))
         ),
-        |(id, args)| Token::NewObject { name: Box::from(id), input: args },
+        |(id, args)| Token::NewObject {
+            position: TokenPosition::new(&input),
+            name: Box::from(id),
+            input: args
+        },
     )(input)
 }
 
@@ -945,7 +949,9 @@ fn parse_expression_stmt(input: Span) -> IResult<Span, Token> {
         )),
         |(not, expr)| {
             if not.is_some() {
-                Token::Not(Box::from(expr))
+                Token::Not {
+                    expr: Box::from(expr),
+                }
             } else {
                 expr
             }
@@ -1016,19 +1022,58 @@ fn parse_parentheses(input: Span) -> IResult<Span, Token> {
 fn parse_expr_tag(expr: Token, rem: Vec<(Span, Token)>) -> Token {
     rem.into_iter().fold(expr, |expr1, (op, expr2)| {
         match *op.fragment() {
-            "+" => Token::Add(Box::from(expr1), Box::from(expr2)),
-            "-" => Token::Sub(Box::from(expr1), Box::from(expr2)),
-            "*" => Token::Mul(Box::from(expr1), Box::from(expr2)),
-            "/" => Token::Div(Box::from(expr1), Box::from(expr2)),
-            "^" => Token::Pow(Box::from(expr1), Box::from(expr2)),
-            "==" => Token::Eq(Box::from(expr1), Box::from(expr2)),
-            ">" => Token::Gt(Box::from(expr1), Box::from(expr2)),
-            ">=" => Token::Ge(Box::from(expr1), Box::from(expr2)),
-            "<" => Token::Lt(Box::from(expr1), Box::from(expr2)),
-            "<=" => Token::Le(Box::from(expr1), Box::from(expr2)),
-            "!=" => Token::Ne(Box::from(expr1), Box::from(expr2)),
-            "and" => Token::And(Box::from(expr1), Box::from(expr2)),
-            "or" => Token::Or(Box::from(expr1), Box::from(expr2)),
+            "+" => Token::Add {
+                expr1: Box::from(expr1),
+                expr2: Box::from(expr2),
+            },
+            "-" => Token::Sub{
+                expr1: Box::from(expr1),
+                expr2: Box::from(expr2),
+            },
+            "*" => Token::Mul{
+                expr1: Box::from(expr1),
+                expr2: Box::from(expr2),
+            },
+            "/" => Token::Div{
+                expr1: Box::from(expr1),
+                expr2: Box::from(expr2),
+            },
+            "^" => Token::Pow{
+                expr1: Box::from(expr1),
+                expr2: Box::from(expr2),
+            },
+            "==" => Token::Eq{
+                expr1: Box::from(expr1),
+                expr2: Box::from(expr2),
+            },
+            ">" => Token::Gt{
+                expr1: Box::from(expr1),
+                expr2: Box::from(expr2),
+            },
+            ">=" => Token::Ge{
+                expr1: Box::from(expr1),
+                expr2: Box::from(expr2),
+            },
+            "<" => Token::Lt{
+                expr1: Box::from(expr1),
+                expr2: Box::from(expr2),
+            },
+            "<=" => Token::Le{
+                expr1: Box::from(expr1),
+                expr2: Box::from(expr2),
+            },
+            "!=" => Token::Ne{
+                expr1: Box::from(expr1),
+                expr2: Box::from(expr2),
+            },
+            "and" => Token::And{
+                expr1: Box::from(expr1),
+                expr2: Box::from(expr2),
+            },
+            "or" => Token::Or{
+                expr1: Box::from(expr1),
+                expr2: Box::from(expr2),
+            },
             _ => unimplemented!(),
         }
     })
@@ -1113,16 +1158,16 @@ mod test {
             body: vec![
                 Token::Return {
                     position: TokenPosition { line: 2, column: 13 },
-                    expr: Some(Box::from(Token::Sub(
-                        Box::from(Token::Identifier {
+                    expr: Some(Box::from(Token::Sub {
+                        expr1: Box::from(Token::Identifier {
                             position: TokenPosition { line: 2, column: 20 },
                             name: String::from("a"),
                         }),
-                        Box::from(Token::Identifier {
+                        expr2: Box::from(Token::Identifier {
                             position: TokenPosition { line: 2, column: 24 },
                             name: String::from("b"),
                         }),
-                    ))),
+                    })),
                 }
             ],
         })
@@ -1309,68 +1354,71 @@ mod test {
     fn test_parse_add_statement() {
         let (_, tokens) = parse_math_expr(Span::new("12 + 34.7")).unwrap();
 
-        assert_eq!(tokens, Token::Add(
-            Box::from(Token::Integer(12)),
-            Box::from(Token::Float(34.7)))
-        );
+        assert_eq!(tokens, Token::Add {
+            expr1: Box::from(Token::Integer(12)),
+            expr2: Box::from(Token::Float(34.7)),
+        });
     }
 
     #[test]
     fn test_parse_nested_add_sub_statements() {
         let (_, tokens) = parse_math_expr(Span::new("12 - 34 + 15 - 9")).unwrap();
 
-        assert_eq!(tokens, Token::Sub(
-            Box::from(Token::Add(
-                Box::from(Token::Sub(
-                    Box::from(Token::Integer(12)),
-                    Box::from(Token::Integer(34)))),
-                Box::from(Token::Integer(15)),
-            )),
-            Box::from(Token::Integer(9)),
-        ));
+        assert_eq!(tokens, Token::Sub {
+            expr1: Box::from(Token::Add {
+                expr1: Box::from(Token::Sub {
+                    expr1: Box::from(Token::Integer(12)),
+                    expr2: Box::from(Token::Integer(34)),
+                }),
+                expr2: Box::from(Token::Integer(15)),
+            }),
+            expr2: Box::from(Token::Integer(9)),
+        });
     }
 
     #[test]
     fn test_parse_multi_level_expression() {
         let (_, tokens) = parse_expression2(Span::new("1 * 2 + 3 / 4 ^ 6 == 2")).unwrap();
 
-        assert_eq!(tokens, Token::Eq(
-            Box::from(Token::Add(
-                Box::from(Token::Mul(
-                    Box::from(Token::Integer(1)),
-                    Box::from(Token::Integer(2)))),
-                Box::from(Token::Div(
-                    Box::from(Token::Integer(3)),
-                    Box::from(Token::Pow(
-                        Box::from(Token::Integer(4)),
-                        Box::from(Token::Integer(6)),
-                    )),
-                )),
-            )),
-            Box::from(Token::Integer(2)),
-        ));
+        assert_eq!(tokens, Token::Eq {
+            expr1: Box::from(Token::Add {
+                expr1: Box::from(Token::Mul {
+                    expr1: Box::from(Token::Integer(1)),
+                    expr2: Box::from(Token::Integer(2)),
+                }),
+                expr2: Box::from(Token::Div {
+                    expr1: Box::from(Token::Integer(3)),
+                    expr2: Box::from(Token::Pow {
+                        expr1: Box::from(Token::Integer(4)),
+                        expr2: Box::from(Token::Integer(6)),
+                    }),
+                }),
+            }),
+            expr2: Box::from(Token::Integer(2)),
+        });
     }
 
     #[test]
     fn test_parse_expression_with_parantheses() {
         let (_, token) = parse_expression2(Span::new("(1 + 2) * 3")).unwrap();
 
-        assert_eq!(token, Token::Mul(
-            Box::from(Token::Add(
-                Box::from(Token::Integer(1)),
-                Box::from(Token::Integer(2)))),
-            Box::from(Token::Integer(3)),
-        ));
+        assert_eq!(token, Token::Mul {
+            expr1: Box::from(Token::Add {
+                expr1: Box::from(Token::Integer(1)),
+                expr2: Box::from(Token::Integer(2)),
+            }),
+            expr2: Box::from(Token::Integer(3)),
+        });
     }
 
     #[test]
     fn test_parse_expression_equals() {
         let (_, token) = parse_expression2(Span::new("1 == 1")).unwrap();
 
-        assert_eq!(token, Token::Eq(
-            Box::from(Token::Integer(1)),
-            Box::from(Token::Integer(1)),
-        ));
+        assert_eq!(token, Token::Eq {
+            expr1: Box::from(Token::Integer(1)),
+            expr2: Box::from(Token::Integer(1)),
+        });
     }
 
     #[test]
@@ -1408,8 +1456,8 @@ mod test {
                         Token::Bool(true)
                     ],
                 },
-                Token::Eq(
-                    Box::from(Token::Call {
+                Token::Eq {
+                    expr1: Box::from(Token::Call {
                         position: TokenPosition { line: 1, column: 17 },
                         name: Box::from(Token::Identifier {
                             position: TokenPosition { line: 1, column: 17 },
@@ -1417,17 +1465,17 @@ mod test {
                         }),
                         input: vec![],
                     }),
-                    Box::from(Token::Identifier {
+                    expr2: Box::from(Token::Identifier {
                         position: TokenPosition { line: 1, column: 29 },
                         name: String::from("b"),
                     }),
-                ),
+                },
                 Token::Integer(1),
                 Token::Float(3.6),
-                Token::Gt(
-                    Box::from(Token::Integer(4)),
-                    Box::from(Token::Integer(6)),
-                ),
+                Token::Gt {
+                    expr1: Box::from(Token::Integer(4)),
+                    expr2: Box::from(Token::Integer(6)),
+                },
                 Token::String(String::from("hello world")),
             ],
         })
@@ -1458,16 +1506,16 @@ mod test {
             body: vec![
                 Token::Return {
                     position: TokenPosition { line: 2, column: 13 },
-                    expr: Some(Box::from(Token::Div(
-                        Box::from(Token::Identifier {
+                    expr: Some(Box::from(Token::Div {
+                        expr1: Box::from(Token::Identifier {
                             position: TokenPosition { line: 2, column: 20 },
                             name: String::from("a"),
                         }),
-                        Box::from(Token::Identifier {
+                        expr2: Box::from(Token::Identifier {
                             position: TokenPosition { line: 2, column: 24 },
                             name: String::from("b"),
                         }),
-                    ))),
+                    })),
                 }
             ],
         })
@@ -1487,13 +1535,13 @@ mod test {
         let (_, tokens) = parse_function_return(Span::new("return 7 * b")).unwrap();
         assert_eq!(tokens, Token::Return {
             position: TokenPosition { line: 1, column: 1 },
-            expr: Some(Box::from(Token::Mul(
-                Box::from(Token::Integer(7)),
-                Box::from(Token::Identifier {
-                    position: TokenPosition { line: 1, column: 12 },
+            expr: Some(Box::from(Token::Mul {
+                expr1: Box::from(Token::Integer(7)),
+                expr2: Box::from(Token::Identifier {
+                    position: TokenPosition { line: 1, column: 10 },
                     name: String::from("b"),
                 }),
-            ))),
+            })),
         });
     }
 
@@ -1519,10 +1567,10 @@ mod test {
                        chain: vec![
                            Token::If {
                                position: TokenPosition { line: 1, column: 1 },
-                               condition: Box::from(Token::Eq(
-                                   Box::from(Token::Integer(1)),
-                                   Box::from(Token::Integer(2)),
-                               )),
+                               condition: Box::from(Token::Eq {
+                                      expr1: Box::from(Token::Integer(1)),
+                                      expr2: Box::from(Token::Integer(2)),
+                               }),
                                body: vec![
                                    Token::Assign {
                                        position: TokenPosition { line: 2, column: 13 },
@@ -1536,10 +1584,10 @@ mod test {
                            },
                            Token::If {
                                position: TokenPosition { line: 3, column: 9 },
-                               condition: Box::from(Token::Gt(
-                                   Box::from(Token::Integer(1)),
-                                   Box::from(Token::Integer(3)),
-                               )),
+                               condition: Box::from(Token::Gt {
+                                      expr1: Box::from(Token::Integer(1)),
+                                      expr2: Box::from(Token::Integer(3)),
+                               }),
                                body: vec![
                                    Token::Assign {
                                        position: TokenPosition { line: 4, column: 13 },
@@ -1583,10 +1631,10 @@ mod test {
                        chain: vec![
                            Token::If {
                                position: TokenPosition { line: 1, column: 1 },
-                               condition: Box::from(Token::Eq(
-                                   Box::from(Token::Integer(1)),
-                                   Box::from(Token::Integer(2)),
-                               )),
+                               condition: Box::from(Token::Eq {
+                                    expr1: Box::from(Token::Integer(1)),
+                                    expr2: Box::from(Token::Integer(2)),
+                               }),
                                body: vec![
                                    Token::Assign {
                                        position: TokenPosition { line: 2, column: 13 },
@@ -1628,10 +1676,10 @@ mod test {
                        chain: vec![
                            Token::If {
                                position: TokenPosition { line: 1, column: 1 },
-                               condition: Box::from(Token::Eq(
-                                   Box::from(Token::Integer(1)),
-                                   Box::from(Token::Integer(1)),
-                               )),
+                               condition: Box::from(Token::Eq {
+                                    expr1: Box::from(Token::Integer(1)),
+                                    expr2: Box::from(Token::Integer(1)),
+                               }),
                                body: vec![
                                    Token::Variable {
                                        position: TokenPosition { line: 2, column: 13 },
@@ -1799,13 +1847,13 @@ mod test {
 
         assert_eq!(token, Token::WhileLoop {
             position: TokenPosition { line: 1, column: 1 },
-            condition: Box::from(Token::Gt(
-                Box::from(Token::Identifier {
+            condition: Box::from(Token::Gt {
+                expr1: Box::from(Token::Identifier {
                     position: TokenPosition { line: 1, column: 7 },
                     name: String::from("a"),
                 }),
-                Box::from(Token::Integer(4)),
-            )),
+                expr2: Box::from(Token::Integer(4)),
+            }),
             body: vec![
                 Token::Call {
                     position: TokenPosition { line: 2, column: 13 },

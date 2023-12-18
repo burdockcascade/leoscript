@@ -1,8 +1,9 @@
+use leoscript::run_script_from_string;
 // macro that takes a script, runs it and tests the result is true
 #[macro_export]
 macro_rules! test_success {
     ($script:expr, $parameters:expr, $expected:expr) => {
-        match run_script($script, "main", $parameters) {
+        match run_script_from_string($script, "main", $parameters) {
             Ok(result) => {
                 assert_eq!(result.result, Some($expected));
             }
@@ -35,7 +36,7 @@ macro_rules! test_success_matrix {
 #[macro_export]
 macro_rules! test_failure {
     ($script:expr, $parameters:expr, $expected:expr, $line:expr, $row:expr) => {
-        match run_script($script, "main", $parameters) {
+        match run_script_from_string($script, "main", $parameters) {
             Ok(result) => {
                 assert!(false, "Expected error, got: {:?}", result);
             }
