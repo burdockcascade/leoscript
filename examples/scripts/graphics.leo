@@ -1,5 +1,9 @@
 -- example module with multiple classes for testing purposes
 -- code is nonsense, but it's just for testing
+
+import examples.scripts.option
+import examples.scripts.system
+
 module Graphics
 
     class Point

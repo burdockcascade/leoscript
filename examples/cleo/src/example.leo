@@ -1,4 +1,4 @@
-import scripts.graphics
+import examples.scripts.graphics
 
 function main()
 
