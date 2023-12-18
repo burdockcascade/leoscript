@@ -8,8 +8,8 @@ use nom::IResult;
 use nom::multi::{many0, many1, many_till, separated_list0, separated_list1};
 use nom::sequence::{delimited, preceded, separated_pair, terminated, tuple};
 use nom_locate::position;
-use crate::common::error::{ParseError, ScriptError};
 
+use crate::common::error::{ParseError, ScriptError};
 use crate::compiler::Span;
 use crate::compiler::token::{Token, TokenPosition};
 use crate::script_parse_error;
@@ -43,7 +43,7 @@ pub fn parse_script(input: &str) -> Result<ParserResult, ScriptError> {
             tokens,
             parser_time: start_parser_timer.elapsed(),
         }),
-        Err(e) => script_parse_error!(ParseError::UnableToParseTokens)
+        _ => script_parse_error!(ParseError::UnableToParseTokens)
     }
 }
 

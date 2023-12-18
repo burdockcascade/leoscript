@@ -4,19 +4,18 @@ use std::fs;
 use std::path::Path;
 use std::time::Duration;
 
-use crate::common::error::{ParseError, ScriptError, SystemError};
+use crate::{script_compile_error, script_compile_warning, script_system_error};
+use crate::common::error::{ScriptError, SystemError};
+use crate::common::error::CompilerError::{InvalidImportPath, UnableToImportFile};
 use crate::common::instruction::Instruction;
-use crate::common::program::Program;
 use crate::common::variant::Variant;
+use crate::common::warning::{CompilerWarning, ScriptWarning};
 use crate::compiler::class::compile_class;
 use crate::compiler::function::Function;
 use crate::compiler::module::compile_module;
 use crate::compiler::parser::parse_script;
 use crate::compiler::r#enum::compile_enum;
 use crate::compiler::token::Token;
-use crate::{script_compile_error, script_compile_warning, script_parse_error, script_system_error};
-use crate::common::error::CompilerError::{InvalidImportPath, UnableToImportFile};
-use crate::common::warning::{CompilerWarning, ScriptWarning};
 
 pub const CONSTRUCTOR_NAME: &str = "constructor";
 pub const SELF_CONSTANT: &str = "self";

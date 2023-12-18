@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
+use crate::common::error::{NativeFunctionError, ScriptError};
 use crate::common::variant::Variant;
 use crate::script_native_function_error;
 use crate::stdlib::{PARAM_1, PARAM_2};
-use crate::common::error::{NativeFunctionError, ScriptError};
 use crate::vm::thread::Thread;
 
 pub fn compile_math_module(t: &mut Thread) {

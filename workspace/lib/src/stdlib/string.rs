@@ -1,16 +1,17 @@
+use std::collections::HashMap;
+
+use crate::{generic_native_class, script_native_function_error};
 use crate::common::error::{NativeFunctionError, ScriptError};
 use crate::common::variant::Variant;
 use crate::compiler::script::CONSTRUCTOR_NAME;
-use crate::{generic_native_class, script_native_function_error};
 use crate::stdlib::{INTERNAL_CLASS_VALUE, PARAM_0, PARAM_1};
-use std::collections::HashMap;
 use crate::vm::thread::Thread;
 
 pub fn compile_string_class(t: &mut Thread) {
 
     // add native functions
     t.add_native_function("std_string_constructor", string_constructor);
-    t.add_native_function("std_string_length", string_constructor);
+    t.add_native_function("std_string_length", string_length);
 
     // add class
     let mut class = generic_native_class!();
@@ -55,12 +56,13 @@ fn string_length(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
 
 #[cfg(test)]
 mod tests {
-    use crate::common::variant::Variant;
-    use crate::stdlib::INTERNAL_CLASS_VALUE;
-    use crate::stdlib::string::{string_constructor, string_length};
     use std::cell::RefCell;
     use std::collections::HashMap;
     use std::rc::Rc;
+
+    use crate::common::variant::Variant;
+    use crate::stdlib::INTERNAL_CLASS_VALUE;
+    use crate::stdlib::string::{string_constructor, string_length};
 
     const TEST_STRING: &str = "I am a test string";
 

@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
-use crate::common::variant::Variant;
-use crate::{generic_native_class,  script_native_function_error};
+use crate::{generic_native_class, script_native_function_error};
 use crate::common::error::{NativeFunctionError, ScriptError};
+use crate::common::variant::Variant;
 use crate::compiler::script::CONSTRUCTOR_NAME;
-use crate::stdlib::{PARAM_1, PARAM_2, PARAM_0, INTERNAL_CLASS_VALUE};
+use crate::stdlib::{INTERNAL_CLASS_VALUE, PARAM_0, PARAM_1, PARAM_2};
 use crate::vm::thread::Thread;
 
 pub fn compile_dictionary_class(t: &mut Thread) {
@@ -187,6 +187,7 @@ mod tests {
     use std::cell::RefCell;
     use std::collections::HashMap;
     use std::rc::Rc;
+
     use crate::common::variant::Variant;
     use crate::stdlib::dictionary::{dict_clear, dict_constructor, dict_contains_key, dict_get, dict_keys, dict_length, dict_set, dict_values};
     use crate::stdlib::INTERNAL_CLASS_VALUE;

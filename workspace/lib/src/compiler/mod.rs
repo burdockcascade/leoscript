@@ -1,5 +1,7 @@
 use std::time::Duration;
+
 use nom_locate::LocatedSpan;
+
 use crate::common::error::ScriptError;
 use crate::common::program::Program;
 use crate::common::warning::ScriptWarning;
@@ -44,6 +46,7 @@ pub fn compile_program(source: &str) -> Result<CompilerResult, ScriptError> {
 #[cfg(test)]
 mod test {
     use crate::common::variant::Variant;
+
     use super::*;
 
     #[test]
