@@ -1,7 +1,7 @@
 class Person
 
-    var name
-    var age
+    attribute name
+    attribute age
 
     constructor(name, age)
         self.name = name

@@ -70,8 +70,8 @@ fn module_with_class() {
 
             class Vector2
 
-                var x as Integer
-                var y as Integer
+                attribute x
+                attribute y
 
                 constructor(x, y)
                     self.x = x

@@ -265,25 +265,25 @@ mod test {
     #[test]
     fn test_sub() {
         assert_eq!(Variant::Integer(7) - Variant::Integer(3), Variant::Integer(4));
-        assert_eq!(Variant::Integer(5) - Variant::Float(3.3), Variant::Float(1.7));
-        assert_eq!(Variant::Float(2.4) - Variant::Float(1.3), Variant::Float(1.1000001));
-        assert_eq!(Variant::Float(5.2) - Variant::Integer(3), Variant::Float(2.1999998));
+        assert_eq!(Variant::Integer(5) - Variant::Float(3.3), Variant::Float(1.7000000000000002));
+        assert_eq!(Variant::Float(2.4) - Variant::Float(1.3), Variant::Float(1.0999999999999999));
+        assert_eq!(Variant::Float(5.2) - Variant::Integer(3), Variant::Float(2.2));
     }
 
     #[test]
     fn test_mul() {
         assert_eq!(Variant::Integer(7) * Variant::Integer(3), Variant::Integer(21));
         assert_eq!(Variant::Integer(5) * Variant::Float(1.1), Variant::Float(5.5));
-        assert_eq!(Variant::Float(2.4) * Variant::Float(1.3), Variant::Float(3.1200001));
-        assert_eq!(Variant::Float(5.2) * Variant::Integer(3), Variant::Float(15.599999));
+        assert_eq!(Variant::Float(2.4) * Variant::Float(1.3), Variant::Float(3.12));
+        assert_eq!(Variant::Float(5.2) * Variant::Integer(3), Variant::Float(15.600000000000001));
     }
 
     #[test]
     fn test_div() {
         assert_eq!(Variant::Integer(21) / Variant::Integer(3), Variant::Integer(7));
         assert_eq!(Variant::Integer(22) / Variant::Float(1.1), Variant::Float(20.0));
-        assert_eq!(Variant::Float(2.4) / Variant::Float(1.3), Variant::Float(1.84615396));
-        assert_eq!(Variant::Float(5.2) / Variant::Integer(3), Variant::Float(1.7333332));
+        assert_eq!(Variant::Float(2.4) / Variant::Float(1.3), Variant::Float(1.846153846153846));
+        assert_eq!(Variant::Float(5.2) / Variant::Integer(3), Variant::Float(1.7333333333333334));
     }
 
     #[test]

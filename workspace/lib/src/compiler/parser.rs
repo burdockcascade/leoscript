@@ -245,10 +245,10 @@ fn parse_class(input: Span) -> IResult<Span, Token> {
                         multispace0,
                         alt((
                             parse_comment,
-                            parse_variable,
-                            parse_enum,
+                            parse_class_attribute,
                             parse_class_constructor,
-                            parse_function
+                            parse_function,
+                            parse_enum
                         )),
                         multispace0,
                     )
@@ -260,6 +260,31 @@ fn parse_class(input: Span) -> IResult<Span, Token> {
             position: TokenPosition::new(&input),
             class_name: Box::from(name),
             body,
+        },
+    )(input)
+}
+
+fn parse_class_attribute(input: Span) -> IResult<Span, Token> {
+    map(
+        tuple((
+            preceded(
+                tuple((tag_no_case("attribute"), multispace1)),
+                parse_identifier,
+            ),
+            opt(preceded(
+                delimited(multispace0, tag("as"), multispace0),
+                parse_primitive_type,
+            )),
+            opt(preceded(
+                delimited(multispace0, tag("="), multispace0),
+                parse_primitive_type,
+            ))
+        )),
+        |(name, as_type, value)| Token::Attribute {
+            position: TokenPosition::new(&input),
+            name: name.to_string(),
+            as_type: as_type.map_or(None, |token| Some(token.to_string())),
+            value: value.map_or(None, |token| Some(Box::from(token))),
         },
     )(input)
 }
@@ -424,13 +449,34 @@ fn parse_constructor_code_block(input: Span) -> IResult<Span, Vec<Token>> {
 
 // const name [as type] = 123
 fn parse_constant(input: Span) -> IResult<Span, Token> {
-    preceded(
-        tuple((tag_no_case("const"), multispace0)),
-        map(
-            parse_variable_declaration,
-            |(name, as_type, value)| Token::Constant { name: name.to_string(), as_type, value: value.unwrap() },
-        ),
+    map(
+        tuple((
+            preceded(
+                tuple((tag_no_case("const"), multispace1)),
+                parse_identifier,
+            ),
+            preceded(
+                delimited(multispace0, tag("="), multispace0),
+                parse_primitive_type,
+            )
+        )),
+        |(name, value)| Token::Constant {
+            position: TokenPosition::new(&input),
+            name: name.to_string(),
+            value: Box::new(value)
+        },
     )(input)
+}
+
+fn parse_primitive_type(input: Span) -> IResult<Span, Token> {
+    alt((
+        parse_string,
+        parse_float,
+        parse_integer,
+        parse_boolean,
+        parse_array,
+        parse_dictionary
+    ))(input)
 }
 
 // var name [as Integer] = 123
@@ -1538,7 +1584,7 @@ mod test {
             expr: Some(Box::from(Token::Mul {
                 expr1: Box::from(Token::Integer(7)),
                 expr2: Box::from(Token::Identifier {
-                    position: TokenPosition { line: 1, column: 10 },
+                    position: TokenPosition { line: 1, column: 12 },
                     name: String::from("b"),
                 }),
             })),
@@ -2040,9 +2086,9 @@ mod test {
     fn test_parse_class() {
         let (_, tokens) = parse_class(Span::new(r#"class Book
 
-            var name
-            var pages as Integer = 4
-            var author as String = "John"
+            attribute name
+            attribute pages = 0
+            attribute author = "unknown"
 
         end"#)).unwrap();
 
@@ -2053,25 +2099,49 @@ mod test {
                 name: String::from("Book"),
             }),
             body: vec![
-                Token::Variable {
+                Token::Attribute {
                     position: TokenPosition { line: 3, column: 13 },
                     name: String::from("name"),
                     as_type: None,
                     value: None,
                 },
-                Token::Variable {
+                Token::Attribute {
                     position: TokenPosition { line: 4, column: 13 },
                     name: String::from("pages"),
-                    as_type: Some(String::from("Integer")),
-                    value: Some(Box::from(Token::Integer(4))),
+                    as_type: None,
+                    value: Some(Box::from(Token::Integer(0))),
                 },
-                Token::Variable {
+                Token::Attribute {
                     position: TokenPosition { line: 5, column: 13 },
                     name: String::from("author"),
-                    as_type: Some(String::from("String")),
-                    value: Some(Box::from(Token::String(String::from("John")))),
+                    as_type: None,
+                    value: Some(Box::from(Token::String(String::from("unknown")))),
                 },
             ],
+        })
+    }
+
+    #[test]
+    fn test_parse_attribute() {
+        let (_, tokens) = parse_class_attribute(Span::new("attribute name")).unwrap();
+
+        assert_eq!(tokens, Token::Attribute {
+            position: TokenPosition { line: 1, column: 1 },
+            name: String::from("name"),
+            as_type: None,
+            value: None,
+        })
+    }
+
+    #[test]
+    fn test_parse_attribute_with_value() {
+        let (_, tokens) = parse_class_attribute(Span::new("attribute year = 2023")).unwrap();
+
+        assert_eq!(tokens, Token::Attribute {
+            position: TokenPosition { line: 1, column: 1 },
+            name: String::from("year"),
+            as_type: None,
+            value: Some(Box::from(Token::Integer(2023))),
         })
     }
 
@@ -2080,6 +2150,7 @@ mod test {
         let (_, tokens) = parse_new_keyword(Span::new(r#"new Book("hello", 123)"#)).unwrap();
 
         assert_eq!(tokens, Token::NewObject {
+            position: TokenPosition { line: 1, column: 1 },
             name: Box::from(Token::DotChain {
                 position: TokenPosition { line: 1, column: 1 },
                 start: Box::from(Token::Identifier {
@@ -2100,6 +2171,7 @@ mod test {
         let (_, tokens) = parse_new_keyword(Span::new(r#"new Math.Vector2(12, 64)"#)).unwrap();
 
         assert_eq!(tokens, Token::NewObject {
+            position: TokenPosition { line: 1, column: 1 },
             name: Box::from(Token::DotChain {
                 position: TokenPosition { line: 1, column: 1 },
                 start: Box::from(Token::Identifier {
@@ -2180,6 +2252,17 @@ mod test {
                     name: String::from("graphics"),
                 },
             ]
+        })
+    }
+
+    #[test]
+    fn test_constant_declaration() {
+        let (_, tokens) = parse_constant(Span::new(r#"const PI = 3.14"#)).unwrap();
+
+        assert_eq!(tokens, Token::Constant {
+            position: TokenPosition { line: 1, column: 1 },
+            name: String::from("PI"),
+            value: Box::from(Token::Float(3.14)),
         })
     }
 }

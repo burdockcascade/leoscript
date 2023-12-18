@@ -21,7 +21,7 @@ pub fn compile_class(position: TokenPosition, name: Box<Token>, body: Vec<Token>
     // collect class properties
     for item in body.clone() {
         match item.clone() {
-            Token::Variable { name, .. } => {
+            Token::Attribute { name, .. } => {
                 properties.push(item);
                 c.structure.insert(name.to_string(), Variant::Null);
             }
@@ -52,6 +52,7 @@ pub fn compile_class(position: TokenPosition, name: Box<Token>, body: Vec<Token>
                 c.structure.insert(function_name.to_string(), Variant::FunctionPointer(c.instructions.len() + ip_offset));
                 c.instructions.append(&mut func.instructions.clone());
             }
+            Token::Constant { .. } => unimplemented!("Constants not implemented yet"),
             _ => { }
         }
     }
@@ -90,7 +91,7 @@ fn compile_constructor(position: TokenPosition, mut input: Vec<Token>, mut body:
     for prop in properties.clone() {
 
         match prop {
-            Token::Variable { name, value, .. } => {
+            Token::Attribute { name, value, .. } => {
 
                 // add property to class
                 body.insert(0, Token::Assign {
@@ -106,10 +107,7 @@ fn compile_constructor(position: TokenPosition, mut input: Vec<Token>, mut body:
                             name: name.to_string(),
                         }],
                     }),
-                    value: match value {
-                        Some(v) => v,
-                        None => Box::from(Token::Null),
-                    },
+                    value: value.unwrap_or_else(|| Box::from(Token::Null)),
                 });
             }
             _ => {}

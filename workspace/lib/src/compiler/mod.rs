@@ -59,9 +59,9 @@ mod test {
         let source = r#"
             class Person
 
-                var name
-                var age
-                var gender
+                attribute name
+                attribute age
+                attribute gender
 
                 constructor(name, age, gender)
                     self.name = name
@@ -81,8 +81,8 @@ mod test {
 
             class Employee
 
-                var person
-                var salary
+                attribute person
+                attribute salary
 
                 constructor(person, salary)
                     self.person = person
@@ -131,8 +131,8 @@ mod test {
 
                 class Vector2
 
-                    var x as Integer
-                    var y as Integer
+                    attribute x
+                    attribute y
 
                     constructor(x, y)
                         self.x = x
@@ -223,8 +223,8 @@ mod test {
 
             class Vector2
 
-                var x
-                var y
+                attribute x
+                attribute y
 
                 constructor(x, y)
                     self.x = x

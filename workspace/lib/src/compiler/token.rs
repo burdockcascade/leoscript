@@ -74,9 +74,16 @@ pub enum Token {
         value: Option<Box<Token>>,
     },
 
-    Constant {
+    Attribute {
+        position: TokenPosition,
         name: String,
         as_type: Option<String>,
+        value: Option<Box<Token>>,
+    },
+
+    Constant {
+        position: TokenPosition,
+        name: String,
         value: Box<Token>,
     },
 
@@ -195,6 +202,11 @@ pub enum Token {
         position: TokenPosition,
         expr: Option<Box<Token>>,
     },
+}
+
+pub enum Visibility {
+    Public,
+    Private,
 }
 
 impl Display for Token {

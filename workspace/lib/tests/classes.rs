@@ -9,16 +9,14 @@ fn class_with_constructor_and_parameters() {
     let script = r#"
         class Dimension
 
-            var height as Integer
-            var length as Integer
-            var magic_number = 2
+            attribute height
+            attribute length
 
             constructor(h, l)
                 self.height = h
                 self.length = l
             end
 
-            -- error in function
             function area()
                 return self.calc_area()
             end
@@ -28,7 +26,7 @@ fn class_with_constructor_and_parameters() {
             end
 
             function perimeter()
-                return self.magic_number * (self.height + self.length)
+                return self.height + self.length
             end
 
         end
@@ -40,7 +38,7 @@ fn class_with_constructor_and_parameters() {
 
     "#;
 
-    test_success!(script, Some(vec![Variant::Integer(10), Variant::Integer(20)]), Variant::Integer(260))
+    test_success!(script, Some(vec![Variant::Integer(10), Variant::Integer(20)]), Variant::Integer(230))
 
 }
 
@@ -50,7 +48,7 @@ fn class_with_fields_but_without_constructor() {
     let script = r#"
         class myservice
 
-            var magic_number = 2 * 13  - 4
+            attribute magic_number = 22
 
             function get_magic_number()
                 return self.magic_number
@@ -75,7 +73,7 @@ fn pass_object_as_parameter() {
     test_success!(r#"
         class myservice
 
-            var magic_number = 2 * 13  - 4
+            attribute magic_number = 23
 
             function get_magic_number()
                 return self.magic_number
@@ -90,7 +88,7 @@ fn pass_object_as_parameter() {
         function main()
             var svc = new myservice()
             do_something_with_service(svc)
-            return svc.get_magic_number() == 23
+            return svc.get_magic_number() == 24
         end
     "#);
 

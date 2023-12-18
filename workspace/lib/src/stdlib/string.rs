@@ -105,7 +105,7 @@ mod tests {
     #[test]
     fn test_length() {
         let input = vec![construct_object!()];
-        assert_eq!(string_length(input), Ok(Some(Variant::Integer(TEST_STRING.len() as i32))));
+        assert_eq!(string_length(input), Ok(Some(Variant::Integer(TEST_STRING.len() as i64))));
     }
 
 }
