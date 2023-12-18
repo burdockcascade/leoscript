@@ -17,6 +17,7 @@ use crate::compiler::parser::parse_script;
 use crate::compiler::r#enum::compile_enum;
 use crate::compiler::token::Token;
 
+const FILE_EXTENSION: &str = ".leo";
 pub const CONSTRUCTOR_NAME: &str = "constructor";
 pub const SELF_CONSTANT: &str = "self";
 
@@ -56,6 +57,7 @@ pub(crate) fn compile_script(source: &str, offset: usize) -> Result<Script, Scri
 
     script.parser_time = parser_result.parser_time;
 
+    // fixme - doesn't split between parser and compiler
     let start_compiler_timer = std::time::Instant::now();
 
     // compile imports
@@ -64,6 +66,7 @@ pub(crate) fn compile_script(source: &str, offset: usize) -> Result<Script, Scri
         let local_offset = script.instructions.len() + offset;
 
         // set path separator based on local system
+        // fixme - this should be moved to a more global location
         let path_separator = match std::env::consts::OS {
             "windows" => "\\",
             _ => "/"
@@ -90,7 +93,7 @@ pub(crate) fn compile_script(source: &str, offset: usize) -> Result<Script, Scri
                     }
                 }
 
-                let filename = filepath.clone() + ".leo";
+                let filename = filepath.clone() + FILE_EXTENSION;
 
                 // check if file exists
                 if !Path::new(&filename).exists() {
@@ -102,6 +105,7 @@ pub(crate) fn compile_script(source: &str, offset: usize) -> Result<Script, Scri
                     return script_compile_error!(UnableToImportFile(filename.clone()), position);
                 };
 
+                // add imported file to source files
                 script.imports.push(filename.clone());
 
                 // compile imported script
