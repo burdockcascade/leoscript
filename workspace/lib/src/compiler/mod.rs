@@ -22,6 +22,7 @@ pub struct CompilerResult {
     pub program: Program,
     pub compile_time: Duration,
     pub parser_time: Duration,
+    pub source_files: Vec<String>,
     pub warnings: Vec<ScriptWarning>,
 }
 
@@ -38,6 +39,7 @@ pub fn compile_program(source: &str) -> Result<CompilerResult, ScriptError> {
         },
         compile_time: script.compiler_time,
         parser_time: script.parser_time,
+        source_files: script.imports,
         warnings: script.warnings,
     })
 

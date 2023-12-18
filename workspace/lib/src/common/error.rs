@@ -101,6 +101,7 @@ pub enum NativeFunctionError {
 #[derive(Debug, PartialEq)]
 pub enum SystemError {
     ExpectedNativeFunction,
+    UnableToReadFile(String),
     UnableToGetLocalDirectory
 }
 

@@ -30,20 +30,26 @@ pub struct Script {
     pub globals: HashMap<String, Variant>,
     pub compiler_time: Duration,
     pub parser_time: Duration,
+    pub imports: Vec<String>,
     pub warnings: Vec<ScriptWarning>,
+}
+
+impl Default for Script {
+    fn default() -> Self {
+        Script {
+            instructions: Default::default(),
+            globals: Default::default(),
+            compiler_time: Default::default(),
+            parser_time: Default::default(),
+            imports: Default::default(),
+            warnings: Default::default(),
+        }
+    }
 }
 
 pub(crate) fn compile_script(source: &str, offset: usize) -> Result<Script, ScriptError> {
 
-    let mut script = Script {
-        instructions: Vec::new(),
-        globals: HashMap::new(),
-        compiler_time: Default::default(),
-        parser_time: Default::default(),
-        warnings: Vec::new(),
-    };
-
-
+    let mut script = Script::default();
 
     // get tokens
     let parser_result = parse_script(source)?;
@@ -87,37 +93,44 @@ pub(crate) fn compile_script(source: &str, offset: usize) -> Result<Script, Scri
                 let filename = filepath.clone() + ".leo";
 
                 // check if file exists
-                if Path::new(&filename).exists() {
-
-                    // read file contents
-                    let Ok(contents) = fs::read_to_string(filename.clone()) else {
-                        return script_compile_error!(UnableToImportFile(filename.clone()), position);
-                    };
-
-                    // compile imported script
-                    let mut imported_script = compile_script(&contents, local_offset)?;
-
-                    if imported_script.globals.len() == 0 {
-                        script.warnings.push(script_compile_warning!(CompilerWarning::NothingToImport, position))
-                    }
-
-                    // add imported script globals to script globals
-                    for (key, value) in imported_script.globals.iter() {
-                        script.globals.insert(key.to_string(), value.clone());
-                    }
-
-                    // add imported script instructions to script instructions
-                    script.instructions.append(&mut imported_script.instructions);
-
-                    // update parser timer
-                    script.parser_time += imported_script.parser_time;
-
-                    // update compiler timer
-                    script.compiler_time += imported_script.compiler_time;
-
-                } else {
+                if !Path::new(&filename).exists() {
                     return script_compile_error!(InvalidImportPath(filename), position);
                 }
+
+                // read file contents
+                let Ok(contents) = fs::read_to_string(filename.clone()) else {
+                    return script_compile_error!(UnableToImportFile(filename.clone()), position);
+                };
+
+                script.imports.push(filename.clone());
+
+                // compile imported script
+                let mut imported_script = compile_script(&contents, local_offset)?;
+
+                // warn if nothing was imported
+                if imported_script.globals.len() == 0 {
+                    script.warnings.push(script_compile_warning!(CompilerWarning::NothingToImport, position))
+                }
+
+                // add imported script globals to script globals
+                for (key, value) in imported_script.globals.iter() {
+                    script.globals.insert(key.to_string(), value.clone());
+                }
+
+                // add imported script instructions to script instructions
+                script.instructions.append(&mut imported_script.instructions);
+
+                // update parser timer
+                script.parser_time += imported_script.parser_time;
+
+                // update compiler timer
+                script.compiler_time += imported_script.compiler_time;
+
+                // update warnings
+                script.warnings.append(&mut imported_script.warnings);
+
+                // update source files
+                script.imports.append(&mut imported_script.imports);
 
             }
             _ => {}
