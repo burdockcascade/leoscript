@@ -10,7 +10,10 @@ pub enum Token {
         source: Vec<Token>,
     },
 
-    Comment(String),
+    Comment {
+        position: TokenPosition,
+        text: String,
+    },
     Print {
         position: TokenPosition,
         expr: Box<Token>,

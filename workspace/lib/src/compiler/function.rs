@@ -93,7 +93,7 @@ impl Function {
             Token::ForEach { position, ident, collection, body } => self.compile_iterator(position, ident, Box::new(Token::Integer(0)), Box::new(Token::Integer(1)), collection, body)?,
             Token::IfChain { position, chain } => self.compile_if_else(position, chain)?,
             Token::Match { position, expr, arms, default } => self.compile_match(position, expr, arms, default)?,
-            Token::Comment(_) => {}
+            Token::Comment { .. } => {}
             Token::DotChain { position, start, chain } => self.compile_chain(position, start, chain)?,
             Token::Break { position } => self.compile_break(position)?,
             Token::Continue { position } => self.compile_continue(position)?,

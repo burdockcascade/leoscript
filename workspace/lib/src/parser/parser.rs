@@ -69,13 +69,37 @@ fn parse_import(input: Span) -> IResult<Span, Token> {
 
 // parse comment starting with double dash till end of line or end of file
 fn parse_comment(input: Span) -> IResult<Span, Token> {
+    alt((
+        parse_multi_line_comment,
+        parse_single_line_comment
+    ))(input)
+}
+
+fn parse_single_line_comment(input: Span) -> IResult<Span, Token> {
     map(
         delimited(
             terminated(tag(COMMENT_IDENTIFIER), multispace0),
-            take_till(|c| c == '\n' || c == '\r'),
+            take_until("\n"),
             opt(crlf),
         ),
-        |comment: Span| Token::Comment(comment.to_string()),
+        |comment: Span| Token::Comment {
+            position: TokenPosition::new(&input),
+            text: comment.trim().to_string(),
+        },
+    )(input)
+}
+
+fn parse_multi_line_comment(input: Span) -> IResult<Span, Token> {
+    map(
+        delimited(
+            tag("--[["),
+            take_until("]]"),
+            tag("]]"),
+        ),
+        |comment: Span| Token::Comment {
+            position: TokenPosition::new(&input),
+            text: comment.trim().to_string(),
+        },
     )(input)
 }
 
@@ -1169,13 +1193,29 @@ mod test {
     #[test]
     fn test_parse_comment_with_crlf() {
         let (_, token) = super::parse_comment(Span::new("-- this is a comment\r\n")).unwrap();
-        assert_eq!(token, Token::Comment(String::from("this is a comment")))
+        assert_eq!(token, Token::Comment {
+            position: TokenPosition { line: 1, column: 1 },
+            text: String::from("this is a comment"),
+        })
     }
 
     #[test]
     fn test_parse_comment_till_eof() {
         let (_, token) = parse_comment(Span::new("-- this is a comment")).unwrap();
-        assert_eq!(token, Token::Comment(String::from("this is a comment")))
+        assert_eq!(token, Token::Comment {
+            position: TokenPosition { line: 1, column: 1 },
+            text: String::from("this is a comment"),
+        })
+    }
+
+    #[test]
+    fn test_parse_multi_line_comment() {
+        let (_, token) = parse_comment(Span::new(r#"--[[ this is a multi
+        line comment ]]"#)).unwrap();
+        assert_eq!(token, Token::Comment {
+            position: TokenPosition { line: 1, column: 1 },
+            text: String::from("this is a multi\n        line comment"),
+        })
     }
 
     #[test]
