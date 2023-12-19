@@ -10,6 +10,7 @@ use nom::sequence::{delimited, preceded, separated_pair, terminated, tuple};
 use nom_locate::position;
 
 use crate::common::error::{ParseError, ScriptError};
+use crate::parser::comments::parse_comment;
 use crate::parser::Span;
 use crate::parser::token::{Token, TokenPosition};
 use crate::script_parse_error;
@@ -17,7 +18,7 @@ use crate::script_parse_error;
 const DOT_OPERATOR: &str = ".";
 const DECIMAL_POINT: &str = ".";
 const DOUBLE_COLON_OPERATOR: &str = "::";
-const COMMENT_IDENTIFIER: &str = "--";
+
 
 pub struct ParserResult {
     pub tokens: Vec<Token>,
@@ -68,40 +69,7 @@ fn parse_import(input: Span) -> IResult<Span, Token> {
 }
 
 // parse comment starting with double dash till end of line or end of file
-fn parse_comment(input: Span) -> IResult<Span, Token> {
-    alt((
-        parse_multi_line_comment,
-        parse_single_line_comment
-    ))(input)
-}
 
-fn parse_single_line_comment(input: Span) -> IResult<Span, Token> {
-    map(
-        delimited(
-            terminated(tag(COMMENT_IDENTIFIER), multispace0),
-            take_until("\n"),
-            opt(crlf),
-        ),
-        |comment: Span| Token::Comment {
-            position: TokenPosition::new(&input),
-            text: comment.trim().to_string(),
-        },
-    )(input)
-}
-
-fn parse_multi_line_comment(input: Span) -> IResult<Span, Token> {
-    map(
-        delimited(
-            tag("--[["),
-            take_until("]]"),
-            tag("]]"),
-        ),
-        |comment: Span| Token::Comment {
-            position: TokenPosition::new(&input),
-            text: comment.trim().to_string(),
-        },
-    )(input)
-}
 
 fn parse_print(input: Span) -> IResult<Span, Token> {
     map(
@@ -1188,34 +1156,6 @@ mod test {
 
         assert!(result.is_ok());
         assert!(result.unwrap().tokens.len() > 0);
-    }
-
-    #[test]
-    fn test_parse_comment_with_crlf() {
-        let (_, token) = super::parse_comment(Span::new("-- this is a comment\r\n")).unwrap();
-        assert_eq!(token, Token::Comment {
-            position: TokenPosition { line: 1, column: 1 },
-            text: String::from("this is a comment"),
-        })
-    }
-
-    #[test]
-    fn test_parse_comment_till_eof() {
-        let (_, token) = parse_comment(Span::new("-- this is a comment")).unwrap();
-        assert_eq!(token, Token::Comment {
-            position: TokenPosition { line: 1, column: 1 },
-            text: String::from("this is a comment"),
-        })
-    }
-
-    #[test]
-    fn test_parse_multi_line_comment() {
-        let (_, token) = parse_comment(Span::new(r#"--[[ this is a multi
-        line comment ]]"#)).unwrap();
-        assert_eq!(token, Token::Comment {
-            position: TokenPosition { line: 1, column: 1 },
-            text: String::from("this is a multi\n        line comment"),
-        })
     }
 
     #[test]

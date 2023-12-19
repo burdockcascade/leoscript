@@ -4,4 +4,6 @@ function main()
 
     var v = new Graphics::Vector2(1, 2)
 
+    return true
+
 end
