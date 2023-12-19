@@ -6,8 +6,8 @@ use crate::common::error::{CompilerError, ScriptError};
 use crate::common::instruction::Instruction;
 use crate::common::stacktrace::StackTrace;
 use crate::common::variant::ValueType;
-use crate::compiler::token::{Token, TokenPosition};
 use crate::compiler::variable::Variable;
+use crate::parser::token::{Token, TokenPosition};
 use crate::script_compile_error;
 
 #[derive(Clone)]
@@ -791,7 +791,7 @@ impl Function {
 #[cfg(test)]
 mod test {
     use crate::common::error::{CompilerError, ScriptError};
-    use crate::compiler::token::{Token, TokenPosition};
+    use crate::parser::token::{Token, TokenPosition};
 
     #[test]
     fn test_declare_var() {

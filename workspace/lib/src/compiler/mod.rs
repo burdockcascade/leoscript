@@ -7,8 +7,6 @@ use crate::common::program::Program;
 use crate::common::warning::ScriptWarning;
 use crate::compiler::script::compile_script;
 
-mod token;
-mod parser;
 pub mod script;
 mod class;
 mod function;
@@ -16,7 +14,7 @@ mod variable;
 mod module;
 mod r#enum;
 
-type Span<'a> = LocatedSpan<&'a str>;
+
 
 pub struct CompilerResult {
     pub program: Program,

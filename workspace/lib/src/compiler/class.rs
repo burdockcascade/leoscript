@@ -6,7 +6,8 @@ use crate::common::error::ScriptError;
 use crate::common::variant::Variant;
 use crate::compiler::function::Function;
 use crate::compiler::script::{CONSTRUCTOR_NAME, FunctionGroup, SELF_CONSTANT};
-use crate::compiler::token::{Token, TokenPosition};
+use crate::parser::token::{Token, TokenPosition};
+
 
 pub fn compile_class(position: TokenPosition, name: Box<Token>, body: Vec<Token>, ip_offset: usize) -> Result<FunctionGroup, ScriptError> {
     trace!("Compiling class: {}", name);

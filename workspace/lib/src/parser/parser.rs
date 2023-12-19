@@ -10,8 +10,8 @@ use nom::sequence::{delimited, preceded, separated_pair, terminated, tuple};
 use nom_locate::position;
 
 use crate::common::error::{ParseError, ScriptError};
-use crate::compiler::Span;
-use crate::compiler::token::{Token, TokenPosition};
+use crate::parser::Span;
+use crate::parser::token::{Token, TokenPosition};
 use crate::script_parse_error;
 
 pub struct ParserResult {
@@ -1136,9 +1136,8 @@ fn parse_expr_tag(expr: Token, rem: Vec<(Span, Token)>) -> Token {
 #[cfg(test)]
 mod test {
     use std::collections::HashMap;
-
-    use crate::compiler::parser::*;
-    use crate::compiler::token::{Token, TokenPosition};
+    use crate::parser::parser::*;
+    use crate::parser::token::*;
 
     #[test]
     fn test_program() {

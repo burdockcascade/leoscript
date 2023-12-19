@@ -12,6 +12,7 @@ mod compiler;
 mod vm;
 pub mod common;
 mod stdlib;
+mod parser;
 
 #[derive(Debug)]
 pub struct ScriptResult {

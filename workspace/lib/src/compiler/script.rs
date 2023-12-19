@@ -13,9 +13,9 @@ use crate::common::warning::{CompilerWarning, ScriptWarning};
 use crate::compiler::class::compile_class;
 use crate::compiler::function::Function;
 use crate::compiler::module::compile_module;
-use crate::compiler::parser::parse_script;
 use crate::compiler::r#enum::compile_enum;
-use crate::compiler::token::Token;
+use crate::parser::parser::parse_script;
+use crate::parser::token::Token;
 
 const FILE_EXTENSION: &str = ".leo";
 pub const CONSTRUCTOR_NAME: &str = "constructor";

@@ -6,7 +6,7 @@ use crate::compiler::class::compile_class;
 use crate::compiler::function::Function;
 use crate::compiler::r#enum::compile_enum;
 use crate::compiler::script::{FunctionGroup, SELF_CONSTANT};
-use crate::compiler::token::{Token, TokenPosition};
+use crate::parser::token::{Token, TokenPosition};
 
 const MODULE_TYPE_FIELD: &str = "_type";
 

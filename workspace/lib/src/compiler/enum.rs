@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::common::error::ScriptError;
 use crate::common::variant::Variant;
-use crate::compiler::token::{Token, TokenPosition};
+use crate::parser::token::{Token, TokenPosition};
 
 pub fn compile_enum(_position: TokenPosition, name: String, items: Vec<Token>) -> Result<Variant, ScriptError> {
 

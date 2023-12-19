@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::Display;
-
-use crate::compiler::Span;
+use crate::parser::Span;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
