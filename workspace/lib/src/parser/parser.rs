@@ -14,6 +14,11 @@ use crate::parser::Span;
 use crate::parser::token::{Token, TokenPosition};
 use crate::script_parse_error;
 
+const DOT_OPERATOR: &str = ".";
+const DECIMAL_POINT: &str = ".";
+const DOUBLE_COLON_OPERATOR: &str = "::";
+const COMMENT_IDENTIFIER: &str = "--";
+
 pub struct ParserResult {
     pub tokens: Vec<Token>,
     pub parser_time: std::time::Duration,
@@ -51,7 +56,7 @@ fn parse_import(input: Span) -> IResult<Span, Token> {
         preceded(
             terminated(tag_no_case("import"), multispace1),
             separated_list1(
-                tag("."),
+                tag(DOT_OPERATOR),
                 parse_identifier,
             ),
         ),
@@ -66,7 +71,7 @@ fn parse_import(input: Span) -> IResult<Span, Token> {
 fn parse_comment(input: Span) -> IResult<Span, Token> {
     map(
         delimited(
-            terminated(tag("--"), multispace0),
+            terminated(tag(COMMENT_IDENTIFIER), multispace0),
             take_till(|c| c == '\n' || c == '\r'),
             opt(crlf),
         ),
@@ -320,7 +325,7 @@ fn parse_new_keyword(input: Span) -> IResult<Span, Token> {
                 map(
                     tuple((
                         parse_identifier,
-                        many0(preceded(tag("."), parse_identifier))
+                        many0(preceded(tag(DOUBLE_COLON_OPERATOR), parse_identifier))
                     )),
                     |(identifier, items)| {
                         Token::DotChain {
@@ -922,7 +927,7 @@ fn parse_float(input: Span) -> IResult<Span, Token> {
             opt(tag("-")),
             separated_pair(
                 digit1,
-                tag("."),
+                tag(DECIMAL_POINT),
                 digit1,
             )
         )),

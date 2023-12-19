@@ -22,7 +22,7 @@ module Graphics
 
         attribute width = 0
         attribute height = 0
-        attribute origin = new Graphics.Point(0, 0)
+        attribute origin = new Graphics::Point(0, 0)
 
         constructor(origin, width, height)
             self.origin = origin
@@ -57,7 +57,7 @@ module Graphics
         end
 
         function add(other)
-            return new Graphics.Vector2(self.x + other.x, self.y + other.y)
+            return new Graphics::Vector2(self.x + other.x, self.y + other.y)
         end
 
     end
