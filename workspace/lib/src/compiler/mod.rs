@@ -1,7 +1,5 @@
 use std::time::Duration;
 
-use nom_locate::LocatedSpan;
-
 use crate::common::error::ScriptError;
 use crate::common::program::Program;
 use crate::common::warning::ScriptWarning;
@@ -13,7 +11,6 @@ mod function;
 mod variable;
 mod module;
 mod r#enum;
-
 
 
 pub struct CompilerResult {
@@ -33,14 +30,13 @@ pub fn compile_program(source: &str) -> Result<CompilerResult, ScriptError> {
     Ok(CompilerResult {
         program: Program {
             instructions: script.instructions,
-            globals: script.globals
+            globals: script.globals,
         },
         compile_time: script.compiler_time,
         parser_time: script.parser_time,
         source_files: script.imports,
         warnings: script.warnings,
     })
-
 }
 
 #[cfg(test)]
@@ -208,12 +204,10 @@ mod test {
         assert!(gender.contains_key("Male"));
         assert!(gender.contains_key("Female"));
         assert!(gender.contains_key("Other"));
-
     }
 
     #[test]
     fn test_class_construct() {
-
         let script = r#"
             function main()
                 var z = new Vector2(10, 20)
@@ -238,12 +232,10 @@ mod test {
 
         // fixme
         assert!(program.globals.contains_key("Vector2"));
-
     }
 
     #[test]
     fn test_class_construct_from_module() {
-
         let script = r#"
             function main()
                 var p = new Company.Person("John", 30)
@@ -277,6 +269,5 @@ mod test {
         let program = compile_program(script).unwrap();
 
         // fixme
-
     }
 }

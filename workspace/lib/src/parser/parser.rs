@@ -20,7 +20,6 @@ pub struct ParserResult {
 }
 
 pub fn parse_script(input: &str) -> Result<ParserResult, ScriptError> {
-
     let start_parser_timer = std::time::Instant::now();
 
     let result = many0(
@@ -54,7 +53,7 @@ fn parse_import(input: Span) -> IResult<Span, Token> {
             separated_list1(
                 tag("."),
                 parse_identifier,
-            )
+            ),
         ),
         |source| Token::Import {
             position: TokenPosition::new(&input),
@@ -220,7 +219,7 @@ fn parse_module(input: Span) -> IResult<Span, Token> {
                     )
                 ),
             )),
-            tag_no_case("end")
+            tag_no_case("end"),
         ),
         |(name, body)| Token::Module {
             position: TokenPosition::new(&input),
@@ -234,7 +233,6 @@ fn parse_module(input: Span) -> IResult<Span, Token> {
 // CLASS
 
 fn parse_class(input: Span) -> IResult<Span, Token> {
-
     map(
         delimited(
             terminated(tag_no_case("class"), multispace0),
@@ -254,7 +252,7 @@ fn parse_class(input: Span) -> IResult<Span, Token> {
                     )
                 ),
             )),
-            tag_no_case("end")
+            tag_no_case("end"),
         ),
         |(name, body)| Token::Class {
             position: TokenPosition::new(&input),
@@ -285,7 +283,7 @@ fn parse_class_attribute(input: Span) -> IResult<Span, Token> {
                     parse_array,
                     parse_dictionary,
                     parse_new_keyword,
-                ))
+                )),
             ))
         )),
         |(name, as_type, value)| Token::Attribute {
@@ -333,12 +331,12 @@ fn parse_new_keyword(input: Span) -> IResult<Span, Token> {
                     },
                 ),
                 parse_bracketed_arguments
-            ))
+            )),
         ),
         |(id, args)| Token::NewObject {
             position: TokenPosition::new(&input),
             name: Box::from(id),
-            input: args
+            input: args,
         },
     )(input)
 }
@@ -374,7 +372,7 @@ fn parse_enum(input: Span) -> IResult<Span, Token> {
             Token::Enum {
                 position: TokenPosition::new(&input),
                 name: name.to_string(),
-                items
+                items,
             }
         },
     )(input)
@@ -386,21 +384,21 @@ fn parse_enum(input: Span) -> IResult<Span, Token> {
 fn parse_then_block_end(input: Span) -> IResult<Span, Vec<Token>> {
     preceded(
         tuple((tag_no_case("then"), multispace0)),
-        parse_open_code_block
+        parse_open_code_block,
     )(input)
 }
 
 fn parse_do_block_end(input: Span) -> IResult<Span, Vec<Token>> {
     preceded(
         tuple((tag_no_case("do"), multispace0)),
-        parse_open_code_block
+        parse_open_code_block,
     )(input)
 }
 
 fn parse_open_code_block(input: Span) -> IResult<Span, Vec<Token>> {
     terminated(
         parse_code_block,
-        tuple((multispace0, tag_no_case("end")))
+        tuple((multispace0, tag_no_case("end"))),
     )(input)
 }
 
@@ -471,7 +469,7 @@ fn parse_constant(input: Span) -> IResult<Span, Token> {
         |(name, value)| Token::Constant {
             position: TokenPosition::new(&input),
             name: name.to_string(),
-            value: Box::new(value)
+            value: Box::new(value),
         },
     )(input)
 }
@@ -649,7 +647,7 @@ fn parse_match_statement(input: Span) -> IResult<Span, Token> {
                 delimited(multispace0, parse_expression, multispace0),
                 many0(delimited(multispace0, alt((parse_match_case, parse_default_case)), multispace0))
             )),
-            preceded(multispace0, tag_no_case("end"))
+            preceded(multispace0, tag_no_case("end")),
         ),
         |(pos, expr, arms)| {
             Token::Match {
@@ -670,7 +668,7 @@ fn parse_match_statement(input: Span) -> IResult<Span, Token> {
                         Token::DefaultCase { .. } => true,
                         _ => false
                     }
-                }).map(|arm| Box::from(arm))
+                }).map(|arm| Box::from(arm)),
             }
         },
     )(input)
@@ -683,7 +681,7 @@ fn parse_match_case(input: Span) -> IResult<Span, Token> {
             delimited(
                 terminated(tag_no_case("case"), multispace1),
                 parse_expression,
-                multispace0
+                multispace0,
             ),
             parse_then_block_end,
         )),
@@ -701,7 +699,7 @@ fn parse_default_case(input: Span) -> IResult<Span, Token> {
             position,
             preceded(
                 tuple((tag_no_case("default"), multispace1)),
-                parse_then_block_end
+                parse_then_block_end,
             ),
         )),
         |(pos, block)| Token::DefaultCase {
@@ -1080,51 +1078,51 @@ fn parse_expr_tag(expr: Token, rem: Vec<(Span, Token)>) -> Token {
                 expr1: Box::from(expr1),
                 expr2: Box::from(expr2),
             },
-            "-" => Token::Sub{
+            "-" => Token::Sub {
                 expr1: Box::from(expr1),
                 expr2: Box::from(expr2),
             },
-            "*" => Token::Mul{
+            "*" => Token::Mul {
                 expr1: Box::from(expr1),
                 expr2: Box::from(expr2),
             },
-            "/" => Token::Div{
+            "/" => Token::Div {
                 expr1: Box::from(expr1),
                 expr2: Box::from(expr2),
             },
-            "^" => Token::Pow{
+            "^" => Token::Pow {
                 expr1: Box::from(expr1),
                 expr2: Box::from(expr2),
             },
-            "==" => Token::Eq{
+            "==" => Token::Eq {
                 expr1: Box::from(expr1),
                 expr2: Box::from(expr2),
             },
-            ">" => Token::Gt{
+            ">" => Token::Gt {
                 expr1: Box::from(expr1),
                 expr2: Box::from(expr2),
             },
-            ">=" => Token::Ge{
+            ">=" => Token::Ge {
                 expr1: Box::from(expr1),
                 expr2: Box::from(expr2),
             },
-            "<" => Token::Lt{
+            "<" => Token::Lt {
                 expr1: Box::from(expr1),
                 expr2: Box::from(expr2),
             },
-            "<=" => Token::Le{
+            "<=" => Token::Le {
                 expr1: Box::from(expr1),
                 expr2: Box::from(expr2),
             },
-            "!=" => Token::Ne{
+            "!=" => Token::Ne {
                 expr1: Box::from(expr1),
                 expr2: Box::from(expr2),
             },
-            "and" => Token::And{
+            "and" => Token::And {
                 expr1: Box::from(expr1),
                 expr2: Box::from(expr2),
             },
-            "or" => Token::Or{
+            "or" => Token::Or {
                 expr1: Box::from(expr1),
                 expr2: Box::from(expr2),
             },
@@ -1136,6 +1134,7 @@ fn parse_expr_tag(expr: Token, rem: Vec<(Span, Token)>) -> Token {
 #[cfg(test)]
 mod test {
     use std::collections::HashMap;
+
     use crate::parser::parser::*;
     use crate::parser::token::*;
 
@@ -1156,7 +1155,7 @@ mod test {
             end
         "#;
 
-        let result =  parse_script(input);
+        let result = parse_script(input);
 
         assert!(result.is_ok());
         assert!(result.unwrap().tokens.len() > 0);
@@ -1621,8 +1620,8 @@ mod test {
                            Token::If {
                                position: TokenPosition { line: 1, column: 1 },
                                condition: Box::from(Token::Eq {
-                                      expr1: Box::from(Token::Integer(1)),
-                                      expr2: Box::from(Token::Integer(2)),
+                                   expr1: Box::from(Token::Integer(1)),
+                                   expr2: Box::from(Token::Integer(2)),
                                }),
                                body: vec![
                                    Token::Assign {
@@ -1638,8 +1637,8 @@ mod test {
                            Token::If {
                                position: TokenPosition { line: 3, column: 9 },
                                condition: Box::from(Token::Gt {
-                                      expr1: Box::from(Token::Integer(1)),
-                                      expr2: Box::from(Token::Integer(3)),
+                                   expr1: Box::from(Token::Integer(1)),
+                                   expr2: Box::from(Token::Integer(3)),
                                }),
                                body: vec![
                                    Token::Assign {
@@ -1685,8 +1684,8 @@ mod test {
                            Token::If {
                                position: TokenPosition { line: 1, column: 1 },
                                condition: Box::from(Token::Eq {
-                                    expr1: Box::from(Token::Integer(1)),
-                                    expr2: Box::from(Token::Integer(2)),
+                                   expr1: Box::from(Token::Integer(1)),
+                                   expr2: Box::from(Token::Integer(2)),
                                }),
                                body: vec![
                                    Token::Assign {
@@ -1730,8 +1729,8 @@ mod test {
                            Token::If {
                                position: TokenPosition { line: 1, column: 1 },
                                condition: Box::from(Token::Eq {
-                                    expr1: Box::from(Token::Integer(1)),
-                                    expr2: Box::from(Token::Integer(1)),
+                                   expr1: Box::from(Token::Integer(1)),
+                                   expr2: Box::from(Token::Integer(1)),
                                }),
                                body: vec![
                                    Token::Variable {
@@ -1749,7 +1748,6 @@ mod test {
 
     #[test]
     fn test_match_statement() {
-
         let (_, token) = parse_match_statement(Span::new(r#"match a
 
             case 1 then
@@ -1824,7 +1822,7 @@ mod test {
                             ],
                         }
                     ],
-                }
+                },
             ],
             default: Some(Box::new(Token::DefaultCase {
                 position: TokenPosition { line: 15, column: 13 },
@@ -1840,9 +1838,8 @@ mod test {
                         ],
                     }
                 ],
-            }))
+            })),
         })
-
     }
 
     #[test]
@@ -2242,8 +2239,8 @@ mod test {
                 Token::Identifier {
                     position: TokenPosition { line: 1, column: 17 },
                     name: String::from("vector2"),
-                }
-            ]
+                },
+            ],
         })
     }
 
@@ -2258,7 +2255,7 @@ mod test {
                     position: TokenPosition { line: 1, column: 8 },
                     name: String::from("graphics"),
                 },
-            ]
+            ],
         })
     }
 

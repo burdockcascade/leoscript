@@ -54,7 +54,6 @@ struct PrecompileResult {
 }
 
 pub(crate) fn compile_script(source: &str, offset: usize) -> Result<Script, ScriptError> {
-
     let mut script = Script::default();
 
     // get tokens
@@ -75,7 +74,6 @@ pub(crate) fn compile_script(source: &str, offset: usize) -> Result<Script, Scri
 
     // compile imports
     for token in parser_result.tokens.clone() {
-
         match token {
             Token::Import { position, source, .. } => {
 
@@ -139,7 +137,6 @@ pub(crate) fn compile_script(source: &str, offset: usize) -> Result<Script, Scri
 
                 // update source files
                 script.imports.append(&mut imported_script.imports);
-
             }
             _ => {}
         }
@@ -149,17 +146,14 @@ pub(crate) fn compile_script(source: &str, offset: usize) -> Result<Script, Scri
 
     // compile script
     for token in parser_result.tokens.clone() {
-
         let local_offset = script.instructions.len() + offset;
 
         match token {
             Token::Function { position, function_name, input, body, .. } => {
-
                 let func = Function::new(position, function_name.to_string(), input, body)?;
                 script.globals.insert(function_name.to_string(), Variant::FunctionPointer(local_offset));
                 script.instructions.append(&mut func.instructions.clone());
-
-            },
+            }
             Token::Module { position, module_name, body, .. } => {
                 let class_name_as_string = module_name.to_string();
                 let mod_struct = compile_module(position, module_name, body, local_offset)?;
@@ -167,15 +161,13 @@ pub(crate) fn compile_script(source: &str, offset: usize) -> Result<Script, Scri
                 script.globals.insert(class_name_as_string, Variant::Module(mod_struct.structure));
                 script.instructions.append(&mut mod_struct.instructions.clone());
             }
-            Token::Class {position, class_name, body, .. } => {
-
+            Token::Class { position, class_name, body, .. } => {
                 let class_name_as_string = class_name.to_string();
                 let class_struct = compile_class(position, class_name, body, local_offset)?;
 
                 script.globals.insert(class_name_as_string, Variant::Class(class_struct.structure));
                 script.instructions.append(&mut class_struct.instructions.clone());
-
-            },
+            }
             Token::Enum { position, name, items } => {
                 let enum_def = compile_enum(position, name.clone(), items)?;
                 script.globals.insert(name, enum_def);
@@ -187,5 +179,4 @@ pub(crate) fn compile_script(source: &str, offset: usize) -> Result<Script, Scri
     script.compiler_time += start_compiler_timer.elapsed();
 
     Ok(script)
-
 }

@@ -10,7 +10,6 @@ pub struct Counter {
 
 impl Counter {
     pub fn new(start: i64, step: i64, target: Variant) -> Self {
-
         Counter {
             index: 0,
             start,

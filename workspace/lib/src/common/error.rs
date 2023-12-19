@@ -102,7 +102,7 @@ pub enum NativeFunctionError {
 pub enum SystemError {
     ExpectedNativeFunction,
     UnableToReadFile(String),
-    UnableToGetLocalDirectory
+    UnableToGetLocalDirectory,
 }
 
 #[derive(Debug, PartialEq)]
@@ -143,7 +143,6 @@ pub enum CompilerError {
 
 #[derive(Debug, PartialEq)]
 pub enum RuntimeError {
-
     NoInstructions,
 
     ExpectedValueOnStack,

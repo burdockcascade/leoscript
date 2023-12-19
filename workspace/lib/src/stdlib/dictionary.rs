@@ -8,7 +8,6 @@ use crate::stdlib::{INTERNAL_CLASS_VALUE, PARAM_0, PARAM_1, PARAM_2};
 use crate::vm::thread::Thread;
 
 pub fn compile_dictionary_class(t: &mut Thread) {
-
     t.add_native_function("std_dictionary_constructor", dict_constructor);
     t.add_native_function("std_dictionary_get", dict_get);
     t.add_native_function("std_dictionary_set", dict_set);
@@ -30,14 +29,13 @@ pub fn compile_dictionary_class(t: &mut Thread) {
     class.insert(String::from("values"), Variant::NativeFunctionRef(String::from("std_dictionary_values")));
     class.insert(String::from("contains_key"), Variant::NativeFunctionRef(String::from("std_dictionary_contains_key")));
     t.add_global("Dictionary", Variant::Class(class));
-
 }
 
 fn dict_constructor(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
 
     // this
     let Some(Variant::Object(this)) = p.get(PARAM_0) else {
-        return script_native_function_error!(NativeFunctionError::InvalidSelf)
+        return script_native_function_error!(NativeFunctionError::InvalidSelf);
     };
 
     // if no parameters then return
@@ -48,14 +46,13 @@ fn dict_constructor(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
     }
 
     Ok(Some(Variant::Object(this.clone())))
-
 }
 
 fn dict_contains_key(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
 
     // get key
     let Variant::String(key) = get_parameter(&p, PARAM_1)? else {
-        return script_native_function_error!(NativeFunctionError::UnknownParameterToken)
+        return script_native_function_error!(NativeFunctionError::UnknownParameterToken);
     };
 
     // get value
@@ -65,11 +62,9 @@ fn dict_contains_key(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
     }
 
     Ok(Some(Variant::Bool(false)))
-
 }
 
 fn dict_keys(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
-
     let internal_value = get_object_value(&p)?;
 
     let mut keys = Vec::new();
@@ -78,11 +73,9 @@ fn dict_keys(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
     }
 
     Ok(Some(Variant::Array(keys)))
-
 }
 
 fn dict_values(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
-
     let internal_value = get_object_value(&p)?;
 
     let mut values = Vec::new();
@@ -91,14 +84,13 @@ fn dict_values(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
     }
 
     Ok(Some(Variant::Array(values)))
-
 }
 
 fn dict_get(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
 
     // get key
     let Variant::String(key) = get_parameter(&p, PARAM_1)? else {
-        return script_native_function_error!(NativeFunctionError::UnknownParameterToken)
+        return script_native_function_error!(NativeFunctionError::UnknownParameterToken);
     };
 
     // get value
@@ -114,7 +106,7 @@ fn dict_set(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
 
     // get key
     let Variant::String(key) = get_parameter(&p, PARAM_1)? else {
-        return script_native_function_error!(NativeFunctionError::UnknownParameterToken)
+        return script_native_function_error!(NativeFunctionError::UnknownParameterToken);
     };
 
     // get value
@@ -137,7 +129,7 @@ fn dict_remove(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
     let mut value = get_object_value(&p)?;
 
     let Variant::String(key) = p[PARAM_1].clone() else {
-        return script_native_function_error!(NativeFunctionError::UnknownParameterToken)
+        return script_native_function_error!(NativeFunctionError::UnknownParameterToken);
     };
 
     value.remove(&key);
@@ -162,7 +154,7 @@ fn get_parameter(p: &Vec<Variant>, i: usize) -> Result<Variant, ScriptError> {
 }
 
 fn get_object_value(p: &Vec<Variant>) -> Result<HashMap<String, Variant>, ScriptError> {
-    if let Variant::Object(obj) =  p[PARAM_0].clone() {
+    if let Variant::Object(obj) = p[PARAM_0].clone() {
         let borrowed = obj.borrow();
         if let Some(value) = borrowed.get(INTERNAL_CLASS_VALUE) {
             if let Variant::Map(map) = value {
@@ -174,7 +166,7 @@ fn get_object_value(p: &Vec<Variant>) -> Result<HashMap<String, Variant>, Script
 }
 
 fn set_object_value(p: &Vec<Variant>, value: HashMap<String, Variant>) {
-    if let Variant::Object(obj) =  p[PARAM_0].clone() {
+    if let Variant::Object(obj) = p[PARAM_0].clone() {
         let mut borrowed = obj.borrow_mut();
         borrowed.insert(String::from(INTERNAL_CLASS_VALUE), Variant::Map(value));
     } else {
@@ -210,7 +202,6 @@ mod tests {
 
     #[test]
     fn test_constructor() {
-
         let input = vec![
             construct_object!(),
         ];
@@ -227,16 +218,13 @@ mod tests {
                 } else {
                     assert!(false, "internal value not found");
                 }
-
-            },
+            }
             _ => assert!(false, "constructor failed")
         }
-
     }
 
     #[test]
     fn test_dict_get() {
-
         let input = vec![
             construct_object!(),
             Variant::String(String::from("a")),
@@ -246,19 +234,17 @@ mod tests {
             Ok(Some(Variant::Integer(1))) => assert!(true),
             _ => assert!(false, "get failed")
         }
-
     }
 
     #[test]
     fn test_dict_set_and_get() {
-
         let test_key = Variant::String(String::from("d"));
         let test_value = Variant::Integer(10);
         let class = construct_object!();
         let input = vec![
             class.clone(),
             test_key.clone(),
-            test_value.clone()
+            test_value.clone(),
         ];
 
         // set value
@@ -272,7 +258,6 @@ mod tests {
             Ok(Some(Variant::Integer(i))) => assert_eq!(i, 10),
             _ => assert!(false, "get failed")
         }
-
     }
 
     #[test]
@@ -283,7 +268,6 @@ mod tests {
 
     #[test]
     fn test_dict_clear() {
-
         let input = vec![
             construct_object!(),
         ];
@@ -291,12 +275,10 @@ mod tests {
         dict_clear(input.clone());
 
         assert_eq!(dict_length(input.clone()), Ok(Some(Variant::Integer(0))));
-
     }
 
     #[test]
     fn test_dict_keys() {
-
         let input = vec![
             construct_object!(),
         ];
@@ -309,16 +291,13 @@ mod tests {
                 assert!(keys.contains(&Variant::String(String::from("a"))), "does not contain a");
                 assert!(keys.contains(&Variant::String(String::from("b"))), "does not contain b");
                 assert!(keys.contains(&Variant::String(String::from("c"))), "does not contain c");
-
-            },
+            }
             _ => assert!(false, "keys failed")
         }
-
     }
 
     #[test]
     fn test_dict_values() {
-
         let input = vec![
             construct_object!(),
         ];
@@ -331,16 +310,13 @@ mod tests {
                 assert!(values.contains(&Variant::Integer(1)), "does not contain 1");
                 assert!(values.contains(&Variant::Integer(2)), "does not contain 2");
                 assert!(values.contains(&Variant::Integer(3)), "does not contain 3");
-
-            },
+            }
             _ => assert!(false, "values failed")
         }
-
     }
 
     #[test]
     fn test_dict_contains_key() {
-
         let input = vec![
             construct_object!(),
             Variant::String(String::from("a")),
@@ -350,7 +326,5 @@ mod tests {
             Ok(Some(Variant::Bool(true))) => assert!(true),
             _ => assert!(false, "contains_key failed")
         }
-
     }
-
 }

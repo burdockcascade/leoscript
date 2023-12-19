@@ -18,14 +18,13 @@ pub fn compile_string_class(t: &mut Thread) {
     class.insert(String::from(CONSTRUCTOR_NAME), Variant::NativeFunctionRef(String::from("std_string_constructor")));
     class.insert(String::from("length"), Variant::NativeFunctionRef(String::from("std_string_length")));
     t.add_global("String", Variant::Class(class));
-
 }
 
 fn string_constructor(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
 
     // this
     let Some(Variant::Object(this)) = p.get(PARAM_0) else {
-        return script_native_function_error!(NativeFunctionError::InvalidSelf)
+        return script_native_function_error!(NativeFunctionError::InvalidSelf);
     };
 
     // if no parameters then return
@@ -36,14 +35,13 @@ fn string_constructor(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
     }
 
     Ok(Some(Variant::Object(this.clone())))
-
 }
 
 fn string_length(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
 
     // this
     let Some(Variant::Object(this)) = p.get(PARAM_0) else {
-        return script_native_function_error!(NativeFunctionError::InvalidSelf)
+        return script_native_function_error!(NativeFunctionError::InvalidSelf);
     };
 
     if let Variant::String(v) = this.borrow().get(INTERNAL_CLASS_VALUE).unwrap() {
@@ -51,7 +49,6 @@ fn string_length(p: Vec<Variant>) -> Result<Option<Variant>, ScriptError> {
     }
 
     script_native_function_error!(NativeFunctionError::InvalidNativeFunction(format!("{}: {}", file!(), line!())))
-
 }
 
 #[cfg(test)]
@@ -79,7 +76,6 @@ mod tests {
 
     #[test]
     fn test_constructor() {
-
         let input = vec![
             construct_object!(),
         ];
@@ -95,11 +91,9 @@ mod tests {
                 } else {
                     assert!(false, "internal value not found");
                 }
-
-            },
+            }
             _ => assert!(false, "constructor failed")
         }
-
     }
 
     #[test]
@@ -107,5 +101,4 @@ mod tests {
         let input = vec![construct_object!()];
         assert_eq!(string_length(input), Ok(Some(Variant::Integer(TEST_STRING.len() as i64))));
     }
-
 }

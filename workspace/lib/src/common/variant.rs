@@ -178,7 +178,6 @@ impl Mul for Variant {
     type Output = Variant;
 
     fn mul(self, rhs: Variant) -> <Self as Mul<Variant>>::Output {
-
         let lhs = self;
 
         match (lhs.clone(), rhs.clone()) {

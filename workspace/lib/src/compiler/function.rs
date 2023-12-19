@@ -268,7 +268,6 @@ impl Function {
 
     // compile a function call
     fn compile_call(&mut self, position: TokenPosition, name: Box<Token>, args: Vec<Token>) -> Result<(), ScriptError> {
-
         self.compile_stack_trace_push(position.line)?;
 
         let arg_len = args.len();
@@ -312,7 +311,6 @@ impl Function {
     // CLASSES
 
     fn compile_new_object(&mut self, position: TokenPosition, ident: Box<Token>, params: Vec<Token>) -> Result<(), ScriptError> {
-
         let (start, chain) = match *ident {
             Token::DotChain { start, chain, .. } => (start, chain),
             _ => return Err(ScriptError::CompilerError {
@@ -391,7 +389,6 @@ impl Function {
     // MATCH
 
     fn compile_match(&mut self, position: TokenPosition, expr: Box<Token>, arms: Vec<Token>, default: Option<Box<Token>>) -> Result<(), ScriptError> {
-
         let mut jump_to_end = vec![];
 
         for arm in arms {
@@ -442,7 +439,6 @@ impl Function {
         }
 
         Ok(())
-
     }
 
     //==============================================================================================
@@ -553,7 +549,7 @@ impl Function {
             iter.breaks.push(self.instructions.len());
             self.instructions.push(Instruction::NoOperation);
         } else {
-            return script_compile_error!(CompilerError::BreakOutsideOfLoop, position)
+            return script_compile_error!(CompilerError::BreakOutsideOfLoop, position);
         }
         Ok(())
     }
@@ -564,7 +560,7 @@ impl Function {
             iter.continues.push(self.instructions.len());
             self.instructions.push(Instruction::NoOperation);
         } else {
-            return script_compile_error!(CompilerError::ContinueOutsideOfLoop, position)
+            return script_compile_error!(CompilerError::ContinueOutsideOfLoop, position);
         }
         Ok(())
     }
@@ -702,7 +698,7 @@ impl Function {
                 self.instructions.push(Instruction::Equal);
             }
 
-            Token::Ne { expr1, expr2 }=> {
+            Token::Ne { expr1, expr2 } => {
                 self.compile_expression(position, expr1)?;
                 self.compile_expression(position, expr2)?;
                 self.instructions.push(Instruction::NotEqual);
@@ -715,8 +711,8 @@ impl Function {
             }
 
             Token::Sub { expr1, expr2 } => {
-            self.compile_expression(position, expr1)?;
-            self.compile_expression(position, expr2)?;
+                self.compile_expression(position, expr1)?;
+                self.compile_expression(position, expr2)?;
                 self.instructions.push(Instruction::Sub);
             }
 
@@ -785,7 +781,6 @@ impl Function {
 
         Ok(())
     }
-
 }
 
 #[cfg(test)]

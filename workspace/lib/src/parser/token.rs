@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::fmt::Display;
+
 use crate::parser::Span;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
-
     Import {
         position: TokenPosition,
         source: Vec<Token>,
@@ -112,7 +112,7 @@ pub enum Token {
     Enum {
         position: TokenPosition,
         name: String,
-        items: Vec<Token>
+        items: Vec<Token>,
     },
 
     Not { expr: Box<Token> },

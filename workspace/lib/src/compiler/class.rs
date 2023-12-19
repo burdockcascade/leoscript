@@ -8,7 +8,6 @@ use crate::compiler::function::Function;
 use crate::compiler::script::{CONSTRUCTOR_NAME, FunctionGroup, SELF_CONSTANT};
 use crate::parser::token::{Token, TokenPosition};
 
-
 pub fn compile_class(position: TokenPosition, name: Box<Token>, body: Vec<Token>, ip_offset: usize) -> Result<FunctionGroup, ScriptError> {
     trace!("Compiling class: {}", name);
 
@@ -54,19 +53,18 @@ pub fn compile_class(position: TokenPosition, name: Box<Token>, body: Vec<Token>
                 c.instructions.append(&mut func.instructions.clone());
             }
             Token::Constant { .. } => unimplemented!("Constants not implemented yet"),
-            _ => { }
+            _ => {}
         }
     }
 
     // add default constructor if not defined
     if !c.structure.contains_key(CONSTRUCTOR_NAME) {
-        let f= compile_constructor(position, vec![], vec![], properties)?;
+        let f = compile_constructor(position, vec![], vec![], properties)?;
         c.structure.insert(String::from(CONSTRUCTOR_NAME), Variant::FunctionPointer(c.instructions.len() + ip_offset));
         c.instructions.append(&mut f.instructions.clone());
     }
 
     Ok(c)
-
 }
 
 fn compile_constructor(position: TokenPosition, mut input: Vec<Token>, mut body: Vec<Token>, properties: Vec<Token>) -> Result<Function, ScriptError> {
@@ -90,7 +88,6 @@ fn compile_constructor(position: TokenPosition, mut input: Vec<Token>, mut body:
 
     // add properties to class
     for prop in properties.clone() {
-
         match prop {
             Token::Attribute { name, value, .. } => {
 
@@ -113,7 +110,6 @@ fn compile_constructor(position: TokenPosition, mut input: Vec<Token>, mut body:
             }
             _ => {}
         }
-
     }
 
     Function::new(position, String::from(CONSTRUCTOR_NAME), input, body)

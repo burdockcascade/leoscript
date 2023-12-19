@@ -7,7 +7,6 @@ use crate::stdlib::{PARAM_1, PARAM_2};
 use crate::vm::thread::Thread;
 
 pub fn compile_math_module(t: &mut Thread) {
-
     t.add_native_function("std_math_max", math_max);
     t.add_native_function("std_math_min", math_min);
     t.add_native_function("std_math_sqrt", math_sqrt);
@@ -60,7 +59,6 @@ mod tests {
 
     #[test]
     fn test_math_max() {
-
         let input = vec![
             Variant::Module(std::collections::HashMap::new()),
             Variant::Integer(1),
@@ -73,12 +71,10 @@ mod tests {
             Ok(Some(v)) => assert_eq!(v, expected),
             _ => assert!(false),
         }
-
     }
 
     #[test]
     fn test_math_min() {
-
         let input = vec![
             Variant::Module(std::collections::HashMap::new()),
             Variant::Integer(1),
@@ -91,12 +87,10 @@ mod tests {
             Ok(Some(v)) => assert_eq!(v, expected),
             _ => assert!(false),
         }
-
     }
 
     #[test]
     fn test_math_abs() {
-
         let input = vec![
             Variant::Module(std::collections::HashMap::new()),
             Variant::Integer(-1),
@@ -108,12 +102,10 @@ mod tests {
             Ok(Some(v)) => assert_eq!(v, expected),
             _ => assert!(false),
         }
-
     }
 
     #[test]
     fn test_math_sqrt() {
-
         let input = vec![
             Variant::Module(std::collections::HashMap::new()),
             Variant::Integer(4),
@@ -125,9 +117,5 @@ mod tests {
             Ok(Some(v)) => assert_eq!(v, expected),
             _ => assert!(false),
         }
-
     }
-
-
-
 }

@@ -27,7 +27,6 @@ macro_rules! generic_native_class {
 }
 
 pub fn add_standard_library(t: &mut Thread) -> Result<(), ScriptError> {
-
     t.add_native_function("println", |p| {
         println!("{}", p[PARAM_0]);
         Ok(None)

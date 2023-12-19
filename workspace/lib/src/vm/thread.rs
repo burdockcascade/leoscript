@@ -105,7 +105,7 @@ impl Thread {
         self.program.globals.insert(name.to_string(), value);
     }
 
-    pub fn run(&mut self,  entry: &str, parameters: Option<Vec<Variant>>) -> Result<ExecutionResult, ScriptError> {
+    pub fn run(&mut self, entry: &str, parameters: Option<Vec<Variant>>) -> Result<ExecutionResult, ScriptError> {
 
         // start timer
         let start_execution = std::time::Instant::now();
@@ -124,11 +124,9 @@ impl Thread {
             }),
             Err(e) => Err(e),
         }
-
     }
 
-    fn execute(&mut self,  entry: &str, parameters: Option<Vec<Variant>>) -> Result<Option<Variant>, ScriptError> {
-
+    fn execute(&mut self, entry: &str, parameters: Option<Vec<Variant>>) -> Result<Option<Variant>, ScriptError> {
         let mut stack: Vec<Variant> = Vec::with_capacity(64);
         let mut trace: Vec<StackTrace> = Vec::with_capacity(64);
 
@@ -136,11 +134,9 @@ impl Thread {
         let mut fp: usize = 1;
 
         if let Some(Variant::FunctionPointer(fpointer)) = self.program.globals.get(entry) {
-
             stack.push(Variant::ReturnPointer(0));
             stack.push(Variant::FramePointer(0));
             ip = *fpointer;
-
         } else {
             return Err(ScriptError::RuntimeError {
                 trace: Some(trace),
@@ -159,7 +155,6 @@ impl Thread {
 
         // loop over instructions
         loop {
-
             debug!("[{:?}] {:?}", ip, self.program.instructions[ip]);
             debug!("stack: {:?}", stack);
             // debug!("fp: {}", fp);
@@ -292,7 +287,6 @@ impl Thread {
                     } else {
                         return script_runtime_error!(trace, RuntimeError::InvalidStackIndex { index: stack_index, size: stack.len() });
                     }
-
                 }
 
                 // get value from variable and push onto stack
@@ -368,18 +362,17 @@ impl Thread {
                         // is FunctionRef and in globals
                         Variant::FunctionRef(ident) if self.program.globals.contains_key(&ident) => {
                             self.program.globals.get(&ident).unwrap().clone()
-                        },
+                        }
 
                         // is FunctionRef and in native_functions
                         Variant::NativeFunctionRef(ident) if self.native_functions.contains_key(&ident) => {
-
                             let func = self.native_functions.get(&ident).unwrap();
 
                             match func(args) {
                                 Ok(Some(result)) => {
                                     stack.push(result);
-                                },
-                                Ok(None) => {},
+                                }
+                                Ok(None) => {}
                                 Err(error) => {
                                     return Err(error);
                                 }
@@ -387,7 +380,7 @@ impl Thread {
 
                             ip += 1;
                             continue;
-                        },
+                        }
 
                         // do nothing
                         Variant::FunctionPointer(_) => tos,
@@ -416,11 +409,10 @@ impl Thread {
 
                             // set instruction pointer to function
                             ip = fptr;
-                        },
+                        }
 
                         // invalid call destination
                         _ => return script_runtime_error!(trace, RuntimeError::InvalidCallDestination(tos))
-
                     }
                 }
 
@@ -446,7 +438,6 @@ impl Thread {
                         Variant::ReturnPointer(ptr) => ip = ptr,
                         _ => return script_runtime_error!(trace, RuntimeError::InvalidReturnPointer),
                     }
-
                 }
 
                 Instruction::ReturnWithValue => {
@@ -485,7 +476,6 @@ impl Thread {
                 // Objects
 
                 Instruction::CreateObject => {
-
                     let tos = pop_tos!(stack, trace);
 
                     // get class
@@ -500,7 +490,6 @@ impl Thread {
                     stack.push(new_object.clone());
 
                     ip += 1;
-
                 }
 
                 //==================================================================================

@@ -1,4 +1,3 @@
-
 #[macro_export]
 macro_rules! script_compile_warning {
     ($warning:expr, $position:expr) => {
