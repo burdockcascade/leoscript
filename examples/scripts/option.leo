@@ -1,6 +1,6 @@
 class Option
 
-    var value
+    attribute value
 
     constructor(value)
         self.value = value

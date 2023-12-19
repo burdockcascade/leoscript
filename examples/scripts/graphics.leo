@@ -7,8 +7,9 @@ import examples.scripts.system
 module Graphics
 
     class Point
-        var x = 0
-        var y = 0
+
+        attribute x = 0
+        attribute y = 0
 
         constructor(x, y)
             self.x = x
@@ -19,9 +20,9 @@ module Graphics
 
     class Rectangle
 
-        var width = 0
-        var height = 0
-        var origin = new Graphics.Point(0, 0)
+        attribute width = 0
+        attribute height = 0
+        attribute origin = new Graphics.Point(0, 0)
 
         constructor(origin, width, height)
             self.origin = origin
@@ -38,15 +39,17 @@ module Graphics
         end
 
         function contains(point)
-            return point.x >= self.origin.x and point.x < (self.origin.x + self.width) and
-                   point.y >= self.origin.y and point.y < (self.origin.y + self.height)
+            return point.x >= self.origin.x
+             and point.x < (self.origin.x + self.width)
+             and point.y >= self.origin.y
+             and point.y < (self.origin.y + self.height)
         end
 
     end
 
     class Vector2
-        var x = 0
-        var y = 0
+        attribute x = 0
+        attribute y = 0
 
         constructor(x, y)
             self.x = x
@@ -60,9 +63,9 @@ module Graphics
     end
 
     class Vector3
-        var x = 0
-        var y = 0
-        var z = 0
+        attribute x = 0
+        attribute y = 0
+        attribute z = 0
 
         constructor(x, y, z)
             self.x = x
@@ -74,21 +77,20 @@ module Graphics
 
     class Dimension
 
-        var height as Integer
-        var length as Integer
-        var magic_number = 2
+        attribute height
+        attribute length
+        attribute magic_number = 2
 
         constructor(h, l)
             self.height = h
             self.length = l
         end
 
-        -- error in function
         function area()
             return self.calc_area()
         end
 
-        function calc_area() as Integer
+        function calc_area()
             return self.height * self.length
         end
 

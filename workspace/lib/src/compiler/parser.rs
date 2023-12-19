@@ -277,7 +277,15 @@ fn parse_class_attribute(input: Span) -> IResult<Span, Token> {
             )),
             opt(preceded(
                 delimited(multispace0, tag("="), multispace0),
-                parse_primitive_type,
+                alt((
+                    parse_string,
+                    parse_float,
+                    parse_integer,
+                    parse_boolean,
+                    parse_array,
+                    parse_dictionary,
+                    parse_new_keyword,
+                ))
             ))
         )),
         |(name, as_type, value)| Token::Attribute {
