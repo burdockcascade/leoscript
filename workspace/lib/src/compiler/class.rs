@@ -5,16 +5,17 @@ use log::trace;
 use crate::common::error::ScriptError;
 use crate::common::variant::Variant;
 use crate::compiler::function::Function;
-use crate::compiler::script::{CONSTRUCTOR_NAME, FunctionGroup, SELF_CONSTANT};
+use crate::compiler::script::{CONSTRUCTOR_NAME, CodeStructure, SELF_CONSTANT};
 use crate::parser::token::{Token, TokenPosition};
 
-pub fn compile_class(position: TokenPosition, name: Box<Token>, body: Vec<Token>, ip_offset: usize) -> Result<FunctionGroup, ScriptError> {
+const CLASS_TYPE_FIELD: &str = "_type";
+
+pub fn compile_class(position: TokenPosition, name: Box<Token>, body: Vec<Token>, ip_offset: usize) -> Result<CodeStructure, ScriptError> {
     trace!("Compiling class: {}", name);
 
-    let mut c = FunctionGroup {
-        structure: HashMap::default(),
-        instructions: Vec::default(),
-    };
+    let mut c = CodeStructure::default();
+
+    c.structure.insert(String::from(CLASS_TYPE_FIELD), Variant::Type(name.to_string()));
 
     let mut properties: Vec<Token> = Vec::default();
 

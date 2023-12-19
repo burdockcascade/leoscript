@@ -21,9 +21,18 @@ const FILE_EXTENSION: &str = ".leo";
 pub const CONSTRUCTOR_NAME: &str = "constructor";
 pub const SELF_CONSTANT: &str = "self";
 
-pub struct FunctionGroup {
+pub struct CodeStructure {
     pub structure: HashMap<String, Variant>,
     pub instructions: Vec<Instruction>,
+}
+
+impl Default for CodeStructure {
+    fn default() -> Self {
+        CodeStructure {
+            structure: HashMap::default(),
+            instructions: Vec::default(),
+        }
+    }
 }
 
 pub struct Script {
@@ -48,12 +57,7 @@ impl Default for Script {
     }
 }
 
-struct PrecompileResult {
-    tokens: Vec<Token>,
-    parser_time: Duration,
-}
-
-pub(crate) fn compile_script(source: &str, offset: usize) -> Result<Script, ScriptError> {
+pub fn compile_script(source: &str, offset: usize) -> Result<Script, ScriptError> {
     let mut script = Script::default();
 
     // get tokens
@@ -66,7 +70,6 @@ pub(crate) fn compile_script(source: &str, offset: usize) -> Result<Script, Scri
     let local_offset = script.instructions.len() + offset;
 
     // set path separator based on local system
-    // fixme - this should be moved to a more global location
     let path_separator = match std::env::consts::OS {
         "windows" => "\\",
         _ => "/"

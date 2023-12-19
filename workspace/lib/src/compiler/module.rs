@@ -5,16 +5,13 @@ use crate::common::variant::Variant;
 use crate::compiler::class::compile_class;
 use crate::compiler::function::Function;
 use crate::compiler::r#enum::compile_enum;
-use crate::compiler::script::{FunctionGroup, SELF_CONSTANT};
+use crate::compiler::script::{CodeStructure, SELF_CONSTANT};
 use crate::parser::token::{Token, TokenPosition};
 
 const MODULE_TYPE_FIELD: &str = "_type";
 
-pub fn compile_module(_position: TokenPosition, name: Box<Token>, body: Vec<Token>, ip_offset: usize) -> Result<FunctionGroup, ScriptError> {
-    let mut fgroup = FunctionGroup {
-        structure: HashMap::default(),
-        instructions: Vec::default(),
-    };
+pub fn compile_module(_position: TokenPosition, name: Box<Token>, body: Vec<Token>, ip_offset: usize) -> Result<CodeStructure, ScriptError> {
+    let mut fgroup = CodeStructure::default();
 
     // set module type
     fgroup.structure.insert(String::from(MODULE_TYPE_FIELD), Variant::Type(name.to_string()));
