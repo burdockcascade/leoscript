@@ -58,12 +58,12 @@ fn module_with_class() {
         function main()
 
             -- vector fun
-            var v1 = new Graphics.Vector2(10, 20)
-            var v2 = new Graphics.Vector2(20, 30)
+            var v1 = new Graphics::Vector2(10, 20)
+            var v2 = new Graphics::Vector2(20, 30)
             var v3 = v1.add(v2)
             var length = v3.length()
 
-            return Math.max(10, 20) == 20 and Math.min(10, 20) == 10
+            return Math::max(10, 20) == 20 and Math::min(10, 20) == 10
         end
 
         module Graphics
@@ -79,19 +79,19 @@ fn module_with_class() {
                 end
 
                 function add(other)
-                    return new Graphics.Vector2(self.x + other.x, self.y + other.y)
+                    return new Graphics::Vector2(self.x + other.x, self.y + other.y)
                 end
 
                 function sub(other)
-                    return new Graphics.Vector2(self.x - other.x, self.y - other.y)
+                    return new Graphics::Vector2(self.x - other.x, self.y - other.y)
                 end
 
                 function mul(other)
-                    return new Graphics.Vector2(self.x * other.x, self.y * other.y)
+                    return new Graphics::Vector2(self.x * other.x, self.y * other.y)
                 end
 
                 function div(other)
-                    return new Graphics.Vector2(self.x / other.x, self.y / other.y)
+                    return new Graphics::Vector2(self.x / other.x, self.y / other.y)
                 end
 
                 function dot(other)
@@ -108,7 +108,7 @@ fn module_with_class() {
 
                 function normalize()
                     var l = self.length()
-                    return new Graphics.Vector2(self.x / l, self.y / l)
+                    return new Graphics::Vector2(self.x / l, self.y / l)
                 end
 
                 function to_string()

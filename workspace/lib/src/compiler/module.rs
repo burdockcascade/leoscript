@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use crate::common::error::ScriptError;
 use crate::common::variant::Variant;
 use crate::compiler::class::compile_class;

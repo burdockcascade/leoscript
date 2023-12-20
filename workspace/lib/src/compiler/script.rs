@@ -14,7 +14,7 @@ use crate::compiler::class::compile_class;
 use crate::compiler::function::Function;
 use crate::compiler::module::compile_module;
 use crate::compiler::r#enum::compile_enum;
-use crate::parser::parser::parse_script;
+use crate::parser::parse_script;
 use crate::parser::token::Token;
 
 const FILE_EXTENSION: &str = ".leo";

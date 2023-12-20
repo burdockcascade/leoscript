@@ -99,7 +99,7 @@ fn enums() {
             Green
             Blue
         end
-        
+
         function main()
             var x as Color = Color.Red
             var y as Color = Color.Green

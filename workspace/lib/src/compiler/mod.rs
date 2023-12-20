@@ -266,7 +266,7 @@ mod test {
             end
         "#;
 
-        let program = compile_program(script).unwrap();
+        let _program = compile_program(script).unwrap();
 
         // fixme
     }

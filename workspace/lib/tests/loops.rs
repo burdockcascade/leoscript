@@ -109,10 +109,9 @@ fn for_in_array() {
 #[test]
 fn for_in_dict() {
     test_success!(r#"
-
          function main()
 
-            var counter as Integer = 0
+            var counter = 0
 
             var numbers = new Dictionary()
             numbers.set("one", 1)

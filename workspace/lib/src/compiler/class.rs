@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use log::trace;
 
 use crate::common::error::ScriptError;
