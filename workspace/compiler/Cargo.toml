@@ -1,5 +1,5 @@
 [package]
-name = "compiler"
+name = "leoscript-compiler"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,3 +11,6 @@ nom_locate = "4.2.0"
 log = { version = "0.4.20", features = [] }
 
 leoscript-runtime = { path = "../runtime" }
+
+[dev-dependencies]
+simplelog = "0.12.1"

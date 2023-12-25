@@ -5,12 +5,14 @@ use nom::combinator::map;
 use nom::IResult;
 use nom::multi::{many0, separated_list1};
 use nom::sequence::{delimited, preceded, terminated};
-use crate::parser::{DOT_OPERATOR, ParserError, ParserResult, Span};
+use crate::error::{CompilerError, CompilerErrorType};
+use crate::parser::{DOT_OPERATOR, ParserResult, Span};
 use crate::parser::dataobjects::{parse_class, parse_enum, parse_identifier, parse_module};
 use crate::parser::functions::parse_function;
 use crate::parser::token::{Token, TokenPosition};
+use crate::warning::CompilerWarning;
 
-pub fn parse_script(input: &str) -> Result<ParserResult, ParserError> {
+pub fn parse_script(input: &str) -> Result<ParserResult, CompilerError> {
     let start_parser_timer = std::time::Instant::now();
 
     let result = many0(
@@ -31,11 +33,13 @@ pub fn parse_script(input: &str) -> Result<ParserResult, ParserError> {
         Ok((_, tokens)) => {
             Ok(ParserResult {
                 tokens,
-                errors: Vec::new(),
                 parser_time: start_parser_timer.elapsed(),
             })
         }
-        Err(err) => Err(ParserError::UnableToParseTokens),
+        Err(err) => Err(CompilerError {
+            error: CompilerErrorType::UnableToParseTokens,
+            position: TokenPosition::new(&Span::new(input)),
+        }),
     }
 }
 

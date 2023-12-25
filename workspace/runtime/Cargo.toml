@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 log = "0.4.20"
+
+[dev-dependencies]
+simplelog = "0.12.1"

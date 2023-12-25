@@ -1,13 +1,13 @@
 use leoscript_runtime::ir::variant::Variant;
 use log::trace;
-use crate::compiler::{CompilerError, CompilerErrorType};
-use crate::compiler::function::Function;
-use crate::compiler::script::{CONSTRUCTOR_NAME, CodeStructure, SELF_CONSTANT};
+use crate::codegen::{CompilerError};
+use crate::codegen::function::Function;
+use crate::codegen::script::{CONSTRUCTOR_NAME, CodeStructure, SELF_CONSTANT};
 use crate::parser::token::{Token, TokenPosition};
 
 const CLASS_TYPE_FIELD: &str = "_type";
 
-pub fn compile_class(position: TokenPosition, name: Box<Token>, body: Vec<Token>, ip_offset: usize) -> Result<CodeStructure, CompilerError> {
+pub fn generate_class(position: TokenPosition, name: Box<Token>, body: Vec<Token>, ip_offset: usize) -> Result<CodeStructure, CompilerError> {
     trace!("Compiling class: {}", name);
 
     let mut c = CodeStructure::default();
@@ -30,7 +30,7 @@ pub fn compile_class(position: TokenPosition, name: Box<Token>, body: Vec<Token>
     for item in body.clone() {
         match item {
             Token::Constructor { position, input, body } => {
-                let f = compile_constructor(position, input, body, properties.clone())?;
+                let f = generate_constructor(position, input, body, properties.clone())?;
                 c.structure.insert(String::from(CONSTRUCTOR_NAME), Variant::FunctionPointer(c.instructions.len() + ip_offset));
                 c.instructions.append(&mut f.instructions.clone());
             }
@@ -57,7 +57,7 @@ pub fn compile_class(position: TokenPosition, name: Box<Token>, body: Vec<Token>
 
     // add default constructor if not defined
     if !c.structure.contains_key(CONSTRUCTOR_NAME) {
-        let f = compile_constructor(position, vec![], vec![], properties)?;
+        let f = generate_constructor(position, vec![], vec![], properties)?;
         c.structure.insert(String::from(CONSTRUCTOR_NAME), Variant::FunctionPointer(c.instructions.len() + ip_offset));
         c.instructions.append(&mut f.instructions.clone());
     }
@@ -65,7 +65,7 @@ pub fn compile_class(position: TokenPosition, name: Box<Token>, body: Vec<Token>
     Ok(c)
 }
 
-fn compile_constructor(position: TokenPosition, mut input: Vec<Token>, mut body: Vec<Token>, properties: Vec<Token>) -> Result<Function, CompilerError> {
+fn generate_constructor(position: TokenPosition, mut input: Vec<Token>, mut body: Vec<Token>, properties: Vec<Token>) -> Result<Function, CompilerError> {
 
     // first parameter is always self
     input.insert(0, Token::Variable {

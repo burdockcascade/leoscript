@@ -6,13 +6,14 @@ use std::time::Duration;
 use leoscript_runtime::ir::instruction::Instruction;
 use leoscript_runtime::ir::variant::Variant;
 
-use crate::compiler::class::compile_class;
-use crate::compiler::{CompilerError, CompilerErrorType, CompilerWarning, CompilerWarningType};
-use crate::compiler::function::Function;
-use crate::compiler::module::compile_module;
-use crate::compiler::r#enum::compile_enum;
+use crate::codegen::class::generate_class;
+use crate::codegen::function::Function;
+use crate::codegen::module::generate_module;
+use crate::codegen::r#enum::generate_enum;
+use crate::error::{CompilerError, CompilerErrorType};
 use crate::parser::script::parse_script;
 use crate::parser::token::Token;
+use crate::warning::{CompilerWarning, CompilerWarningType};
 
 const FILE_EXTENSION: &str = ".leo";
 pub const CONSTRUCTOR_NAME: &str = "constructor";
@@ -54,12 +55,13 @@ impl Default for Script {
     }
 }
 
-pub fn compile_script(source: &str, offset: usize) -> Result<Script, CompilerError> {
+pub fn generate_script(source: &str, offset: usize) -> Result<Script, CompilerError> {
     let mut script = Script::default();
 
     // get tokens
-    let Ok(parser_result) = parse_script(source) else {
-        return Err(CompilerError {
+    let parser_result = match parse_script(source) {
+        Ok(r) => r,
+        Err(e) => return Err(CompilerError {
             error: CompilerErrorType::ParseError,
             position: Default::default(),
         })
@@ -87,7 +89,6 @@ pub fn compile_script(source: &str, offset: usize) -> Result<Script, CompilerErr
                     return Err(CompilerError {
                         error: CompilerErrorType::UnableToGetWorkingDirectory,
                         position,
-
                     })
                 };
 
@@ -109,7 +110,7 @@ pub fn compile_script(source: &str, offset: usize) -> Result<Script, CompilerErr
                 // check if file exists
                 if !Path::new(&filename).exists() {
                     return Err(CompilerError {
-                        error: CompilerErrorType::UnableToImportFile(filename.clone()),
+                        error: CompilerErrorType::InvalidImportPath(filename.clone()),
                         position,
                     });
                 }
@@ -117,16 +118,16 @@ pub fn compile_script(source: &str, offset: usize) -> Result<Script, CompilerErr
                 // read file contents
                 let Ok(contents) = fs::read_to_string(filename.clone()) else {
                     return Err(CompilerError {
-                        error: CompilerErrorType::UnableToReadFile(filename.clone()),
+                        error: CompilerErrorType::InvalidImportPath(filename.clone()),
                         position,
-                    })
+                    });
                 };
 
                 // add imported file to source files
                 script.imports.push(filename.clone());
 
                 // compile imported script
-                let mut imported_script = compile_script(&contents, local_offset)?;
+                let mut imported_script = generate_script(&contents, local_offset)?;
 
                 // warn if nothing was imported
                 if imported_script.globals.len() == 0 {
@@ -174,20 +175,20 @@ pub fn compile_script(source: &str, offset: usize) -> Result<Script, CompilerErr
             }
             Token::Module { position, module_name, body, .. } => {
                 let class_name_as_string = module_name.to_string();
-                let mod_struct = compile_module(position, module_name, body, local_offset)?;
+                let mod_struct = generate_module(position, module_name, body, local_offset)?;
 
                 script.globals.insert(class_name_as_string, Variant::Module(mod_struct.structure));
                 script.instructions.append(&mut mod_struct.instructions.clone());
             }
             Token::Class { position, class_name, body, .. } => {
                 let class_name_as_string = class_name.to_string();
-                let class_struct = compile_class(position, class_name, body, local_offset)?;
+                let class_struct = generate_class(position, class_name, body, local_offset)?;
 
                 script.globals.insert(class_name_as_string, Variant::Class(class_struct.structure));
                 script.instructions.append(&mut class_struct.instructions.clone());
             }
             Token::Enum { position, name, items } => {
-                let enum_def = compile_enum(position, name.clone(), items)?;
+                let enum_def = generate_enum(position, name.clone(), items)?;
                 script.globals.insert(name, enum_def);
             }
             _ => {}
