@@ -2,5 +2,6 @@
 resolver = "2"
 members = [
     "workspace/lib",
+    "workspace/runtime",
     "examples/cleo",
 ]
