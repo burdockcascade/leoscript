@@ -17,7 +17,7 @@ type Span<'a> = LocatedSpan<&'a str>;
 const DOT_OPERATOR: &str = ".";
 
 #[derive(Debug, PartialEq)]
-pub enum ParseError {
+pub enum ParserError {
     UnableToParseTokens,
     ExpectedBlockEnd,
     NothingToParse,
@@ -27,7 +27,7 @@ pub enum ParseError {
 
 pub struct ParserResult {
     pub tokens: Vec<Token>,
-    pub errors: Vec<ParseError>,
+    pub errors: Vec<ParserError>,
     pub parser_time: std::time::Duration,
 }
 

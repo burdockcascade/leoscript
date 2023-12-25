@@ -5,12 +5,12 @@ use nom::combinator::map;
 use nom::IResult;
 use nom::multi::{many0, separated_list1};
 use nom::sequence::{delimited, preceded, terminated};
-use crate::parser::{DOT_OPERATOR, ParseError, ParserResult, Span};
+use crate::parser::{DOT_OPERATOR, ParserError, ParserResult, Span};
 use crate::parser::dataobjects::{parse_class, parse_enum, parse_identifier, parse_module};
 use crate::parser::functions::parse_function;
 use crate::parser::token::{Token, TokenPosition};
 
-pub fn parse_script(input: &str) -> Result<ParserResult, ParseError> {
+pub fn parse_script(input: &str) -> Result<ParserResult, ParserError> {
     let start_parser_timer = std::time::Instant::now();
 
     let result = many0(
@@ -35,7 +35,7 @@ pub fn parse_script(input: &str) -> Result<ParserResult, ParseError> {
                 parser_time: start_parser_timer.elapsed(),
             })
         }
-        Err(err) => Err(ParseError::UnableToParseTokens),
+        Err(err) => Err(ParserError::UnableToParseTokens),
     }
 }
 
