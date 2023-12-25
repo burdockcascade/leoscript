@@ -1,37 +1,37 @@
 use std::collections::HashMap;
 use std::fmt::Display;
-use crate::combinator::ParserPosition;
 
+use crate::parser::Span;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
     Import {
-        position: ParserPosition,
+        position: TokenPosition,
         source: Vec<Token>,
     },
 
     Comment {
-        position: ParserPosition,
+        position: TokenPosition,
         text: String,
     },
     Print {
-        position: ParserPosition,
+        position: TokenPosition,
         expr: Box<Token>,
     },
 
     Sleep {
-        position: ParserPosition,
+        position: TokenPosition,
         expr: Box<Token>,
     },
 
     Constructor {
-        position: ParserPosition,
+        position: TokenPosition,
         input: Vec<Token>,
         body: Vec<Token>,
     },
 
     Function {
-        position: ParserPosition,
+        position: TokenPosition,
         function_name: Box<Token>,
         is_static: bool,
         scope: Option<Box<Token>>,
@@ -41,62 +41,62 @@ pub enum Token {
     },
 
     AnonFunction {
-        position: ParserPosition,
+        position: TokenPosition,
         input: Vec<Token>,
         body: Vec<Token>,
     },
 
     Module {
-        position: ParserPosition,
+        position: TokenPosition,
         module_name: Box<Token>,
         body: Vec<Token>,
     },
 
     Class {
-        position: ParserPosition,
+        position: TokenPosition,
         class_name: Box<Token>,
         body: Vec<Token>,
     },
 
     Identifier {
-        position: ParserPosition,
+        position: TokenPosition,
         name: String,
     },
 
     DotChain {
-        position: ParserPosition,
+        position: TokenPosition,
         start: Box<Token>,
         chain: Vec<Token>,
     },
 
     Variable {
-        position: ParserPosition,
+        position: TokenPosition,
         name: String,
         as_type: Option<String>,
         value: Option<Box<Token>>,
     },
 
     Attribute {
-        position: ParserPosition,
+        position: TokenPosition,
         name: String,
         as_type: Option<String>,
         value: Option<Box<Token>>,
     },
 
     Constant {
-        position: ParserPosition,
+        position: TokenPosition,
         name: String,
         value: Box<Token>,
     },
 
     NewObject {
-        position: ParserPosition,
+        position: TokenPosition,
         name: Box<Token>,
         input: Vec<Token>,
     },
 
     Assign {
-        position: ParserPosition,
+        position: TokenPosition,
         ident: Box<Token>,
         value: Box<Token>,
     },
@@ -113,7 +113,7 @@ pub enum Token {
     CollectionIndex(Box<Token>),
 
     Enum {
-        position: ParserPosition,
+        position: TokenPosition,
         name: String,
         items: Vec<Token>,
     },
@@ -134,52 +134,52 @@ pub enum Token {
     Pow { expr1: Box<Token>, expr2: Box<Token> },
 
     IfChain {
-        position: ParserPosition,
+        position: TokenPosition,
         chain: Vec<Token>,
     },
     If {
-        position: ParserPosition,
+        position: TokenPosition,
         condition: Box<Token>,
         body: Vec<Token>,
     },
     Else {
-        position: ParserPosition,
+        position: TokenPosition,
         body: Vec<Token>,
     },
 
     Match {
-        position: ParserPosition,
+        position: TokenPosition,
         expr: Box<Token>,
         arms: Vec<Token>,
         default: Option<Box<Token>>,
     },
 
     Case {
-        position: ParserPosition,
+        position: TokenPosition,
         condition: Box<Token>,
         body: Vec<Token>,
     },
 
     DefaultCase {
-        position: ParserPosition,
+        position: TokenPosition,
         body: Vec<Token>,
     },
 
     WhileLoop {
-        position: ParserPosition,
+        position: TokenPosition,
         condition: Box<Token>,
         body: Vec<Token>,
     },
 
     ForEach {
-        position: ParserPosition,
+        position: TokenPosition,
         ident: Box<Token>,
         collection: Box<Token>,
         body: Vec<Token>,
     },
 
     ForI {
-        position: ParserPosition,
+        position: TokenPosition,
         ident: Box<Token>,
         start: Box<Token>,
         step: Box<Token>,
@@ -188,20 +188,20 @@ pub enum Token {
     },
 
     Break {
-        position: ParserPosition,
+        position: TokenPosition,
     },
     Continue {
-        position: ParserPosition,
+        position: TokenPosition,
     },
 
     Call {
-        position: ParserPosition,
+        position: TokenPosition,
         name: Box<Token>,
         input: Vec<Token>,
     },
 
     Return {
-        position: ParserPosition,
+        position: TokenPosition,
         expr: Option<Box<Token>>,
     },
 }
@@ -219,6 +219,30 @@ impl Display for Token {
             _ => unimplemented!("Token::to_string() not implemented for {:?}", self)
         };
         write!(f, "{}", str)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Copy)]
+pub struct TokenPosition {
+    pub line: usize,
+    pub column: usize,
+}
+
+impl Default for TokenPosition {
+    fn default() -> Self {
+        TokenPosition {
+            line: 0,
+            column: 0,
+        }
+    }
+}
+
+impl TokenPosition {
+    pub fn new(src: &Span) -> Self {
+        TokenPosition {
+            line: src.location_line() as usize,
+            column: src.get_column(),
+        }
     }
 }
 

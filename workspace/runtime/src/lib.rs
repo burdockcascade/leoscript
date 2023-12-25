@@ -5,7 +5,7 @@ use crate::vm::thread::{ExecutionResult, Thread};
 
 mod error;
 mod stdlib;
-mod ir;
+pub mod ir;
 mod vm;
 
 fn run_program(program: Program, entrypoint: &str, parameters: Option<Vec<Variant>>) -> Result<ExecutionResult, RuntimeError> {
