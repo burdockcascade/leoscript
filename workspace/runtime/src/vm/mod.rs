@@ -1,1 +1,1 @@
-mod thread;
+pub mod thread;

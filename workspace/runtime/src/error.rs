@@ -39,4 +39,8 @@ pub enum RuntimeError {
     InvalidEnumItem,
     InvalidDictionaryItems,
     InvalidCollection,
+
+    UnknownNativeParameterToken,
+    InvalidNativeFunction(String),
+    ExpectedSelfForNativeFunction,
 }
