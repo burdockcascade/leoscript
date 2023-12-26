@@ -1,4 +1,4 @@
-use crate::compiler::parser::token::TokenPosition;
+use crate::compiler::parser::token::{Token, TokenPosition};
 
 #[derive(Debug, PartialEq)]
 pub struct CompilerError {
@@ -48,4 +48,11 @@ pub enum CompilerErrorType {
     NoInstructionsGenerated,
     NoTokensGenerated,
     UnableToCompileFunction(String),
+    UnableToCompileParameterVariable(Token),
+    UnableToCompileChainItem(Token),
+    UnableToAssignItem(Box<Token>),
+    UnableToCreateNewObjectFrom(Box<Token>),
+    UnableToIterateOver(Box<Token>),
+    NoIteratorJumpsFound,
+    InvalidExpressionItem(Box<Token>),
 }

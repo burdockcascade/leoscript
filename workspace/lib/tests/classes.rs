@@ -23,16 +23,20 @@ fn class_with_constructor_and_parameters() {
                 return self.name
             end
 
+            function get_pages()
+                return self.pages
+            end
+
         end
 
         function main(x, y)
-            var d = new Book("The Lord of the Rings", 1000, "J.R.R. Tolkien")
-            return d.get_name() == "The Lord of the Rings"
+            var d = new Book("The Lord of the Rings", x * y, "J.R.R. Tolkien")
+            return d.get_pages() == x * y
         end
 
     "#;
 
-    test_success!(script, Some(vec![Variant::Integer(10), Variant::Integer(20)]), Variant::Integer(230))
+    test_success!(script, Some(vec![Variant::Integer(10), Variant::Integer(20)]))
 
 }
 

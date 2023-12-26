@@ -63,25 +63,25 @@ pub fn parse_function_code_block(input: Span) -> IResult<Span, Vec<Token>> {
         delimited(
             multispace0,
             alt((
-                    parse_comment,
-                    parse_variable,
-                    parse_assignment,
-                    parse_call_function,
-                    parse_if_chain,
-                    parse_match_statement,
-                    parse_while_loop,
-                    parse_for_in_loop,
-                    parse_for_to_step,
-                    parse_identifier_chain,
-                    parse_break,
-                    parse_continue,
+                parse_comment,
+                parse_variable,
+                parse_assignment,
+                parse_call_function,
+                parse_if_chain,
+                parse_match_statement,
+                parse_while_loop,
+                parse_for_in_loop,
+                parse_for_to_step,
+                parse_identifier_chain,
+                parse_break,
+                parse_continue,
                 parse_function_return
             )),
             multispace0)
     )(input)
 }
 
-fn parse_parameters(input: Span) -> IResult<Span, Vec<Token>> {
+pub fn parse_parameters(input: Span) -> IResult<Span, Vec<Token>> {
     delimited(
         tag("("),
         separated_list0(

@@ -14,7 +14,7 @@ macro_rules! test_success {
     };
 
     ($script:expr, $parameters:expr) => {
-        test_success!(script, $parameters, Variant::Bool(true))
+        test_success!($script, $parameters, Variant::Bool(true))
     };
 
     ($script:expr) => {

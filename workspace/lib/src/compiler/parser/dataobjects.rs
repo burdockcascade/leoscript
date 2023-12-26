@@ -9,7 +9,7 @@ use nom::sequence::{delimited, preceded, terminated, tuple};
 
 use crate::compiler::parser::comments::parse_comment;
 use crate::compiler::parser::expressions::parse_expression;
-use crate::compiler::parser::functions::{parse_call_function, parse_function, parse_function_code_block};
+use crate::compiler::parser::functions::{parse_call_function, parse_function, parse_function_code_block, parse_parameters};
 use crate::compiler::parser::literal::parse_literal;
 use crate::compiler::parser::Span;
 use crate::compiler::parser::token::{Token, TokenPosition};
@@ -165,17 +165,6 @@ fn parse_class_constructor(input: Span) -> IResult<Span, Token> {
             input: params,
             body,
         },
-    )(input)
-}
-
-fn parse_parameters(input: Span) -> IResult<Span, Vec<Token>> {
-    delimited(
-        tag("("),
-        separated_list0(
-            tuple((multispace0, tag(","), multispace0)),
-            parse_expression,
-        ),
-        tag(")"),
     )(input)
 }
 

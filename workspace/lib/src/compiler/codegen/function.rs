@@ -127,7 +127,7 @@ impl Function {
                 self.generate_variable_with_value(position, name, as_type, value)?;
             } else {
                 return Err(CompilerError {
-                    error: CompilerErrorType::UnableToCompile,
+                    error: CompilerErrorType::UnableToCompileParameterVariable(param),
                     position: Default::default()
                 }); // fixme add position
             };
@@ -239,14 +239,14 @@ impl Function {
                         self.instructions.push(Instruction::SetCollectionItem);
                     }
                     _ => return Err(CompilerError {
-                        error: CompilerErrorType::UnableToCompile,
+                        error: CompilerErrorType::UnableToCompileChainItem(last_item),
                         position
                     })
                 }
             }
 
             _ => return Err(CompilerError {
-                error: CompilerErrorType::UnableToCompile,
+                error: CompilerErrorType::UnableToAssignItem(left),
                 position
             })
         }
@@ -305,7 +305,7 @@ impl Function {
         let (start, chain) = match *ident {
             Token::DotChain { start, chain, .. } => (start, chain),
             _ => return Err(CompilerError {
-                error: CompilerErrorType::UnableToCompile,
+                error: CompilerErrorType::UnableToCreateNewObjectFrom(ident),
                 position
             })
         };
@@ -454,7 +454,7 @@ impl Function {
             self.generate_variable_with_value(position, name, Some(String::from("Integer")), None)?;
         } else {
             return Err(CompilerError {
-                error: CompilerErrorType::UnableToCompile,
+                error: CompilerErrorType::UnableToIterateOver(var),
                 position
             });
         };
@@ -528,7 +528,7 @@ impl Function {
         // get iterator
         let Some(it) = self.iterators.pop() else {
             return Err(CompilerError {
-                error: CompilerErrorType::UnableToCompile,
+                error: CompilerErrorType::NoIteratorJumpsFound,
                 position
             })
         };
@@ -612,7 +612,7 @@ impl Function {
                     self.instructions.push(Instruction::Call(arg_len));
                 }
                 _ => return Err(CompilerError {
-                    error: CompilerErrorType::UnableToCompile,
+                    error: CompilerErrorType::InvalidChainItem,
                     position
                 })
             }
@@ -791,7 +791,7 @@ impl Function {
 
             // handle unreadable token and print what it is
             _ => return Err(CompilerError {
-                error: CompilerErrorType::UnableToCompile,
+                error: CompilerErrorType::InvalidExpressionItem(token),
                 position
             })
         }
