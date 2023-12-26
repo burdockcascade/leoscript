@@ -1,5 +1,5 @@
-use leoscript::common::variant::Variant;
-use leoscript::run_script_from_string;
+use leoscript::runtime::ir::variant::Variant;
+use leoscript::run_script;
 
 mod common;
 
@@ -136,7 +136,7 @@ fn for_in_dict_with_continue() {
          function main()
 
             -- set a counter
-            var counter as Integer = 0
+            var counter = 0
 
             -- set an array of numbers
             var numbers = new Dictionary()

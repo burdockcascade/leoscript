@@ -1,6 +1,7 @@
-use leoscript::common::error::{CompilerError, ScriptError};
-use leoscript::common::variant::Variant;
-use leoscript::run_script_from_string;
+use leoscript::compiler::error::{CompilerError, CompilerErrorType};
+use leoscript::runtime::ir::variant::Variant;
+use leoscript::{run_script, ScriptError};
+use leoscript::compiler::parser::token::TokenPosition;
 
 mod common;
 
@@ -78,7 +79,15 @@ fn variable_declared_already_error() {
              var a
              return a
          end
-    "#, None, CompilerError::VariableAlreadyDeclared(String::from("a")), 4, 14);
+    "#, None, ScriptError::CompilerError(
+        CompilerError {
+            error: CompilerErrorType::VariableAlreadyDeclared(String::from("a")),
+            position: TokenPosition {
+                line: 4,
+                column: 14,
+            },
+        }
+    ))
 }
 
 #[test]
@@ -88,7 +97,15 @@ fn variable_is_not_declared_error() {
              a = 5
              return a
          end
-    "#, None, CompilerError::VariableNotDeclared(String::from("a")), 3, 14);
+    "#, None, ScriptError::CompilerError(
+        CompilerError {
+            error: CompilerErrorType::VariableNotDeclared(String::from("a")),
+            position: TokenPosition {
+                line: 3,
+                column: 14,
+            },
+        }
+    ));
 }
 
 #[test]

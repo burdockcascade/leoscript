@@ -1,0 +1,84 @@
+use nom::branch::alt;
+use nom::bytes::complete::{tag, tag_no_case};
+use nom::character::complete::{multispace0, multispace1};
+use nom::combinator::map;
+use nom::IResult;
+use nom::multi::{many0, separated_list1};
+use nom::sequence::{delimited, preceded, terminated};
+use crate::compiler::error::{CompilerError, CompilerErrorType};
+use crate::compiler::parser::dataobjects::{parse_class, parse_enum, parse_identifier, parse_module};
+use crate::compiler::parser::functions::parse_function;
+use crate::compiler::parser::{DOT_OPERATOR, ParserResult, Span};
+use crate::compiler::parser::token::{Token, TokenPosition};
+
+pub fn parse_script(input: &str) -> Result<ParserResult, CompilerError> {
+    let start_parser_timer = std::time::Instant::now();
+
+    let result = many0(
+        delimited(
+            multispace0,
+            alt((
+                parse_import,
+                parse_function,
+                parse_class,
+                parse_module,
+                parse_enum
+            )),
+            multispace0,
+        )
+    )(Span::new(input));
+
+    match result {
+        Ok((_, tokens)) => {
+            Ok(ParserResult {
+                tokens,
+                parser_time: start_parser_timer.elapsed(),
+            })
+        }
+        Err(err) => Err(CompilerError {
+            error: CompilerErrorType::UnableToParseTokens,
+            position: TokenPosition::new(&Span::new(input)),
+        }),
+    }
+}
+
+fn parse_import(input: Span) -> IResult<Span, Token> {
+    map(
+        preceded(
+            terminated(tag_no_case("import"), multispace1),
+            separated_list1(
+                tag(DOT_OPERATOR),
+                parse_identifier,
+            ),
+        ),
+        |source| Token::Import {
+            position: TokenPosition::new(&input),
+            source
+        },
+    )(input)
+}
+
+#[cfg(test)]
+mod test {
+
+    use super::*;
+
+    #[test]
+    fn test_parse_import() {
+        let (_, token) = parse_import(Span::new("import foo.bar")).unwrap();
+        assert_eq!(token, Token::Import {
+            position: TokenPosition { line: 1, column: 1 },
+            source: vec![
+                Token::Identifier {
+                    position: TokenPosition { line: 1, column: 8 },
+                    name: String::from("foo")
+                },
+                Token::Identifier {
+                    position: TokenPosition { line: 1, column: 12 },
+                    name: String::from("bar")
+                },
+            ],
+        })
+    }
+
+}

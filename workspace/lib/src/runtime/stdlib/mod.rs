@@ -1,0 +1,46 @@
+use crate::runtime::error::RuntimeError;
+use crate::runtime::ir::variant::Variant;
+use crate::runtime::stdlib::dictionary::compile_dictionary_class;
+use crate::runtime::stdlib::math::compile_math_module;
+use crate::runtime::stdlib::string::compile_string_class;
+use crate::runtime::vm::thread::Thread;
+
+mod math;
+mod dictionary;
+mod string;
+
+pub type NativeFunctionType = fn(Vec<Variant>) -> Result<Option<Variant>, RuntimeError>;
+
+pub const CONSTRUCTOR_NAME: &str = "constructor";
+
+const INTERNAL_CLASS_VALUE: &str = "#value";
+const PARAM_0: usize = 0;
+const PARAM_1: usize = 1;
+const PARAM_2: usize = 2;
+
+
+// generic class as hashmap with internal class value
+#[macro_export]
+macro_rules! generic_native_class {
+    () => {
+        {
+            let mut class = HashMap::new();
+            class.insert(String::from(INTERNAL_CLASS_VALUE), Variant::Map(HashMap::new()));
+            class
+        }
+    };
+}
+
+pub fn add_standard_library(t: &mut Thread) -> Result<(), RuntimeError> {
+    t.add_native_function("println", |p| {
+        println!("{}", p[PARAM_0]);
+        Ok(None)
+    });
+
+    compile_string_class(t);
+    compile_math_module(t);
+    compile_dictionary_class(t);
+
+    Ok(())
+}
+

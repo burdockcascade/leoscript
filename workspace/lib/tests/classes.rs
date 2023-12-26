@@ -1,5 +1,5 @@
-use leoscript::common::variant::Variant;
-use leoscript::run_script_from_string;
+use leoscript::runtime::ir::variant::Variant;
+use leoscript::run_script;
 
 mod common;
 
@@ -7,33 +7,27 @@ mod common;
 fn class_with_constructor_and_parameters() {
 
     let script = r#"
-        class Dimension
+        class Book
 
-            attribute height
-            attribute length
+            attribute name
+            attribute pages = 0
+            attribute author = "unknown"
 
-            constructor(h, l)
-                self.height = h
-                self.length = l
+            constructor(name, pages, author)
+                self.name = name
+                self.pages = pages
+                self.author = author
             end
 
-            function area()
-                return self.calc_area()
-            end
-
-            function calc_area() as Integer
-                return self.height * self.length
-            end
-
-            function perimeter()
-                return self.height + self.length
+            function get_name()
+                return self.name
             end
 
         end
 
         function main(x, y)
-            var d = new Dimension(x, y)
-            return d.area() + d.perimeter()
+            var d = new Book("The Lord of the Rings", 1000, "J.R.R. Tolkien")
+            return d.get_name() == "The Lord of the Rings"
         end
 
     "#;
