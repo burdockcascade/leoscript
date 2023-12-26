@@ -1,10 +1,10 @@
 use std::collections::HashMap;
+
 use crate::generic_native_class;
 use crate::runtime::error::RuntimeError;
 use crate::runtime::ir::variant::Variant;
 use crate::runtime::stdlib::{CONSTRUCTOR_NAME, INTERNAL_CLASS_VALUE, PARAM_0, PARAM_1, PARAM_2};
 use crate::runtime::vm::thread::Thread;
-
 
 pub fn compile_dictionary_class(t: &mut Thread) {
     t.add_native_function("std_dictionary_constructor", dict_constructor);
@@ -175,9 +175,10 @@ fn set_object_value(p: &Vec<Variant>, value: HashMap<String, Variant>) {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::cell::RefCell;
     use std::rc::Rc;
+
+    use super::*;
 
     macro_rules! construct_object {
         () => {

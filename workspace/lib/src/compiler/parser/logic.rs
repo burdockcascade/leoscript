@@ -7,13 +7,10 @@ use nom::multi::many0;
 use nom::sequence::{delimited, preceded, separated_pair, terminated, tuple};
 use nom_locate::position;
 
-use crate::compiler::parser::comments::parse_comment;
 use crate::compiler::parser::expressions::parse_expression;
-use crate::compiler::parser::functions::{parse_call_function, parse_function, parse_function_code_block};
-use crate::compiler::parser::literal::parse_literal;
+use crate::compiler::parser::functions::parse_function_code_block;
 use crate::compiler::parser::Span;
 use crate::compiler::parser::token::{Token, TokenPosition};
-use crate::compiler::parser::variables::parse_variable;
 
 pub fn parse_if_chain(input: Span) -> IResult<Span, Token> {
     terminated(

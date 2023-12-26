@@ -8,13 +8,9 @@ use nom::IResult;
 use nom::multi::separated_list0;
 use nom::sequence::{delimited, preceded, separated_pair, tuple};
 
-use crate::compiler::parser::comments::parse_comment;
 use crate::compiler::parser::dataobjects::parse_identifier;
-use crate::compiler::parser::expressions::parse_expression;
-use crate::compiler::parser::functions::{parse_call_function, parse_function, parse_function_code_block};
 use crate::compiler::parser::Span;
-use crate::compiler::parser::token::{Token, TokenPosition};
-use crate::compiler::parser::variables::parse_variable;
+use crate::compiler::parser::token::Token;
 
 const DECIMAL_POINT: &str = ".";
 

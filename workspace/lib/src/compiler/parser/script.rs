@@ -5,10 +5,11 @@ use nom::combinator::map;
 use nom::IResult;
 use nom::multi::{many0, separated_list1};
 use nom::sequence::{delimited, preceded, terminated};
+
 use crate::compiler::error::{CompilerError, CompilerErrorType};
+use crate::compiler::parser::{DOT_OPERATOR, ParserResult, Span};
 use crate::compiler::parser::dataobjects::{parse_class, parse_enum, parse_identifier, parse_module};
 use crate::compiler::parser::functions::parse_function;
-use crate::compiler::parser::{DOT_OPERATOR, ParserResult, Span};
 use crate::compiler::parser::token::{Token, TokenPosition};
 
 pub fn parse_script(input: &str) -> Result<ParserResult, CompilerError> {
@@ -60,7 +61,6 @@ fn parse_import(input: Span) -> IResult<Span, Token> {
 
 #[cfg(test)]
 mod test {
-
     use super::*;
 
     #[test]

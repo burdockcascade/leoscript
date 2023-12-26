@@ -1,6 +1,7 @@
 use crate::compiler::codegen::script::generate_script;
 use crate::compiler::CompilerResult;
-use crate::compiler::error::CompilerError;
+use crate::compiler::error::{CompilerError, CompilerErrorType};
+use crate::compiler::parser::token::TokenPosition;
 use crate::runtime::ir::program::Program;
 
 mod class;
@@ -12,6 +13,13 @@ mod variable;
 
 pub fn generate_program(source: &str) -> Result<CompilerResult, CompilerError> {
     let script = generate_script(source, 0)?;
+
+    if script.instructions.len() == 0 {
+        return Err(CompilerError {
+            error: CompilerErrorType::NoInstructionsGenerated,
+            position: TokenPosition::default(),
+        });
+    }
 
     Ok(CompilerResult {
         program: Program {

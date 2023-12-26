@@ -4,6 +4,7 @@ use nom::character::complete::{crlf, multispace0};
 use nom::combinator::{map, opt};
 use nom::IResult;
 use nom::sequence::{delimited, terminated};
+
 use crate::compiler::parser::Span;
 use crate::compiler::parser::token::{Token, TokenPosition};
 

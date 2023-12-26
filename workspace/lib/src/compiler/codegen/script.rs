@@ -3,6 +3,7 @@ use std::env::current_dir;
 use std::fs;
 use std::path::Path;
 use std::time::Duration;
+
 use crate::compiler::codegen::class::generate_class;
 use crate::compiler::codegen::function::Function;
 use crate::compiler::codegen::module::generate_module;
@@ -65,6 +66,13 @@ pub fn generate_script(source: &str, offset: usize) -> Result<Script, CompilerEr
             position: Default::default(),
         })
     };
+
+    if parser_result.tokens.len() == 0 {
+        return Err(CompilerError {
+            error: CompilerErrorType::NoTokensGenerated,
+            position: Default::default(),
+        });
+    }
 
     // update parser timer
     script.parser_time = parser_result.parser_time;

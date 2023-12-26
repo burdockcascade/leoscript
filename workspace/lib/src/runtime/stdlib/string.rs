@@ -1,10 +1,10 @@
 use std::collections::HashMap;
+
 use crate::generic_native_class;
 use crate::runtime::error::RuntimeError;
 use crate::runtime::ir::variant::Variant;
 use crate::runtime::stdlib::{CONSTRUCTOR_NAME, INTERNAL_CLASS_VALUE, PARAM_0, PARAM_1};
 use crate::runtime::vm::thread::Thread;
-
 
 pub fn compile_string_class(t: &mut Thread) {
 
@@ -52,9 +52,10 @@ fn string_length(p: Vec<Variant>) -> Result<Option<Variant>, RuntimeError> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::cell::RefCell;
     use std::rc::Rc;
+
+    use super::*;
 
     const TEST_STRING: &str = "I am a test string";
 

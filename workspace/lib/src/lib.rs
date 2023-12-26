@@ -1,4 +1,5 @@
 use std::time::Duration;
+
 use crate::compiler::compile;
 use crate::compiler::error::CompilerError;
 use crate::runtime::error::RuntimeError;
@@ -41,6 +42,6 @@ pub fn run_script(source: &str, entrypoint: &str, args: Option<Vec<Variant>>) ->
             imports: compiler_result.source_files,
             total_time: compiler_result.parser_time + compiler_result.compile_time + execution_result.execution_time,
         }),
-        Err(e) => Err(ScriptError::TotalFailure)
+        Err(e) => Err(ScriptError::RuntimeError(e))
     }
 }

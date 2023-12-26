@@ -7,6 +7,7 @@ use std::ops::{Add, BitAnd, BitOr, Div, Mul, Not, Sub};
 use std::rc::Rc;
 
 use log::error;
+
 use crate::runtime::ir::counter::Counter;
 
 // Value

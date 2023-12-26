@@ -1,5 +1,5 @@
-use leoscript::runtime::ir::variant::Variant;
 use leoscript::run_script;
+use leoscript::runtime::ir::variant::Variant;
 
 mod common;
 

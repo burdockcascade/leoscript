@@ -5,11 +5,8 @@ use nom::combinator::{map, opt};
 use nom::IResult;
 use nom::sequence::{delimited, preceded, terminated, tuple};
 
-use crate::compiler::parser::comments::parse_comment;
 use crate::compiler::parser::dataobjects::{parse_identifier, parse_identifier_chain, parse_new_keyword};
 use crate::compiler::parser::expressions::parse_expression;
-use crate::compiler::parser::functions::{parse_call_function, parse_function, parse_function_code_block};
-use crate::compiler::parser::literal::parse_literal;
 use crate::compiler::parser::Span;
 use crate::compiler::parser::token::{Token, TokenPosition};
 

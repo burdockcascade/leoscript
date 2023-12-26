@@ -1,5 +1,5 @@
-use leoscript::runtime::ir::variant::Variant;
 use leoscript::run_script;
+use leoscript::runtime::ir::variant::Variant;
 
 mod common;
 
@@ -62,6 +62,7 @@ fn module_with_class() {
             var v2 = new Graphics::Vector2(20, 30)
             var v3 = v1.add(v2)
             var length = v3.length()
+
 
             return Math::max(10, 20) == 20 and Math::min(10, 20) == 10
         end

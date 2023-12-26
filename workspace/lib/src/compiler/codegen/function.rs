@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 
 use log::{trace, warn};
+
 use crate::compiler::codegen::variable::Variable;
 use crate::compiler::error::{CompilerError, CompilerErrorType};
 use crate::compiler::parser::token::{Token, TokenPosition};
 use crate::runtime::ir::instruction::Instruction;
 use crate::runtime::ir::stacktrace::StackTrace;
 use crate::runtime::ir::variant::ValueType;
-
 
 #[derive(Clone)]
 pub struct Function {

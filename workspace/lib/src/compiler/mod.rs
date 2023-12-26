@@ -1,4 +1,5 @@
 use std::time::Duration;
+
 use crate::compiler::codegen::generate_program;
 use crate::compiler::error::CompilerError;
 use crate::runtime::ir::program::Program;

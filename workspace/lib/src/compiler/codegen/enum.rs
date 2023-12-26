@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+
 use crate::compiler::error::CompilerError;
 use crate::compiler::parser::token::{Token, TokenPosition};
 use crate::runtime::ir::variant::Variant;

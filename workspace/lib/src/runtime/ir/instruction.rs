@@ -1,4 +1,3 @@
-
 use crate::runtime::ir::stacktrace::StackTrace;
 
 #[derive(Clone, Debug, PartialEq)]

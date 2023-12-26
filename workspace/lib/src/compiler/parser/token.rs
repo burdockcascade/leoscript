@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::Display;
+
 use crate::compiler::parser::Span;
 
 #[derive(Debug, Clone, PartialEq)]

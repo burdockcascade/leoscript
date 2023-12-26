@@ -1,7 +1,7 @@
 use std::collections::HashMap;
+
 use crate::runtime::ir::instruction::Instruction;
 use crate::runtime::ir::variant::Variant;
-
 
 #[derive(Debug, PartialEq)]
 pub struct Program {

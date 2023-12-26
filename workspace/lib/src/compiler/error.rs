@@ -45,4 +45,7 @@ pub enum CompilerErrorType {
     InvalidImportReference { position: TokenPosition, name: String },
     InvalidIdentifier { position: TokenPosition, name: String },
 
+    NoInstructionsGenerated,
+    NoTokensGenerated,
+    UnableToCompileFunction(String),
 }

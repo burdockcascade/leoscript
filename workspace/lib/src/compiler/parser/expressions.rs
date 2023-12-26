@@ -5,12 +5,12 @@ use nom::combinator::{map, opt};
 use nom::IResult;
 use nom::multi::many0;
 use nom::sequence::{delimited, tuple};
+
 use crate::compiler::parser::dataobjects::{parse_identifier, parse_identifier_chain};
 use crate::compiler::parser::functions::parse_call_function;
 use crate::compiler::parser::literal::parse_literal;
 use crate::compiler::parser::Span;
 use crate::compiler::parser::token::Token;
-
 
 pub fn parse_expression(input: Span) -> IResult<Span, Token> {
     map(
@@ -216,6 +216,7 @@ fn parse_expr_tag(expr: Token, rem: Vec<(Span, Token)>) -> Token {
 #[cfg(test)]
 mod test {
     use crate::compiler::parser::token::TokenPosition;
+
     use super::*;
 
     #[test]

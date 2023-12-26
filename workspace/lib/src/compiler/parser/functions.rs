@@ -10,7 +10,6 @@ use nom_locate::position;
 use crate::compiler::parser::comments::parse_comment;
 use crate::compiler::parser::dataobjects::{parse_identifier, parse_identifier_chain};
 use crate::compiler::parser::expressions::parse_expression;
-use crate::compiler::parser::literal::parse_literal;
 use crate::compiler::parser::logic::{parse_if_chain, parse_match_statement};
 use crate::compiler::parser::loops::{parse_break, parse_continue, parse_for_in_loop, parse_for_to_step, parse_while_loop};
 use crate::compiler::parser::Span;

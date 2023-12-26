@@ -1,7 +1,7 @@
-use leoscript::compiler::error::{CompilerError, CompilerErrorType};
-use leoscript::runtime::ir::variant::Variant;
 use leoscript::{run_script, ScriptError};
+use leoscript::compiler::error::{CompilerError, CompilerErrorType};
 use leoscript::compiler::parser::token::TokenPosition;
+use leoscript::runtime::ir::variant::Variant;
 
 mod common;
 

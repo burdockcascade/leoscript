@@ -1,9 +1,9 @@
 use std::collections::HashMap;
+
 use crate::runtime::error::RuntimeError;
 use crate::runtime::ir::variant::Variant;
 use crate::runtime::stdlib::{PARAM_1, PARAM_2};
 use crate::runtime::vm::thread::Thread;
-
 
 pub fn compile_math_module(t: &mut Thread) {
     t.add_native_function("std_math_max", math_max);
