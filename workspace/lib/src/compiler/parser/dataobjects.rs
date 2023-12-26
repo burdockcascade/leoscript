@@ -460,17 +460,23 @@ mod test {
                 Token::Constructor {
                     position: TokenPosition { line: 7, column: 13 },
                     input: vec![
-                        Token::Identifier {
+                        Token::Variable {
                             position: TokenPosition { line: 7, column: 25 },
                             name: String::from("name"),
+                            as_type: None,
+                            value: None,
                         },
-                        Token::Identifier {
+                        Token::Variable {
                             position: TokenPosition { line: 7, column: 31 },
                             name: String::from("pages"),
+                            as_type: None,
+                            value: None,
                         },
-                        Token::Identifier {
+                        Token::Variable   {
                             position: TokenPosition { line: 7, column: 38 },
                             name: String::from("author"),
+                            as_type: None,
+                            value: None,
                         },
                     ],
                     body: vec![
