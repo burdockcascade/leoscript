@@ -7,6 +7,8 @@ mod common;
 fn class_with_constructor_and_parameters() {
 
     let script = r#"
+        import tests.scripts.person
+
         class Book
 
             attribute name

@@ -8,9 +8,9 @@ use crate::compiler::codegen::class::generate_class;
 use crate::compiler::codegen::function::Function;
 use crate::compiler::codegen::module::generate_module;
 use crate::compiler::codegen::r#enum::generate_enum;
+use crate::compiler::codegen::syntax::Syntax;
 use crate::compiler::error::{CompilerError, CompilerErrorType};
 use crate::compiler::parser::script::parse_script;
-use crate::compiler::parser::token::Token;
 use crate::compiler::warning::{CompilerWarning, CompilerWarningType};
 use crate::runtime::ir::instruction::Instruction;
 use crate::runtime::ir::variant::Variant;
@@ -60,19 +60,25 @@ pub fn generate_script(source: &str, offset: usize) -> Result<Script, CompilerEr
 
     // get tokens
     let parser_result = match parse_script(source) {
-        Ok(r) => r,
-        Err(e) => return Err(CompilerError {
-            error: CompilerErrorType::ParseError,
-            position: Default::default(),
-        })
-    };
+        Ok(r) => {
+            if r.tokens.len() == 0 {
+                return Err(CompilerError {
+                    error: CompilerErrorType::NoTokensGenerated,
+                    position: Default::default(),
+                });
+            } else {
+                r
+            }
+        },
+        Err(e) => {
+            println!("Error: {:?}", e);
 
-    if parser_result.tokens.len() == 0 {
-        return Err(CompilerError {
-            error: CompilerErrorType::NoTokensGenerated,
-            position: Default::default(),
-        });
-    }
+            return Err(CompilerError {
+                error: CompilerErrorType::ParseError,
+                position: Default::default(),
+            })
+        }
+    };
 
     // update parser timer
     script.parser_time = parser_result.parser_time;
@@ -89,7 +95,7 @@ pub fn generate_script(source: &str, offset: usize) -> Result<Script, CompilerEr
     // compile imports
     for token in parser_result.tokens.clone() {
         match token {
-            Token::Import { position, source, .. } => {
+            Syntax::Import { position, source, .. } => {
 
                 // get current directory
                 let Ok(dir) = current_dir() else {
@@ -104,7 +110,7 @@ pub fn generate_script(source: &str, offset: usize) -> Result<Script, CompilerEr
 
                 // convert list of identifiers to path
                 for (i, identifier) in source.iter().enumerate() {
-                    if let Token::Identifier { name, .. } = identifier {
+                    if let Syntax::Identifier { name, .. } = identifier {
                         filepath += name;
                         if i < source.len() - 1 {
                             filepath += path_separator;
@@ -175,26 +181,26 @@ pub fn generate_script(source: &str, offset: usize) -> Result<Script, CompilerEr
         let local_offset = script.instructions.len() + offset;
 
         match token {
-            Token::Function { position, function_name, input, body, .. } => {
+            Syntax::Function { position, function_name, input, body, .. } => {
                 let func = Function::new(position, function_name.to_string(), input, body)?;
                 script.globals.insert(function_name.to_string(), Variant::FunctionPointer(local_offset));
                 script.instructions.append(&mut func.instructions.clone());
             }
-            Token::Module { position, module_name, body, .. } => {
+            Syntax::Module { position, module_name, body, .. } => {
                 let class_name_as_string = module_name.to_string();
                 let mod_struct = generate_module(position, module_name, body, local_offset)?;
 
                 script.globals.insert(class_name_as_string, Variant::Module(mod_struct.structure));
                 script.instructions.append(&mut mod_struct.instructions.clone());
             }
-            Token::Class { position, class_name, body, .. } => {
+            Syntax::Class { position, class_name, body, .. } => {
                 let class_name_as_string = class_name.to_string();
                 let class_struct = generate_class(position, class_name, body, local_offset)?;
 
                 script.globals.insert(class_name_as_string, Variant::Class(class_struct.structure));
                 script.instructions.append(&mut class_struct.instructions.clone());
             }
-            Token::Enum { position, name, items } => {
+            Syntax::Enum { position, name, items } => {
                 let enum_def = generate_enum(position, name.clone(), items)?;
                 script.globals.insert(name, enum_def);
             }

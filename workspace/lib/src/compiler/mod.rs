@@ -4,10 +4,11 @@ use crate::compiler::codegen::generate_program;
 use crate::compiler::error::CompilerError;
 use crate::runtime::ir::program::Program;
 
-pub mod parser;
 pub mod codegen;
-pub mod error;
 pub mod warning;
+pub mod error;
+mod parser;
+mod tokenizer;
 
 #[derive(Debug, PartialEq)]
 pub struct CompilerResult {

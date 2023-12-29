@@ -1,13 +1,13 @@
 use std::time::Duration;
 
 use crate::compiler::compile;
-use crate::compiler::error::CompilerError;
-use crate::runtime::error::RuntimeError;
+use crate::error::ScriptError;
 use crate::runtime::ir::variant::Variant;
 use crate::runtime::run_program;
 
 pub mod compiler;
 pub mod runtime;
+pub mod error;
 
 #[derive(Debug, PartialEq)]
 pub struct ScriptResult {
@@ -17,13 +17,6 @@ pub struct ScriptResult {
     pub execution_time: Duration,
     pub imports: Vec<String>,
     pub total_time: Duration,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum ScriptError {
-    CompilerError(CompilerError),
-    RuntimeError(RuntimeError),
-    TotalFailure
 }
 
 pub fn run_script(source: &str, entrypoint: &str, args: Option<Vec<Variant>>) -> Result<ScriptResult, ScriptError> {

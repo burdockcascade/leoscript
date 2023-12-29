@@ -1,4 +1,4 @@
-use crate::compiler::parser::token::TokenPosition;
+use crate::compiler::codegen::syntax::TokenPosition;
 
 #[derive(Debug, PartialEq)]
 pub struct CompilerWarning {

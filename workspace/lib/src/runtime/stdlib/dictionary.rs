@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+
 use crate::generic_native_class;
 use crate::runtime::error::RuntimeError;
 use crate::runtime::ir::variant::Variant;
@@ -268,7 +269,7 @@ mod tests {
             construct_object!(),
         ];
 
-        dict_clear(input.clone());
+        let _ = dict_clear(input.clone());
 
         assert_eq!(dict_length(input.clone()), Ok(Some(Variant::Integer(0))));
     }

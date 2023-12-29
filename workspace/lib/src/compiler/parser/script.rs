@@ -1,84 +1,123 @@
-use nom::branch::alt;
-use nom::bytes::complete::{tag, tag_no_case};
-use nom::character::complete::{multispace0, multispace1};
-use nom::combinator::map;
-use nom::IResult;
-use nom::multi::{many0, separated_list1};
-use nom::sequence::{delimited, preceded, terminated};
+use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
+use crate::compiler::error::{ParserError, ParserErrorType};
+use crate::compiler::parser::ParserResult;
+use crate::compiler::tokenizer::{get_tokenizer, Token};
+use crate::compiler::tokenizer::lexer::{Cursor, MatchedToken, Tokenizer};
+use crate::next_token;
 
-use crate::compiler::error::{CompilerError, CompilerErrorType};
-use crate::compiler::parser::{DOT_OPERATOR, ParserResult, Span};
-use crate::compiler::parser::dataobjects::{parse_class, parse_enum, parse_identifier, parse_module};
-use crate::compiler::parser::functions::parse_function;
-use crate::compiler::parser::token::{Token, TokenPosition};
+pub fn parse_script(source: &str) -> Result<ParserResult, ParserError> {
 
-pub fn parse_script(input: &str) -> Result<ParserResult, CompilerError> {
-    let start_parser_timer = std::time::Instant::now();
+    let parser_timer = std::time::Instant::now();
 
-    let result = many0(
-        delimited(
-            multispace0,
-            alt((
-                parse_import,
-                parse_function,
-                parse_class,
-                parse_module,
-                parse_enum
-            )),
-            multispace0,
-        )
-    )(Span::new(input));
+    let lexer = &mut get_tokenizer(source);
+    let mut tokens = vec![];
 
-    match result {
-        Ok((_, tokens)) => {
-            Ok(ParserResult {
-                tokens,
-                parser_time: start_parser_timer.elapsed(),
-            })
+    while !lexer.is_eof()  {
+
+        let matched = next_token!(lexer);
+
+        match matched.token {
+            Token::Function => tokens.push(parse_function(matched.cursor, lexer)?),
+            _ => {
+                println!("peek: {:?}", matched.token);
+            }
         }
-        Err(err) => Err(CompilerError {
-            error: CompilerErrorType::UnableToParseTokens,
-            position: TokenPosition::new(&Span::new(input)),
-        }),
     }
+
+    Ok(ParserResult {
+        tokens,
+        parser_time: parser_timer.elapsed(),
+    })
 }
 
-fn parse_import(input: Span) -> IResult<Span, Token> {
-    map(
-        preceded(
-            terminated(tag_no_case("import"), multispace1),
-            separated_list1(
-                tag(DOT_OPERATOR),
-                parse_identifier,
-            ),
-        ),
-        |source| Token::Import {
-            position: TokenPosition::new(&input),
-            source
+fn parse_function(cursor: Cursor, lexer: &mut Tokenizer<Token>) -> Result<Syntax, ParserError> {
+
+    // function name
+    let function_name = parse_identifier(lexer)?;
+
+    // functiona args
+    let args = next_token!(lexer);
+    match args.token {
+        Token::NoArgs => {},
+        _ => todo!("args")
+    }
+
+    // function end
+    let _ = next_token!(lexer);
+
+    Ok(Syntax::Function {
+        position: TokenPosition {
+            line: cursor.line,
+            column: cursor.column,
         },
-    )(input)
+        function_name: Box::new(function_name),
+        is_static: false,
+        scope: None,
+        return_type: None,
+        input: vec![],
+        body: vec![],
+    })
+}
+
+fn parse_identifier(lexer: &mut Tokenizer<Token>) -> Result<Syntax, ParserError> {
+
+    // function name
+    let matched = next_token!(lexer);
+
+    // return identifier
+    match matched.token {
+        Token::Identifier => Ok(Syntax::Identifier {
+            position: TokenPosition {
+                line: matched.cursor.line,
+                column: matched.cursor.column,
+            },
+            name: matched.text.to_string(),
+        }),
+        _ => {
+            return Err(ParserError {
+                error: ParserErrorType::InvalidIdentifier(matched.text),
+                position: TokenPosition {
+                    line: matched.cursor.line,
+                    column: matched.cursor.column,
+                },
+            })
+        }
+    }
 }
 
 #[cfg(test)]
 mod test {
+
     use super::*;
 
     #[test]
-    fn test_parse_import() {
-        let (_, token) = parse_import(Span::new("import foo.bar")).unwrap();
-        assert_eq!(token, Token::Import {
-            position: TokenPosition { line: 1, column: 1 },
-            source: vec![
-                Token::Identifier {
-                    position: TokenPosition { line: 1, column: 8 },
-                    name: String::from("foo")
-                },
-                Token::Identifier {
-                    position: TokenPosition { line: 1, column: 12 },
-                    name: String::from("bar")
-                },
-            ],
-        })
+    fn test_script() {
+
+        let source = r#"
+            function main()
+            end
+        "#;
+
+        let Ok(r) = parse_script(source) else {
+            assert!(false, "bad parse");
+            return;
+        };
+
+        assert_eq!(r.tokens, vec![
+            Syntax::Function {
+                position: TokenPosition { line: 2, column: 13 },
+                function_name: Box::new(Syntax::Identifier {
+                    position: TokenPosition { line: 2, column: 22 },
+                    name: String::from("main"),
+                }),
+                is_static: false,
+                scope: None,
+                return_type: None,
+                input: vec![],
+                body: vec![],
+            }
+        ])
+
     }
 
 }

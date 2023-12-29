@@ -1,4 +1,38 @@
-use crate::compiler::parser::token::{Token, TokenPosition};
+use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
+
+#[derive(Debug, PartialEq)]
+pub struct ParserError {
+    pub error: ParserErrorType,
+    pub position: TokenPosition,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum ParserErrorType {
+    InvalidIdentifier(String),
+    InvalidParameterName {
+        name: String,
+        reason: IdentifierError,
+    },
+    InvalidFunctionName {
+        name: String,
+        reason: IdentifierError,
+    },
+    UnrecognizedToken(String),
+    InvalidVariableName {
+        name: String,
+        reason: IdentifierError,
+    },
+    IdentifierStartsWithNumber(String),
+    UnexpectedToken(String),
+    InvalidArgumentName { name: String, reason: IdentifierError },
+    UnexpectedError,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum IdentifierError {
+    InvalidIdentifier(String),
+    IdentifierStartsWithNumber(String),
+}
 
 #[derive(Debug, PartialEq)]
 pub struct CompilerError {
@@ -48,11 +82,11 @@ pub enum CompilerErrorType {
     NoInstructionsGenerated,
     NoTokensGenerated,
     UnableToCompileFunction(String),
-    UnableToCompileParameterVariable(Token),
-    UnableToCompileChainItem(Token),
-    UnableToAssignItem(Box<Token>),
-    UnableToCreateNewObjectFrom(Box<Token>),
-    UnableToIterateOver(Box<Token>),
+    UnableToCompileParameterVariable(Syntax),
+    UnableToCompileChainItem(Syntax),
+    UnableToAssignItem(Box<Syntax>),
+    UnableToCreateNewObjectFrom(Box<Syntax>),
+    UnableToIterateOver(Box<Syntax>),
     NoIteratorJumpsFound,
-    InvalidExpressionItem(Box<Token>),
+    InvalidExpressionItem(Box<Syntax>)
 }

@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 use std::fmt::Display;
 
-use crate::compiler::parser::Span;
+
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Token {
+pub enum Syntax {
     Import {
         position: TokenPosition,
-        source: Vec<Token>,
+        source: Vec<Syntax>,
     },
 
     Comment {
@@ -16,46 +16,46 @@ pub enum Token {
     },
     Print {
         position: TokenPosition,
-        expr: Box<Token>,
+        expr: Box<Syntax>,
     },
 
     Sleep {
         position: TokenPosition,
-        expr: Box<Token>,
+        expr: Box<Syntax>,
     },
 
     Constructor {
         position: TokenPosition,
-        input: Vec<Token>,
-        body: Vec<Token>,
+        input: Vec<Syntax>,
+        body: Vec<Syntax>,
     },
 
     Function {
         position: TokenPosition,
-        function_name: Box<Token>,
+        function_name: Box<Syntax>,
         is_static: bool,
-        scope: Option<Box<Token>>,
-        return_type: Option<Box<Token>>,
-        input: Vec<Token>,
-        body: Vec<Token>,
+        scope: Option<Box<Syntax>>,
+        return_type: Option<Box<Syntax>>,
+        input: Vec<Syntax>,
+        body: Vec<Syntax>,
     },
 
     AnonFunction {
         position: TokenPosition,
-        input: Vec<Token>,
-        body: Vec<Token>,
+        input: Vec<Syntax>,
+        body: Vec<Syntax>,
     },
 
     Module {
         position: TokenPosition,
-        module_name: Box<Token>,
-        body: Vec<Token>,
+        module_name: Box<Syntax>,
+        body: Vec<Syntax>,
     },
 
     Class {
         position: TokenPosition,
-        class_name: Box<Token>,
-        body: Vec<Token>,
+        class_name: Box<Syntax>,
+        body: Vec<Syntax>,
     },
 
     Identifier {
@@ -65,40 +65,40 @@ pub enum Token {
 
     DotChain {
         position: TokenPosition,
-        start: Box<Token>,
-        chain: Vec<Token>,
+        start: Box<Syntax>,
+        chain: Vec<Syntax>,
     },
 
     Variable {
         position: TokenPosition,
         name: String,
         as_type: Option<String>,
-        value: Option<Box<Token>>,
+        value: Option<Box<Syntax>>,
     },
 
     Attribute {
         position: TokenPosition,
         name: String,
         as_type: Option<String>,
-        value: Option<Box<Token>>,
+        value: Option<Box<Syntax>>,
     },
 
     Constant {
         position: TokenPosition,
         name: String,
-        value: Box<Token>,
+        value: Box<Syntax>,
     },
 
     NewObject {
         position: TokenPosition,
-        name: Box<Token>,
-        input: Vec<Token>,
+        name: Box<Syntax>,
+        input: Vec<Syntax>,
     },
 
     Assign {
         position: TokenPosition,
-        ident: Box<Token>,
-        value: Box<Token>,
+        ident: Box<Syntax>,
+        value: Box<Syntax>,
     },
 
     Null,
@@ -107,84 +107,84 @@ pub enum Token {
     Bool(bool),
     String(String),
 
-    Array(Vec<Token>),
-    Dictionary(HashMap<String, Token>),
+    Array(Vec<Syntax>),
+    Dictionary(HashMap<String, Syntax>),
 
-    CollectionIndex(Box<Token>),
+    CollectionIndex(Box<Syntax>),
 
     Enum {
         position: TokenPosition,
         name: String,
-        items: Vec<Token>,
+        items: Vec<Syntax>,
     },
 
-    Not { expr: Box<Token> },
-    And { expr1: Box<Token>, expr2: Box<Token> },
-    Or { expr1: Box<Token>, expr2: Box<Token> },
-    Eq { expr1: Box<Token>, expr2: Box<Token> },
-    Ne { expr1: Box<Token>, expr2: Box<Token> },
-    Lt { expr1: Box<Token>, expr2: Box<Token> },
-    Le { expr1: Box<Token>, expr2: Box<Token> },
-    Gt { expr1: Box<Token>, expr2: Box<Token> },
-    Ge { expr1: Box<Token>, expr2: Box<Token> },
-    Add { expr1: Box<Token>, expr2: Box<Token> },
-    Sub { expr1: Box<Token>, expr2: Box<Token> },
-    Mul { expr1: Box<Token>, expr2: Box<Token> },
-    Div { expr1: Box<Token>, expr2: Box<Token> },
-    Pow { expr1: Box<Token>, expr2: Box<Token> },
+    Not { expr: Box<Syntax> },
+    And { expr1: Box<Syntax>, expr2: Box<Syntax> },
+    Or { expr1: Box<Syntax>, expr2: Box<Syntax> },
+    Eq { expr1: Box<Syntax>, expr2: Box<Syntax> },
+    Ne { expr1: Box<Syntax>, expr2: Box<Syntax> },
+    Lt { expr1: Box<Syntax>, expr2: Box<Syntax> },
+    Le { expr1: Box<Syntax>, expr2: Box<Syntax> },
+    Gt { expr1: Box<Syntax>, expr2: Box<Syntax> },
+    Ge { expr1: Box<Syntax>, expr2: Box<Syntax> },
+    Add { expr1: Box<Syntax>, expr2: Box<Syntax> },
+    Sub { expr1: Box<Syntax>, expr2: Box<Syntax> },
+    Mul { expr1: Box<Syntax>, expr2: Box<Syntax> },
+    Div { expr1: Box<Syntax>, expr2: Box<Syntax> },
+    Pow { expr1: Box<Syntax>, expr2: Box<Syntax> },
 
     IfChain {
         position: TokenPosition,
-        chain: Vec<Token>,
+        chain: Vec<Syntax>,
     },
     If {
         position: TokenPosition,
-        condition: Box<Token>,
-        body: Vec<Token>,
+        condition: Box<Syntax>,
+        body: Vec<Syntax>,
     },
     Else {
         position: TokenPosition,
-        body: Vec<Token>,
+        body: Vec<Syntax>,
     },
 
     Match {
         position: TokenPosition,
-        expr: Box<Token>,
-        arms: Vec<Token>,
-        default: Option<Box<Token>>,
+        expr: Box<Syntax>,
+        arms: Vec<Syntax>,
+        default: Option<Box<Syntax>>,
     },
 
     Case {
         position: TokenPosition,
-        condition: Box<Token>,
-        body: Vec<Token>,
+        condition: Box<Syntax>,
+        body: Vec<Syntax>,
     },
 
     DefaultCase {
         position: TokenPosition,
-        body: Vec<Token>,
+        body: Vec<Syntax>,
     },
 
     WhileLoop {
         position: TokenPosition,
-        condition: Box<Token>,
-        body: Vec<Token>,
+        condition: Box<Syntax>,
+        body: Vec<Syntax>,
     },
 
     ForEach {
         position: TokenPosition,
-        ident: Box<Token>,
-        collection: Box<Token>,
-        body: Vec<Token>,
+        ident: Box<Syntax>,
+        collection: Box<Syntax>,
+        body: Vec<Syntax>,
     },
 
     ForI {
         position: TokenPosition,
-        ident: Box<Token>,
-        start: Box<Token>,
-        step: Box<Token>,
-        end: Box<Token>,
-        body: Vec<Token>,
+        ident: Box<Syntax>,
+        start: Box<Syntax>,
+        step: Box<Syntax>,
+        end: Box<Syntax>,
+        body: Vec<Syntax>,
     },
 
     Break {
@@ -196,13 +196,13 @@ pub enum Token {
 
     Call {
         position: TokenPosition,
-        name: Box<Token>,
-        input: Vec<Token>,
+        name: Box<Syntax>,
+        input: Vec<Syntax>,
     },
 
     Return {
         position: TokenPosition,
-        expr: Option<Box<Token>>,
+        expr: Option<Box<Syntax>>,
     },
 }
 
@@ -211,11 +211,11 @@ pub enum Visibility {
     Private,
 }
 
-impl Display for Token {
+impl Display for Syntax {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let str = match self {
-            Token::Identifier { name, .. } => name.to_string(),
-            Token::String(s) => s.to_string(),
+            Syntax::Identifier { name, .. } => name.to_string(),
+            Syntax::String(s) => s.to_string(),
             _ => unimplemented!("Token::to_string() not implemented for {:?}", self)
         };
         write!(f, "{}", str)
@@ -233,15 +233,6 @@ impl Default for TokenPosition {
         TokenPosition {
             line: 0,
             column: 0,
-        }
-    }
-}
-
-impl TokenPosition {
-    pub fn new(src: &Span) -> Self {
-        TokenPosition {
-            line: src.location_line() as usize,
-            column: src.get_column(),
         }
     }
 }

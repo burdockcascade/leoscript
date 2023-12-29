@@ -1,6 +1,6 @@
 use std::collections::HashMap;
-
 use crate::runtime::error::RuntimeError;
+
 use crate::runtime::ir::variant::Variant;
 use crate::runtime::stdlib::{PARAM_1, PARAM_2};
 use crate::runtime::vm::thread::Thread;

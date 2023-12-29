@@ -1,23 +1,47 @@
-use nom_locate::LocatedSpan;
+use crate::compiler::codegen::syntax::Syntax;
 
-use crate::compiler::parser::token::Token;
-
-mod expressions;
-mod literal;
-mod dataobjects;
-mod variables;
-mod comments;
-pub mod token;
-mod functions;
-mod logic;
-mod loops;
 pub mod script;
 
-type Span<'a> = LocatedSpan<&'a str>;
-const DOT_OPERATOR: &str = ".";
-
+#[derive(Debug)]
 pub struct ParserResult {
-    pub tokens: Vec<Token>,
+    pub tokens: Vec<Syntax>,
     pub parser_time: std::time::Duration,
 }
 
+#[macro_export]
+macro_rules! next_token {
+    ($lexer:expr) => {
+        match $lexer.next() {
+            Some(Ok(m)) => {
+                m
+            },
+            _ => {
+                return Err(ParserError {
+                    error: ParserErrorType::UnexpectedError,
+                    position: TokenPosition {
+                        line: $lexer.get_cursor().line,
+                        column: $lexer.get_cursor().column,
+                    },
+                })
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! peek_next_token {
+    ($lexer:expr) => {
+        match $lexer.peek() {
+            Some(Ok(m)) => m,
+            _ => {
+                return Err(ParserError {
+                    error: ParserErrorType::UnexpectedError,
+                    position: TokenPosition {
+                        line: $lexer.get_cursor().line,
+                        column: $lexer.get_cursor().column,
+                    },
+                })
+            }
+        }
+    };
+}

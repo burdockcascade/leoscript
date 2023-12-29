@@ -1,6 +1,8 @@
 use clap::{arg, Command};
 
-use leoscript::{run_script_from_file, run_script_from_string};
+use leoscript::{run_script, run_script_from_file, run_script_from_string};
+
+mod tokenizer;
 
 fn cli() -> Command {
     Command::new("git")
@@ -25,9 +27,7 @@ fn cli() -> Command {
 fn main() {
 
     //let matches = cleo().get_matches();
-
-    let file_path = "examples/cleo/src/example.leo";
-    let output = run_script_from_file(file_path, "main", None);
+    let output = run_script(include_str!("examples/cleo/src/example.leo"), "main", None);
 
     match output {
         Ok(v) => println!("Script result: {:#?}", v),

@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use log::{trace, warn};
 
 use crate::compiler::codegen::variable::Variable;
+use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
 use crate::compiler::error::{CompilerError, CompilerErrorType};
-use crate::compiler::parser::token::{Token, TokenPosition};
 use crate::runtime::ir::instruction::Instruction;
 use crate::runtime::ir::stacktrace::StackTrace;
 use crate::runtime::ir::variant::ValueType;
@@ -25,7 +25,7 @@ struct IteratorTracker {
 }
 
 impl Function {
-    pub fn new(position: TokenPosition, name: String, parameters: Vec<Token>, body: Vec<Token>) -> Result<Self, CompilerError> {
+    pub fn new(position: TokenPosition, name: String, parameters: Vec<Syntax>, body: Vec<Syntax>) -> Result<Self, CompilerError> {
         let mut f = Function {
             name,
             instructions: vec![],
@@ -73,7 +73,7 @@ impl Function {
     // STATEMENTS
 
     // compile a list of statements
-    fn generate_statements(&mut self, statements: Vec<Token>) -> Result<(), CompilerError> {
+    fn generate_statements(&mut self, statements: Vec<Syntax>) -> Result<(), CompilerError> {
         for statement in statements {
             self.generate_statement(Box::new(statement))?;
         }
@@ -81,36 +81,36 @@ impl Function {
     }
 
     // compile a statement
-    fn generate_statement(&mut self, statement: Box<Token>) -> Result<(), CompilerError> {
+    fn generate_statement(&mut self, statement: Box<Syntax>) -> Result<(), CompilerError> {
         match *statement {
-            Token::Variable { position, name, as_type, value } => self.generate_variable_with_value_else_default(position, name, as_type, value)?,
-            Token::Assign { position, ident, value } => self.generate_assignment(position, ident, value)?,
-            Token::Call { position, name, input } => self.generate_call(position, name, input)?,
-            Token::Return { position, expr } => self.generate_return(position, expr)?,
-            Token::WhileLoop { position, condition, body } => self.generate_while_loop(position, condition, body)?,
-            Token::ForI { position, ident, start, step, end, body } => self.generate_iterator(position, ident, start, step, end, body)?,
-            Token::ForEach { position, ident, collection, body } => self.generate_iterator(position, ident, Box::new(Token::Integer(0)), Box::new(Token::Integer(1)), collection, body)?,
-            Token::IfChain { position, chain } => self.generate_if_else(position, chain)?,
-            Token::Match { position, expr, arms, default } => self.generate_match(position, expr, arms, default)?,
-            Token::Comment { .. } => {}
-            Token::DotChain { position, start, chain } => self.generate_chain(position, start, chain)?,
-            Token::Break { position } => self.generate_break(position)?,
-            Token::Continue { position } => self.generate_continue(position)?,
-            Token::Print { position, expr } => self.generate_print(position, expr)?,
-            Token::Sleep { position, expr } => self.generate_sleep(position, expr)?,
+            Syntax::Variable { position, name, as_type, value } => self.generate_variable_with_value_else_default(position, name, as_type, value)?,
+            Syntax::Assign { position, ident, value } => self.generate_assignment(position, ident, value)?,
+            Syntax::Call { position, name, input } => self.generate_call(position, name, input)?,
+            Syntax::Return { position, expr } => self.generate_return(position, expr)?,
+            Syntax::WhileLoop { position, condition, body } => self.generate_while_loop(position, condition, body)?,
+            Syntax::ForI { position, ident, start, step, end, body } => self.generate_iterator(position, ident, start, step, end, body)?,
+            Syntax::ForEach { position, ident, collection, body } => self.generate_iterator(position, ident, Box::new(Syntax::Integer(0)), Box::new(Syntax::Integer(1)), collection, body)?,
+            Syntax::IfChain { position, chain } => self.generate_if_else(position, chain)?,
+            Syntax::Match { position, expr, arms, default } => self.generate_match(position, expr, arms, default)?,
+            Syntax::Comment { .. } => {}
+            Syntax::DotChain { position, start, chain } => self.generate_chain(position, start, chain)?,
+            Syntax::Break { position } => self.generate_break(position)?,
+            Syntax::Continue { position } => self.generate_continue(position)?,
+            Syntax::Print { position, expr } => self.generate_print(position, expr)?,
+            Syntax::Sleep { position, expr } => self.generate_sleep(position, expr)?,
             _ => warn!("unrecognized statement: {:?}", statement)
         }
 
         Ok(())
     }
 
-    fn generate_print(&mut self, position: TokenPosition, expr: Box<Token>) -> Result<(), CompilerError> {
+    fn generate_print(&mut self, position: TokenPosition, expr: Box<Syntax>) -> Result<(), CompilerError> {
         self.generate_expression(position, expr)?;
         self.instructions.push(Instruction::Print);
         Ok(())
     }
 
-    fn generate_sleep(&mut self, position: TokenPosition, expr: Box<Token>) -> Result<(), CompilerError> {
+    fn generate_sleep(&mut self, position: TokenPosition, expr: Box<Syntax>) -> Result<(), CompilerError> {
         self.generate_expression(position, expr)?;
         self.instructions.push(Instruction::Sleep);
         Ok(())
@@ -119,11 +119,11 @@ impl Function {
     //==============================================================================================
     // VARIABLES
 
-    fn generate_parameters(&mut self, parameters: Vec<Token>) -> Result<(), CompilerError> {
+    fn generate_parameters(&mut self, parameters: Vec<Syntax>) -> Result<(), CompilerError> {
         trace!("add_parameters({:?})", parameters);
 
         for param in parameters {
-            if let Token::Variable { position, name, as_type, value } = param.clone() {
+            if let Syntax::Variable { position, name, as_type, value } = param.clone() {
                 self.generate_variable_with_value(position, name, as_type, value)?;
             } else {
                 return Err(CompilerError {
@@ -136,7 +136,7 @@ impl Function {
         Ok(())
     }
 
-    fn generate_variable_with_value_else_default(&mut self, position: TokenPosition, name: String, as_type: Option<String>, value: Option<Box<Token>>) -> Result<(), CompilerError> {
+    fn generate_variable_with_value_else_default(&mut self, position: TokenPosition, name: String, as_type: Option<String>, value: Option<Box<Syntax>>) -> Result<(), CompilerError> {
         trace!("generate_variable_with_value_else_default({:?}, {:?}, {:?}, {:?})", position, name, as_type, value);
 
         // create the variable
@@ -152,7 +152,7 @@ impl Function {
         Ok(())
     }
 
-    fn generate_variable_with_value(&mut self, position: TokenPosition, name: String, as_type: Option<String>, value: Option<Box<Token>>) -> Result<(), CompilerError> {
+    fn generate_variable_with_value(&mut self, position: TokenPosition, name: String, as_type: Option<String>, value: Option<Box<Syntax>>) -> Result<(), CompilerError> {
         trace!("generate_variable_with_value({:?}, {:?}, {:?}, {:?})", position, name, as_type, value);
 
         // check if variable already exists
@@ -197,13 +197,13 @@ impl Function {
     }
 
     // compile assignment
-    fn generate_assignment(&mut self, position: TokenPosition, left: Box<Token>, right: Box<Token>) -> Result<(), CompilerError> {
+    fn generate_assignment(&mut self, position: TokenPosition, left: Box<Syntax>, right: Box<Syntax>) -> Result<(), CompilerError> {
         trace!("generate_assignment({:?}, {:?}, {:?})", position, left, right);
 
         match *left.clone() {
 
             // store value in variable
-            Token::Identifier { position, name } => {
+            Syntax::Identifier { position, name } => {
                 if self.variables.contains_key(&name) == false {
                     return Err(CompilerError {
                         error: CompilerErrorType::VariableNotDeclared(name),
@@ -221,7 +221,7 @@ impl Function {
                 self.instructions.push(Instruction::MoveToLocalVariable(slot));
             }
 
-            Token::DotChain { position, start, mut chain } => {
+            Syntax::DotChain { position, start, mut chain } => {
 
                 // remove last item from chain
                 let last_item = chain.pop().expect("chain to have at least one item");
@@ -230,11 +230,11 @@ impl Function {
                 self.generate_expression(position, right)?;
 
                 match last_item {
-                    Token::Identifier { name, .. } => {
+                    Syntax::Identifier { name, .. } => {
                         self.instructions.push(Instruction::PushString(name.to_string()));
                         self.instructions.push(Instruction::SetCollectionItem);
                     }
-                    Token::CollectionIndex(index) => {
+                    Syntax::CollectionIndex(index) => {
                         self.generate_expression(position, index)?;
                         self.instructions.push(Instruction::SetCollectionItem);
                     }
@@ -258,7 +258,7 @@ impl Function {
     // FUNCTIONS
 
     // compile a function call
-    fn generate_call(&mut self, position: TokenPosition, name: Box<Token>, args: Vec<Token>) -> Result<(), CompilerError> {
+    fn generate_call(&mut self, position: TokenPosition, name: Box<Syntax>, args: Vec<Syntax>) -> Result<(), CompilerError> {
         self.generate_stack_trace_push(position.line)?;
 
         let arg_len = args.len();
@@ -283,7 +283,7 @@ impl Function {
     }
 
     // compile a return statement
-    fn generate_return(&mut self, position: TokenPosition, expr: Option<Box<Token>>) -> Result<(), CompilerError> {
+    fn generate_return(&mut self, position: TokenPosition, expr: Option<Box<Syntax>>) -> Result<(), CompilerError> {
         match expr {
             Some(expr) => {
                 self.generate_expression(position, expr)?;
@@ -301,9 +301,9 @@ impl Function {
     //==============================================================================================
     // CLASSES
 
-    fn generate_new_object(&mut self, position: TokenPosition, ident: Box<Token>, params: Vec<Token>) -> Result<(), CompilerError> {
+    fn generate_new_object(&mut self, position: TokenPosition, ident: Box<Syntax>, params: Vec<Syntax>) -> Result<(), CompilerError> {
         let (start, chain) = match *ident {
-            Token::DotChain { start, chain, .. } => (start, chain),
+            Syntax::DotChain { start, chain, .. } => (start, chain),
             _ => return Err(CompilerError {
                 error: CompilerErrorType::UnableToCreateNewObjectFrom(ident),
                 position
@@ -335,12 +335,12 @@ impl Function {
     // IF
 
     // compile if statement
-    fn generate_if_else(&mut self, position: TokenPosition, ifs: Vec<Token>) -> Result<(), CompilerError> {
+    fn generate_if_else(&mut self, _position: TokenPosition, ifs: Vec<Syntax>) -> Result<(), CompilerError> {
         let mut jump_to_end = vec![];
 
         for if_statement in ifs {
             match if_statement {
-                Token::If { position, condition, body } => {
+                Syntax::If { position, condition, body } => {
 
                     // Compile If Statement
                     self.generate_expression(position, condition)?;
@@ -359,12 +359,12 @@ impl Function {
                     // Update Jump to next condition
                     self.instructions[jump_to_next] = Instruction::JumpForwardIfFalse(self.instructions.len() - jump_to_next);
                 }
-                Token::Else { body, .. } => {
+                Syntax::Else { body, .. } => {
                     self.generate_statements(body)?;
                 }
                 _ => return Err(CompilerError {
                     error: CompilerErrorType::IfStatementInvalid,
-                    position: Default::default()
+                    position: TokenPosition::default()
                 })
             }
         }
@@ -381,12 +381,12 @@ impl Function {
     //==============================================================================================
     // MATCH
 
-    fn generate_match(&mut self, position: TokenPosition, expr: Box<Token>, arms: Vec<Token>, default: Option<Box<Token>>) -> Result<(), CompilerError> {
+    fn generate_match(&mut self, position: TokenPosition, expr: Box<Syntax>, arms: Vec<Syntax>, default: Option<Box<Syntax>>) -> Result<(), CompilerError> {
         let mut jump_to_end = vec![];
 
         for arm in arms {
             match arm {
-                Token::Case { position, condition, body } => {
+                Syntax::Case { position, condition, body } => {
 
                     // Compile Expression
                     self.generate_expression(position, expr.clone())?;
@@ -421,7 +421,7 @@ impl Function {
         // if default exists then execute it
         if let Some(def) = default {
             match *def {
-                Token::DefaultCase { body, .. } => {
+                Syntax::DefaultCase { body, .. } => {
                     self.generate_statements(body)?;
                 }
                 _ => return Err(CompilerError {
@@ -443,14 +443,14 @@ impl Function {
     //==============================================================================================
     // LOOPS
 
-    fn generate_iterator(&mut self, position: TokenPosition, var: Box<Token>, counter_start_at: Box<Token>, counter_step: Box<Token>, target: Box<Token>, block: Vec<Token>) -> Result<(), CompilerError> {
+    fn generate_iterator(&mut self, position: TokenPosition, var: Box<Syntax>, counter_start_at: Box<Syntax>, counter_step: Box<Syntax>, target: Box<Syntax>, block: Vec<Syntax>) -> Result<(), CompilerError> {
         self.iterators.push(IteratorTracker {
             breaks: vec![],
             continues: vec![],
         });
 
         // fixme this is parse error not a compile error
-        if let Token::Identifier { position, name } = *var.clone() {
+        if let Syntax::Identifier { position, name } = *var.clone() {
             self.generate_variable_with_value(position, name, Some(String::from("Integer")), None)?;
         } else {
             return Err(CompilerError {
@@ -493,7 +493,7 @@ impl Function {
     }
 
     // compile while loop
-    fn generate_while_loop(&mut self, position: TokenPosition, expr: Box<Token>, block: Vec<Token>) -> Result<(), CompilerError> {
+    fn generate_while_loop(&mut self, position: TokenPosition, expr: Box<Syntax>, block: Vec<Syntax>) -> Result<(), CompilerError> {
         self.iterators.push(IteratorTracker {
             breaks: vec![],
             continues: vec![],
@@ -579,7 +579,7 @@ impl Function {
     //==============================================================================================
     // DOT CHAIN
 
-    fn generate_chain(&mut self, position: TokenPosition, start: Box<Token>, chain: Vec<Token>) -> Result<(), CompilerError> {
+    fn generate_chain(&mut self, position: TokenPosition, start: Box<Syntax>, chain: Vec<Syntax>) -> Result<(), CompilerError> {
 
         // load the start of the chain
         self.generate_expression(position, start)?;
@@ -589,15 +589,15 @@ impl Function {
 
             // push load object member instruction onto stack
             match item {
-                Token::Identifier { name, .. } => {
+                Syntax::Identifier { name, .. } => {
                     self.instructions.push(Instruction::PushString(name.to_string()));
                     self.instructions.push(Instruction::GetCollectionItem);
                 }
-                Token::CollectionIndex(index) => {
+                Syntax::CollectionIndex(index) => {
                     self.generate_expression(position, index)?;
                     self.instructions.push(Instruction::GetCollectionItem);
                 }
-                Token::Call { name, input, .. } => {
+                Syntax::Call { name, input, .. } => {
 
                     // load method
                     self.instructions.push(Instruction::LoadMember(name.to_string()));
@@ -625,29 +625,29 @@ impl Function {
     // EXPRESSIONS
 
     // compile expression
-    fn generate_expression(&mut self, position: TokenPosition, token: Box<Token>) -> Result<(), CompilerError> {
+    fn generate_expression(&mut self, position: TokenPosition, token: Box<Syntax>) -> Result<(), CompilerError> {
         match *token {
-            Token::Null => {
+            Syntax::Null => {
                 self.instructions.push(Instruction::PushNull);
             }
 
-            Token::Integer(v) => {
+            Syntax::Integer(v) => {
                 self.instructions.push(Instruction::PushInteger(v));
             }
 
-            Token::Float(v) => {
+            Syntax::Float(v) => {
                 self.instructions.push(Instruction::PushFloat(v));
             }
 
-            Token::Bool(v) => {
+            Syntax::Bool(v) => {
                 self.instructions.push(Instruction::PushBool(v));
             }
 
-            Token::String(v) => {
+            Syntax::String(v) => {
                 self.instructions.push(Instruction::PushString(v));
             }
 
-            Token::Identifier { name, .. } => {
+            Syntax::Identifier { name, .. } => {
                 if self.variables.contains_key(&name) {
                     self.instructions.push(Instruction::LoadLocalVariable(self.variables.get(&name).unwrap().slot_index));
                 } else {
@@ -655,7 +655,7 @@ impl Function {
                 }
             }
 
-            Token::Array(elements) => {
+            Syntax::Array(elements) => {
                 let array_size = elements.len();
 
                 // Compile each element
@@ -667,7 +667,7 @@ impl Function {
                 self.instructions.push(Instruction::CreateCollectionAsArray(array_size));
             }
 
-            Token::Dictionary(pairs) => {
+            Syntax::Dictionary(pairs) => {
                 let dict_size = pairs.len();
 
                 for (key, value) in pairs {
@@ -679,7 +679,7 @@ impl Function {
                 self.instructions.push(Instruction::CreateCollectionAsDictionary(dict_size));
             }
 
-            Token::AnonFunction { position, input, body } => {
+            Syntax::AnonFunction { position, input, body } => {
 
                 // create a new function
                 let func_name = format!("lambda_{}", self.anon_functions.len());
@@ -694,96 +694,96 @@ impl Function {
                 self.instructions.push(Instruction::PushFunctionRef(func_name));
             }
 
-            Token::NewObject { name, input, position } => {
+            Syntax::NewObject { name, input, position } => {
                 self.generate_new_object(position, name, input)?
             }
 
-            Token::DotChain { position, start, chain } => {
+            Syntax::DotChain { position, start, chain } => {
                 self.generate_chain(position, start, chain)?;
             }
 
-            Token::Call { position, name, input } => {
+            Syntax::Call { position, name, input } => {
                 self.generate_call(position, name, input)?;
             }
 
-            Token::Eq { expr1, expr2 } => {
+            Syntax::Eq { expr1, expr2 } => {
                 self.generate_expression(position, expr1)?;
                 self.generate_expression(position, expr2)?;
                 self.instructions.push(Instruction::Equal);
             }
 
-            Token::Ne { expr1, expr2 } => {
+            Syntax::Ne { expr1, expr2 } => {
                 self.generate_expression(position, expr1)?;
                 self.generate_expression(position, expr2)?;
                 self.instructions.push(Instruction::NotEqual);
             }
 
-            Token::Add { expr1, expr2 } => {
+            Syntax::Add { expr1, expr2 } => {
                 self.generate_expression(position, expr1)?;
                 self.generate_expression(position, expr2)?;
                 self.instructions.push(Instruction::Add);
             }
 
-            Token::Sub { expr1, expr2 } => {
+            Syntax::Sub { expr1, expr2 } => {
                 self.generate_expression(position, expr1)?;
                 self.generate_expression(position, expr2)?;
                 self.instructions.push(Instruction::Sub);
             }
 
-            Token::Mul { expr1, expr2 } => {
+            Syntax::Mul { expr1, expr2 } => {
                 self.generate_expression(position, expr1)?;
                 self.generate_expression(position, expr2)?;
                 self.instructions.push(Instruction::Multiply);
             }
 
-            Token::Div { expr1, expr2 } => {
+            Syntax::Div { expr1, expr2 } => {
                 self.generate_expression(position, expr1)?;
                 self.generate_expression(position, expr2)?;
                 self.instructions.push(Instruction::Divide);
             }
 
-            Token::Pow { expr1, expr2 } => {
+            Syntax::Pow { expr1, expr2 } => {
                 self.generate_expression(position, expr1)?;
                 self.generate_expression(position, expr2)?;
                 self.instructions.push(Instruction::Pow);
             }
 
-            Token::Lt { expr1, expr2 } => {
+            Syntax::Lt { expr1, expr2 } => {
                 self.generate_expression(position, expr1)?;
                 self.generate_expression(position, expr2)?;
                 self.instructions.push(Instruction::LessThan);
             }
 
-            Token::Le { expr1, expr2 } => {
+            Syntax::Le { expr1, expr2 } => {
                 self.generate_expression(position, expr1)?;
                 self.generate_expression(position, expr2)?;
                 self.instructions.push(Instruction::LessThanOrEqual);
             }
 
-            Token::Gt { expr1, expr2 } => {
+            Syntax::Gt { expr1, expr2 } => {
                 self.generate_expression(position, expr1)?;
                 self.generate_expression(position, expr2)?;
                 self.instructions.push(Instruction::GreaterThan);
             }
 
-            Token::Ge { expr1, expr2 } => {
+            Syntax::Ge { expr1, expr2 } => {
                 self.generate_expression(position, expr1)?;
                 self.generate_expression(position, expr2)?;
                 self.instructions.push(Instruction::GreaterThanOrEqual);
             }
 
-            Token::Not { expr } => {
+            Syntax::Not { expr } => {
                 self.generate_expression(position, expr)?;
                 self.instructions.push(Instruction::Not);
             }
 
-            Token::And { expr1, expr2 } => {
+            Syntax::And { expr1, expr2 } => {
                 self.generate_expression(position, expr1)?;
                 self.generate_expression(position, expr2)?;
                 self.instructions.push(Instruction::And);
             }
 
-            Token::Or { expr1, expr2 } => {
+            Syntax::Or { expr1, expr2 } => {
                 self.generate_expression(position, expr1)?;
                 self.generate_expression(position, expr2)?;
                 self.instructions.push(Instruction::Or);
@@ -807,7 +807,7 @@ mod test {
     #[test]
     fn test_declare_var() {
         let input = vec![
-            Token::Variable {
+            Syntax::Variable {
                 position: TokenPosition { line: 1, column: 1 },
                 name: String::from("a"),
                 as_type: None,
@@ -841,13 +841,13 @@ mod test {
     #[test]
     fn test_error_when_assign_to_undeclared_var() {
         let input = vec![
-            Token::Assign {
+            Syntax::Assign {
                 position: TokenPosition { line: 1, column: 1 },
-                ident: Box::new(Token::Identifier {
+                ident: Box::new(Syntax::Identifier {
                     position: TokenPosition { line: 1, column: 1 },
                     name: String::from("a"),
                 }),
-                value: Box::new(Token::Integer(1)),
+                value: Box::new(Syntax::Integer(1)),
             }
         ];
 

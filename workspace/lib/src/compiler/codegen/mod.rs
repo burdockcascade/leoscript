@@ -1,7 +1,7 @@
 use crate::compiler::codegen::script::generate_script;
 use crate::compiler::CompilerResult;
+use crate::compiler::codegen::syntax::TokenPosition;
 use crate::compiler::error::{CompilerError, CompilerErrorType};
-use crate::compiler::parser::token::TokenPosition;
 use crate::runtime::ir::program::Program;
 
 mod class;
@@ -10,6 +10,7 @@ mod function;
 mod module;
 pub mod script;
 mod variable;
+pub mod syntax;
 
 pub fn generate_program(source: &str) -> Result<CompilerResult, CompilerError> {
     let script = generate_script(source, 0)?;
