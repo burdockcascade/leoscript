@@ -24,7 +24,7 @@ fn cli() -> Command {
 fn main() {
 
     //let matches = cleo().get_matches();
-    let output = run_script(include_str!("examples/cleo/src/example.leo"), "main", None);
+    let output = run_script(include_str!("example.leo"), "main", None);
 
     match output {
         Ok(v) => println!("Script result: {:#?}", v),

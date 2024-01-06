@@ -1,9 +1,17 @@
-import examples.scripts.graphics
+
 
 function main()
 
-    var v = new Graphics::Vector2(1, 2)
+    fib(10)
 
-    return true
+end
+
+function fib(n)
+
+  if (n <= 1) then
+    return n
+  end
+
+  return fib(n - 1) + fib(n - 2)
 
 end

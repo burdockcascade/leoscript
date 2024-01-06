@@ -11,3 +11,6 @@ keywords = ["scripting", "basic"]
 leoscript = { path = "../../workspace/lib" }
 clap = { version = "4.4.11", features = ["derive"] }
 regex = "1.10.2"
+
+[profile.release]
+opt-level = 3
