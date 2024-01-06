@@ -2,15 +2,12 @@ use std::collections::HashMap;
 use std::env::current_dir;
 use std::fs;
 use std::path::Path;
-use std::time::Duration;
 
-use crate::compiler::codegen::class::generate_class;
+use crate::compiler::codegen::CodeGenerationResult;
 use crate::compiler::codegen::function::Function;
-use crate::compiler::codegen::module::generate_module;
-use crate::compiler::codegen::r#enum::generate_enum;
-use crate::compiler::codegen::syntax::Syntax;
+use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
 use crate::compiler::error::{CompilerError, CompilerErrorType};
-use crate::compiler::parser::script::parse_script;
+use crate::compiler::parser::Parser;
 use crate::compiler::warning::{CompilerWarning, CompilerWarningType};
 use crate::runtime::ir::instruction::Instruction;
 use crate::runtime::ir::variant::Variant;
@@ -33,35 +30,17 @@ impl Default for CodeStructure {
     }
 }
 
-pub struct Script {
-    pub instructions: Vec<Instruction>,
-    pub globals: HashMap<String, Variant>,
-    pub compiler_time: Duration,
-    pub parser_time: Duration,
-    pub imports: Vec<String>,
-    pub warnings: Vec<CompilerWarning>,
-}
+const TYPE_FIELD: &str = "_type";
 
-impl Default for Script {
-    fn default() -> Self {
-        Script {
-            instructions: Default::default(),
-            globals: Default::default(),
-            compiler_time: Default::default(),
-            parser_time: Default::default(),
-            imports: Default::default(),
-            warnings: Default::default(),
-        }
-    }
-}
+pub fn generate_script(source: &str, offset: usize) -> Result<CodeGenerationResult, CompilerError> {
+    let mut script = CodeGenerationResult::default();
 
-pub fn generate_script(source: &str, offset: usize) -> Result<Script, CompilerError> {
-    let mut script = Script::default();
+    let p = Parser::parse(source);
 
     // get tokens
-    let parser_result = match parse_script(source) {
+    let parser_result = match p {
         Ok(r) => {
-            if r.tokens.len() == 0 {
+            if r.syntax_tree.len() == 0 {
                 return Err(CompilerError {
                     error: CompilerErrorType::NoTokensGenerated,
                     position: Default::default(),
@@ -71,14 +50,14 @@ pub fn generate_script(source: &str, offset: usize) -> Result<Script, CompilerEr
             }
         },
         Err(e) => {
-            println!("Error: {:?}", e);
-
             return Err(CompilerError {
-                error: CompilerErrorType::ParseError,
-                position: Default::default(),
+                error: CompilerErrorType::ParseError(e.error),
+                position: e.position.clone(),
             })
         }
     };
+
+    //println!("parser_result.tokens: {:#?}", parser_result.tokens);
 
     // update parser timer
     script.parser_time = parser_result.parser_time;
@@ -93,7 +72,7 @@ pub fn generate_script(source: &str, offset: usize) -> Result<Script, CompilerEr
     };
 
     // compile imports
-    for token in parser_result.tokens.clone() {
+    for token in parser_result.syntax_tree.clone() {
         match token {
             Syntax::Import { position, source, .. } => {
 
@@ -177,32 +156,26 @@ pub fn generate_script(source: &str, offset: usize) -> Result<Script, CompilerEr
     let start_compiler_timer = std::time::Instant::now();
 
     // compile script
-    for token in parser_result.tokens.clone() {
+    for token in parser_result.syntax_tree.clone() {
         let local_offset = script.instructions.len() + offset;
 
         match token {
-            Syntax::Function { position, function_name, input, body, .. } => {
+            Syntax::Function { position, function_name, parameters: input, body, .. } => {
                 let func = Function::new(position, function_name.to_string(), input, body)?;
                 script.globals.insert(function_name.to_string(), Variant::FunctionPointer(local_offset));
                 script.instructions.append(&mut func.instructions.clone());
             }
-            Syntax::Module { position, module_name, body, .. } => {
-                let class_name_as_string = module_name.to_string();
-                let mod_struct = generate_module(position, module_name, body, local_offset)?;
-
-                script.globals.insert(class_name_as_string, Variant::Module(mod_struct.structure));
-                script.instructions.append(&mut mod_struct.instructions.clone());
-            }
-            Syntax::Class { position, class_name, body, .. } => {
+            //Syntax::Module { .. } => generate_module(script, token, local_offset)?,
+            Syntax::Class { position, class_name, constructor, attributes, methods } => {
                 let class_name_as_string = class_name.to_string();
-                let class_struct = generate_class(position, class_name, body, local_offset)?;
+                let class_struct = generate_class(position, class_name, attributes, constructor, methods, local_offset)?;
 
                 script.globals.insert(class_name_as_string, Variant::Class(class_struct.structure));
                 script.instructions.append(&mut class_struct.instructions.clone());
             }
             Syntax::Enum { position, name, items } => {
                 let enum_def = generate_enum(position, name.clone(), items)?;
-                script.globals.insert(name, enum_def);
+                script.globals.insert(name.to_string(), enum_def);
             }
             _ => {}
         }
@@ -211,4 +184,201 @@ pub fn generate_script(source: &str, offset: usize) -> Result<Script, CompilerEr
     script.compiler_time += start_compiler_timer.elapsed();
 
     Ok(script)
+}
+
+pub fn generate_class(position: TokenPosition, name: Box<Syntax>, attributes: Vec<Syntax>, constructor: Option<Box<Syntax>>, methods: Vec<Syntax>, ip_offset: usize) -> Result<CodeStructure, CompilerError> {
+
+    let mut c = CodeStructure::default();
+
+    c.structure.insert(String::from(TYPE_FIELD), Variant::Type(name.to_string()));
+
+    // Attributes
+
+    for attr in attributes.clone() {
+        match attr {
+            Syntax::Attribute { name, .. } => {
+                c.structure.insert(name.to_string(), Variant::Null);
+            },
+            _ => {}
+        }
+    }
+
+    // Constructor
+
+    let f = match constructor {
+        Some(c) => {
+            let Syntax::Constructor { position, input, body } = *c else { todo!() };
+            generate_constructor(position, input, body, attributes)?
+        },
+        _ => generate_constructor(position, vec![], vec![], attributes)?
+    };
+
+    c.structure.insert(String::from(CONSTRUCTOR_NAME), Variant::FunctionPointer(c.instructions.len() + ip_offset));
+    c.instructions.append(&mut f.instructions.clone());
+
+    // Methods
+
+    for method in methods.clone() {
+        match method {
+            Syntax::Function { position, function_name, is_static, mut parameters, body, .. } => {
+                // add self to the input if not static
+                if !is_static {
+                    parameters.insert(0, Syntax::Variable {
+                        position: TokenPosition::default(),
+                        name: Box::new(Syntax::Identifier {
+                            position: TokenPosition::default(),
+                            name: String::from(SELF_CONSTANT),
+                        }),
+                        as_type: None,
+                        value: None,
+                    });
+                }
+
+                let func = Function::new(position, function_name.to_string(), parameters, body)?;
+                c.structure.insert(function_name.to_string(), Variant::FunctionPointer(c.instructions.len() + ip_offset));
+                c.instructions.append(&mut func.instructions.clone());
+            }
+            _ => unreachable!("Class methods should be functions")
+        }
+    }
+
+    Ok(c)
+}
+
+fn generate_constructor(position: TokenPosition, mut input: Vec<Syntax>, mut body: Vec<Syntax>, attributes: Vec<Syntax>) -> Result<Function, CompilerError> {
+
+    // first parameter is always self
+    input.insert(0, Syntax::Variable {
+        position: TokenPosition::default(),
+        name: Box::new(Syntax::Identifier {
+            position: TokenPosition::default(),
+            name: String::from(SELF_CONSTANT),
+        }),
+        as_type: None,
+        value: None,
+    });
+
+    // constructor returns self
+    body.push(Syntax::Return {
+        position: TokenPosition::default(),
+        expr: Some(Box::new(Syntax::Identifier {
+            position: TokenPosition::default(),
+            name: String::from(SELF_CONSTANT),
+        })),
+    });
+
+    // add properties to class
+    for attr in attributes.clone() {
+        match attr {
+            Syntax::Attribute { name, value, .. } => {
+                body.insert(0, Syntax::Assign {
+                    position: TokenPosition::default(),
+                    target: Box::new(Syntax::MemberAccess {
+                        position: TokenPosition::default(),
+                        target: Box::new(Syntax::Identifier {
+                            position: TokenPosition::default(),
+                            name: String::from(SELF_CONSTANT),
+                        }),
+                        index: Box::new(Syntax::Identifier {
+                            position: TokenPosition::default(),
+                            name: name.to_string(),
+                        }),
+                    }),
+                    value: value.unwrap_or_else(|| Box::from(Syntax::Null)),
+                });
+            }
+            _ => unreachable!("Class member should be attribute")
+        }
+    }
+
+    Function::new(position, String::from(CONSTRUCTOR_NAME), input, body)
+}
+
+pub fn generate_module(script: &mut CodeGenerationResult, syntax: Syntax, ip_offset: usize) -> Result<CodeStructure, CompilerError> {
+    let mut fgroup = CodeStructure::default();
+
+    let Syntax::Module { position: _, module_name, constants: _, functions, classes, enums, modules, imports: _ } = syntax else {
+        panic!("generate_module called with non-module syntax")
+    };
+
+    // set module type
+    fgroup.structure.insert(String::from(TYPE_FIELD), Variant::Type(module_name.to_string()));
+
+    // functions
+    for function in functions {
+        match function {
+            Syntax::Function { position, function_name, parameters: mut input, body, .. } => {
+                input.insert(0, Syntax::Variable {
+                    position: TokenPosition::default(),
+                    name: Box::new(
+                        Syntax::Identifier {
+                            position: TokenPosition::default(),
+                            name: String::from(SELF_CONSTANT),
+                        }
+                    ),
+                    as_type: None,
+                    value: None,
+                });
+
+                let func = Function::new(position, function_name.to_string(), input, body)?;
+                fgroup.structure.insert(function_name.to_string(), Variant::FunctionPointer(fgroup.instructions.len() + ip_offset));
+                fgroup.instructions.append(&mut func.instructions.clone());
+            }
+            _ => {}
+        }
+    }
+
+    // classes
+    for class in classes {
+        match class {
+            Syntax::Class { position, class_name, attributes, constructor, methods} => {
+                let class_name_as_string = class_name.to_string();
+                let class_struct = generate_class(position, class_name, attributes, constructor, methods, fgroup.instructions.len() + ip_offset)?;
+
+                fgroup.structure.insert(class_name_as_string, Variant::Class(class_struct.structure));
+                fgroup.instructions.append(&mut class_struct.instructions.clone());
+            }
+            _ => {}
+        }
+    }
+
+    // enums
+    for enum_item in enums {
+        match enum_item {
+            Syntax::Enum { position, name, items } => {
+                let enum_def = generate_enum(position, name.clone(), items)?;
+                fgroup.structure.insert(name.to_string(), enum_def);
+            }
+            _ => {}
+        }
+    }
+
+    // modules
+    for module in modules {
+        match module {
+            Syntax::Module { .. } => {
+                let module_name_as_string = module_name.to_string();
+                let module_struct = generate_module(script, module, fgroup.instructions.len() + ip_offset)?;
+
+                fgroup.structure.insert(module_name_as_string, Variant::Module(module_struct.structure));
+                fgroup.instructions.append(&mut module_struct.instructions.clone());
+            }
+            _ => {}
+        }
+    }
+
+    Ok(fgroup)
+}
+
+pub fn generate_enum(_position: TokenPosition, _name: Box<Syntax>, items: Vec<Syntax>) -> Result<Variant, CompilerError> {
+    let mut enum_def = HashMap::default();
+
+    let mut index = 0;
+
+    for item in items {
+        enum_def.insert(item.to_string(), index);
+        index += 1;
+    }
+
+    Ok(Variant::Enum(enum_def))
 }

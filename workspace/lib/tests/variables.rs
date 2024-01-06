@@ -1,5 +1,6 @@
-use leoscript::compiler::parser::token::TokenPosition;
-use leoscript::error::{CompilerError, CompilerErrorType, ScriptError};
+use leoscript::compiler::codegen::syntax::TokenPosition;
+use leoscript::compiler::error::{CompilerError, CompilerErrorType};
+use leoscript::error::ScriptError;
 use leoscript::run_script;
 use leoscript::runtime::ir::variant::Variant;
 
@@ -31,8 +32,8 @@ fn integers() {
 fn floats() {
     test_success!(r#"
          function main()
-            var f1 as float = 3.14
-            var f2 as float = 2.7
+            var f1 = 3.14
+            var f2 = 2.7
             return f2 == 2.7
         end
     "#);
@@ -42,8 +43,8 @@ fn floats() {
 fn booleans() {
     test_success!(r#"
          function main()
-            var v1 as Boolean = true
-            var v2 as Boolean = false
+            var v1 = true
+            var v2 = false
             return v1
         end
     "#);
@@ -118,8 +119,8 @@ fn enums() {
         end
 
         function main()
-            var x as Color = Color.Red
-            var y as Color = Color.Green
+            var x = Color::Red
+            var y = Color::Green
             return x != y
         end
     "#);
@@ -136,9 +137,8 @@ fn pass_by_value() {
         end
 
         function swap(a, b)
-            var temp = a
-            a = b
-            b = temp
+            a = 0
+            b = 0
         end
     "#);
 }

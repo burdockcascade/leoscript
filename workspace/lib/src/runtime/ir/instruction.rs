@@ -12,6 +12,7 @@ pub enum Instruction {
     PushFloat(f64),
     PushBool(bool),
     PushString(String),
+    PushIdentifier(String),
     PushFunctionRef(String),
     PushFunctionPointer(usize),
 
@@ -26,7 +27,7 @@ pub enum Instruction {
     // Global
     LoadGlobal(String),
     LoadClass(String),
-    LoadMember(String),
+    LoadMember,
 
     // Objects
     CreateObject,
@@ -48,8 +49,9 @@ pub enum Instruction {
     JumpForwardIfFalse(usize),
 
     // Return
-    Return,
-    ReturnWithValue,
+    Return {
+        with_value: bool,
+    },
 
     // Operators
     Equal,
@@ -75,4 +77,6 @@ pub enum Instruction {
 
     // Halt Program
     Halt(String),
+    Debug(String)
+
 }

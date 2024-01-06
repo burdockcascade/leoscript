@@ -7,7 +7,7 @@ mod common;
 fn test_math_max() {
     test_success!(r#"
         function main()
-            return Math.max(1, 2) == 2
+            return Math::max(1, 2) == 2
         end
     "#);
 }
@@ -16,7 +16,7 @@ fn test_math_max() {
 fn test_math_min() {
     test_success!(r#"
         function main()
-            return Math.min(1, 2) == 1
+            return Math::min(1, 2) == 1
         end
     "#);
 }
@@ -26,7 +26,7 @@ fn test_math_min() {
 fn test_math_abs() {
     test_success!(r#"
         function main()
-            return Math.abs(-1) == 1
+            return Math::abs(-1) == 1
         end
     "#);
 }
@@ -35,7 +35,7 @@ fn test_math_abs() {
 fn test_math_sqrt() {
     test_success!(r#"
         function main()
-            return Math.sqrt(4) == 2.0
+            return Math::sqrt(4) == 2.0
         end
     "#);
 }

@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-
 use crate::generic_native_class;
 use crate::runtime::error::RuntimeError;
 use crate::runtime::ir::variant::Variant;

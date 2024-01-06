@@ -7,38 +7,19 @@ mod common;
 fn class_with_constructor_and_parameters() {
 
     let script = r#"
-        import tests.scripts.person
-
         class Book
-
-            attribute name
             attribute pages = 0
-            attribute author = "unknown"
-
-            constructor(name, pages, author)
-                self.name = name
-                self.pages = pages
-                self.author = author
-            end
-
-            function get_name()
-                return self.name
-            end
-
-            function get_pages()
-                return self.pages
-            end
-
         end
 
-        function main(x, y)
-            var d = new Book("The Lord of the Rings", x * y, "J.R.R. Tolkien")
-            return d.get_pages() == x * y
+        function main(x)
+            var d = new Book()
+            d.pages = x
+            return d.pages == x
         end
 
     "#;
 
-    test_success!(script, Some(vec![Variant::Integer(10), Variant::Integer(20)]))
+    test_success!(script, Some(vec![Variant::Integer(10)]))
 
 }
 

@@ -2,13 +2,16 @@
 #[macro_export]
 macro_rules! test_success {
     ($script:expr, $parameters:expr, $expected:expr) => {
-        match run_script($script, "main", $parameters) {
-            Ok(result) => {
-                assert_eq!(result.result, Some($expected));
-            }
-            Err(e) => {
-                println!("Error: {:?}", e);
-                assert!(false);
+        {
+            use leoscript::run_script;
+            use leoscript::runtime::ir::variant::Variant;
+            match run_script($script, "main", $parameters) {
+                Ok(result) => {
+                    assert_eq!(result.result, Some($expected));
+                }
+                Err(e) => {
+                    assert!(false, "{:?}", e);
+                }
             }
         }
     };

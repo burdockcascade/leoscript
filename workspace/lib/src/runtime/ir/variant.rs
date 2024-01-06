@@ -28,20 +28,24 @@ pub enum Variant {
     Class(HashMap<String, Variant>),
     Object(Rc<RefCell<HashMap<String, Variant>>>),
 
-    // References and Pointers
+    // fixme: deprecated
     FunctionRef(String),
+
+
     FunctionPointer(usize),
 
     // Native Functions
     NativeFunctionRef(String),
+
+    // fixme
+    //NativeObject(Rc<RefCell<dyn NativeClass>>),
 
     // counter with start, step, end
     Iterator(Box<Counter>),
 
     Type(String),
 
-    FramePointer(usize),
-    ReturnPointer(usize),
+    Identifier(String),
 }
 
 #[derive(Clone, PartialEq, Debug)]

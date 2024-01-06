@@ -2,18 +2,14 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use log::debug;
 use crate::runtime::error::RuntimeError;
-
-
 use crate::runtime::ir::counter::Counter;
 use crate::runtime::ir::instruction::Instruction;
 use crate::runtime::ir::program::Program;
 use crate::runtime::ir::stacktrace::StackTrace;
 use crate::runtime::ir::variant::Variant;
 use crate::runtime::stdlib::NativeFunctionType;
-
-const FP_OFFSET: usize = 1;
+use crate::runtime::vm::frame::Frame;
 
 #[derive(Debug, PartialEq)]
 pub struct Thread {
@@ -73,6 +69,7 @@ macro_rules! pop_tos2 {
 
 impl Thread {
     pub fn load_program(program: Program) -> Result<Self, RuntimeError> {
+
         if program.instructions.is_empty() {
             return Err(RuntimeError::NoInstructions);
         }
@@ -115,15 +112,16 @@ impl Thread {
     }
 
     fn execute(&mut self, entry: &str, parameters: Option<Vec<Variant>>) -> Result<Option<Variant>, RuntimeError> {
+
+
+        let mut frames: Vec<Frame> = Vec::with_capacity(64);
         let mut stack: Vec<Variant> = Vec::with_capacity(64);
         let mut trace: Vec<StackTrace> = Vec::with_capacity(64);
+        let mut current_frame = Frame::default();
 
         let mut ip: usize;
-        let mut fp: usize = 1;
 
         if let Some(Variant::FunctionPointer(fpointer)) = self.program.globals.get(entry) {
-            stack.push(Variant::ReturnPointer(0));
-            stack.push(Variant::FramePointer(0));
             ip = *fpointer;
         } else {
             return Err(RuntimeError::EntryPointNotFound(entry.to_string()));
@@ -132,7 +130,7 @@ impl Thread {
         // push initial parameters onto stack
         if let Some(parameters) = parameters {
             for parameter in parameters {
-                stack.push(parameter);
+                current_frame.variables.push(parameter)
             }
         }
 
@@ -140,9 +138,13 @@ impl Thread {
 
         // loop over instructions
         loop {
-            debug!("[{:?}] {:?}", ip, self.program.instructions[ip]);
-            debug!("stack: {:?}", stack);
-            // debug!("fp: {}", fp);
+
+            // println!("---");
+            // println!("frames: {:?}", frames);
+            // println!("rp: {:?}", current_frame.return_address);
+            // println!("variables: {:?}", current_frame.variables);
+            // println!("stack: {:?}", stack);
+            // println!("[{:?}] {:?}", ip, self.program.instructions[ip]);
 
             // get instruction
             let Some(instruction) = self.program.instructions.get(ip) else {
@@ -151,6 +153,11 @@ impl Thread {
 
             match instruction {
                 Instruction::NoOperation => {
+                    ip += 1;
+                }
+
+                Instruction::Debug(value) => {
+                    println!("DEBUG: {:?}", value);
                     ip += 1;
                 }
 
@@ -197,6 +204,11 @@ impl Thread {
                     ip += 1;
                 }
 
+                Instruction::PushIdentifier(value) => {
+                    stack.push(Variant::Identifier(value.clone()));
+                    ip += 1;
+                }
+
                 Instruction::PushFunctionRef(value) => {
                     stack.push(Variant::FunctionRef(value.clone()));
                     ip += 1;
@@ -204,16 +216,6 @@ impl Thread {
 
                 Instruction::PushFunctionPointer(value) => {
                     stack.push(Variant::FunctionPointer(value.clone()));
-                    ip += 1;
-                }
-
-                Instruction::SetVariableBuffer(size) => {
-
-                    // pad stack with nulls
-                    for _ in 0..*size {
-                        stack.push(Variant::Null);
-                    }
-
                     ip += 1;
                 }
 
@@ -261,19 +263,13 @@ impl Thread {
                 // get value from stack and store in variable
                 Instruction::MoveToLocalVariable(index) => {
                     let value = pop_tos!(stack, trace);
-                    let stack_index = fp + *index + FP_OFFSET;
-
-                    if stack_index < stack.len() {
-                        stack[stack_index] = value;
-                        ip += 1;
-                    } else {
-                        return Err(RuntimeError::InvalidStackIndex { index: stack_index, size: stack.len() });
-                    }
+                    current_frame.set_variable(*index, value)?;
+                    ip += 1;
                 }
 
                 // get value from variable and push onto stack
                 Instruction::LoadLocalVariable(index) => {
-                    let value = stack[fp + *index + FP_OFFSET].clone();
+                    let value = current_frame.get_variable(*index)?.clone();
                     stack.push(value);
                     ip += 1;
                 }
@@ -290,34 +286,52 @@ impl Thread {
                 //==================================================================================
                 // FUNCTIONS
 
-                Instruction::LoadMember(name) => {
-                    match pop_tos!(stack, trace) {
+                Instruction::LoadMember => {
+
+                    let Variant::Identifier(name) = pop_tos!(stack, trace) else {
+                        return Err(RuntimeError::ExpectedMemberNameOnStack);
+                    };
+
+                    let parent = pop_tos!(stack, trace);
+
+                    match parent {
                         Variant::Object(object) => {
                             let borrowed_object = object.borrow();
-                            if let Some(function_ref) = borrowed_object.get(name) {
-                                stack.push(function_ref.clone());
-                                stack.push(Variant::Object(object.clone()));
-                                ip += 1;
-                            } else {
-                                return Err(RuntimeError::MethodNotFound(name.clone()));
+                            match borrowed_object.get(name.as_str()) {
+                                Some(v) => {
+                                    stack.push(v.clone());
+                                    match v {
+                                        Variant::FunctionPointer(_) => stack.push(Variant::Object(object.clone())),
+                                        Variant::NativeFunctionRef(_) => stack.push(Variant::Object(object.clone())),
+                                        _ => {},
+                                    }
+                                    ip += 1;
+                                }
+                                None => return Err(RuntimeError::MethodNotFound(name.clone())),
                             }
                         }
                         Variant::Class(class_template) => {
-                            if let Some(function_ref) = class_template.get(name) {
-                                stack.push(function_ref.clone());
-                                stack.push(Variant::Class(class_template.clone()));
-                                ip += 1;
-                            } else {
-                                return Err(RuntimeError::MethodNotFound(name.clone()));
+                            match class_template.get(name.as_str()) {
+                                Some(function_ref) => {
+                                    stack.push(function_ref.clone());
+                                    stack.push(Variant::Class(class_template.clone()));
+                                    ip += 1;
+                                }
+                                None => {
+                                    return Err(RuntimeError::MethodNotFound(name.clone()));
+                                }
                             }
                         }
                         Variant::Module(module) => {
-                            if let Some(function_ref) = module.get(name) {
-                                stack.push(function_ref.clone());
-                                stack.push(Variant::Module(module.clone()));
-                                ip += 1;
-                            } else {
-                                return Err(RuntimeError::MethodNotFound(name.clone()));
+                            match module.get(name.as_str()) {
+                                Some(function_ref) => {
+                                    stack.push(function_ref.clone());
+                                    stack.push(Variant::Module(module.clone()));
+                                    ip += 1;
+                                }
+                                None => {
+                                    return Err(RuntimeError::MethodNotFound(name.clone()));
+                                }
                             }
                         }
                         _ => {
@@ -375,18 +389,19 @@ impl Thread {
                         // jump to function pointer
                         Variant::FunctionPointer(fptr) => {
 
-                            // set return pointer
-                            stack.push(Variant::ReturnPointer(ip + 1));
+                            // stack current frame
+                            frames.push(current_frame);
 
-                            // set frame pointer
-                            stack.push(Variant::FramePointer(fp));
-
-                            // push new frame onto frames
-                            fp = stack.len() - 1;
+                            // new frame
+                            current_frame = Frame {
+                                return_address: ip + 1,
+                                stack_pointer: stack.len(),
+                                variables: Vec::with_capacity(16)
+                            };
 
                             // push args onto stack
                             for arg in args {
-                                stack.push(arg);
+                                current_frame.variables.push(arg);
                             }
 
                             // set instruction pointer to function
@@ -398,61 +413,26 @@ impl Thread {
                     }
                 }
 
-                Instruction::Return => {
+                Instruction::Return { with_value } => {
+                    ip = current_frame.return_address;
+                    match frames.pop() {
+                        Some(frame) => {
 
-                    // reduce stack to fp
-                    while stack.len() > (fp + 1) {
-                        stack.pop();
-                    }
+                            // cleanup stack after return
+                            stack.truncate(current_frame.stack_pointer + (if *with_value { 1 } else { 0 }));
 
-                    // remove last frame
-                    match pop_tos!(stack, trace) {
-                        Variant::FramePointer(frm) => fp = frm,
-                        _ => return Err(RuntimeError::InvalidFramePointer),
-                    }
-
-                    if fp == 0 {
-                        return Ok(None);
-                    }
-
-                    // get return position or return from self.program
-                    match pop_tos!(stack, trace) {
-                        Variant::ReturnPointer(ptr) => ip = ptr,
-                        _ => return Err(RuntimeError::InvalidReturnPointer),
+                            // set new frame
+                            current_frame = frame;
+                        }
+                        None => {
+                            if *with_value {
+                                return Ok(Some(pop_tos!(stack, trace)));
+                            } else {
+                                return Ok(None);
+                            }
+                        }
                     }
                 }
-
-                Instruction::ReturnWithValue => {
-
-                    // pop return value from stack
-                    let return_value = pop_tos!(stack, trace);
-
-                    // reduce stack to fp
-                    while stack.len() > (fp + 1) {
-                        stack.pop();
-                    }
-
-                    // remove last frame
-                    match pop_tos!(stack, trace) {
-                        Variant::FramePointer(frm) => fp = frm,
-                        _ => return Err(RuntimeError::InvalidFramePointer),
-                    }
-
-                    if fp == 0 {
-                        return Ok(Some(return_value));
-                    }
-
-                    // get return position or return from self.program
-                    match pop_tos!(stack, trace) {
-                        Variant::ReturnPointer(ptr) => ip = ptr,
-                        _ => return Err(RuntimeError::InvalidReturnPointer),
-                    }
-
-
-                    // push return value onto stack
-                    stack.push(return_value);
-                }
-
 
                 //==================================================================================
                 // Objects
@@ -517,53 +497,59 @@ impl Thread {
 
                     match collection {
                         Variant::Array(items) => {
-                            if let Variant::Integer(index) = key {
-                                match items.get(index as usize) {
-                                    Some(v) => stack.push(v.clone()),
-                                    None => return Err(RuntimeError::InvalidArrayIndex)
+                            match key {
+                                Variant::Integer(index) => {
+                                    match items.get(index as usize) {
+                                        Some(v) => stack.push(v.clone()),
+                                        None => return Err(RuntimeError::InvalidArrayIndex)
+                                    }
                                 }
-                            } else {
-                                panic!("can not get index on non-integer {}", key)
+                                _ => return Err(RuntimeError::InvalidCollectionKey(key))
                             }
                         }
                         Variant::Object(obj) => {
-                            if let Variant::String(index) = key {
-                                let items_borrowed = obj.borrow();
-                                match items_borrowed.get(index.as_str()) {
-                                    Some(v) => stack.push(v.clone()),
-                                    None => return Err(RuntimeError::InvalidObjectMember),
+                            match key {
+                                Variant::Identifier(index) => {
+                                    let items_borrowed = obj.borrow();
+                                    match items_borrowed.get(index.as_str()) {
+                                        Some(v) => stack.push(v.clone()),
+                                        None => return Err(RuntimeError::InvalidObjectMember),
+                                    }
                                 }
-                            } else {
-                                panic!("can not get index on non-string {}", key)
+                                _ => return Err(RuntimeError::InvalidCollectionKey(key))
                             }
                         }
                         Variant::Module(obj) => {
-                            if let Variant::String(index) = key {
-                                match obj.get(index.as_str()) {
-                                    Some(v) => stack.push(v.clone()),
-                                    None => return Err(RuntimeError::InvalidObjectMember),
+                            match key {
+                                Variant::Identifier(index) => {
+                                    match obj.get(index.as_str()) {
+                                        Some(v) => stack.push(v.clone()),
+                                        None => return Err(RuntimeError::ModuleIndexNotFound(index)),
+                                    }
                                 }
-                            } else {
-                                panic!("can not get index on non-string {}", key)
+                                _ => return Err(RuntimeError::InvalidCollectionKey(key))
                             }
                         }
                         Variant::Enum(obj) => {
-                            if let Variant::String(index) = key {
-                                match obj.get(index.as_str()) {
-                                    Some(v) => stack.push(Variant::Integer(*v as i64)),
-                                    None => return Err(RuntimeError::InvalidObjectMember),
+                            match key {
+                                Variant::Identifier(index) => {
+                                    match obj.get(index.as_str()) {
+                                        Some(v) => stack.push(Variant::Integer(*v as i64)),
+                                        None => return Err(RuntimeError::EnumIndexNotFound(index)),
+                                    }
                                 }
+                                _ => return Err(RuntimeError::InvalidCollectionKey(key))
                             }
                         }
-                        _ => panic!("can not get index on non-collection {}", collection)
+                        _ => return Err(RuntimeError::InvalidCollection)
                     }
 
                     ip += 1;
                 }
 
                 Instruction::SetCollectionItem => {
-                    let key = pop_tos!(stack, trace);
                     let value = pop_tos!(stack, trace);
+                    let key = pop_tos!(stack, trace);
                     let collection = pop_tos!(stack, trace);
 
                     match collection {
@@ -575,7 +561,7 @@ impl Thread {
                             }
                         }
                         Variant::Object(obj) => {
-                            if let Variant::String(index) = key {
+                            if let Variant::Identifier(index) = key {
                                 let mut items_borrowed = obj.borrow_mut();
                                 items_borrowed.insert(index, value);
                             } else {
@@ -618,7 +604,7 @@ impl Thread {
 
                     match counter.next() {
                         Some(value) => {
-                            stack[fp + *var_slot + FP_OFFSET] = value;
+                            current_frame.set_variable(*var_slot, value)?;
 
                             stack.push(Variant::Iterator(counter));
                             stack.push(Variant::Bool(true))

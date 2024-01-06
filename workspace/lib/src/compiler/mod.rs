@@ -7,8 +7,7 @@ use crate::runtime::ir::program::Program;
 pub mod codegen;
 pub mod warning;
 pub mod error;
-mod parser;
-mod tokenizer;
+pub mod parser;
 
 #[derive(Debug, PartialEq)]
 pub struct CompilerResult {

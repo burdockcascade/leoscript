@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::Display;
 
-
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Syntax {
     Import {
@@ -36,7 +34,7 @@ pub enum Syntax {
         is_static: bool,
         scope: Option<Box<Syntax>>,
         return_type: Option<Box<Syntax>>,
-        input: Vec<Syntax>,
+        parameters: Vec<Syntax>,
         body: Vec<Syntax>,
     },
 
@@ -49,13 +47,20 @@ pub enum Syntax {
     Module {
         position: TokenPosition,
         module_name: Box<Syntax>,
-        body: Vec<Syntax>,
+        constants: Vec<Syntax>,
+        functions: Vec<Syntax>,
+        classes: Vec<Syntax>,
+        enums: Vec<Syntax>,
+        modules: Vec<Syntax>,
+        imports: Vec<Syntax>,
     },
 
     Class {
         position: TokenPosition,
         class_name: Box<Syntax>,
-        body: Vec<Syntax>,
+        attributes: Vec<Syntax>,
+        constructor: Option<Box<Syntax>>,
+        methods: Vec<Syntax>
     },
 
     Identifier {
@@ -63,23 +68,17 @@ pub enum Syntax {
         name: String,
     },
 
-    DotChain {
-        position: TokenPosition,
-        start: Box<Syntax>,
-        chain: Vec<Syntax>,
-    },
-
     Variable {
         position: TokenPosition,
-        name: String,
+        name: Box<Syntax>,
         as_type: Option<String>,
         value: Option<Box<Syntax>>,
     },
 
     Attribute {
         position: TokenPosition,
-        name: String,
-        as_type: Option<String>,
+        name: Box<Syntax>,
+        as_type: Option<Box<Syntax>>,
         value: Option<Box<Syntax>>,
     },
 
@@ -97,7 +96,7 @@ pub enum Syntax {
 
     Assign {
         position: TokenPosition,
-        ident: Box<Syntax>,
+        target: Box<Syntax>,
         value: Box<Syntax>,
     },
 
@@ -114,7 +113,7 @@ pub enum Syntax {
 
     Enum {
         position: TokenPosition,
-        name: String,
+        name: Box<Syntax>,
         items: Vec<Syntax>,
     },
 
@@ -135,7 +134,7 @@ pub enum Syntax {
 
     IfChain {
         position: TokenPosition,
-        chain: Vec<Syntax>,
+        arms: Vec<Syntax>,
     },
     If {
         position: TokenPosition,
@@ -153,13 +152,11 @@ pub enum Syntax {
         arms: Vec<Syntax>,
         default: Option<Box<Syntax>>,
     },
-
     Case {
         position: TokenPosition,
         condition: Box<Syntax>,
         body: Vec<Syntax>,
     },
-
     DefaultCase {
         position: TokenPosition,
         body: Vec<Syntax>,
@@ -178,13 +175,10 @@ pub enum Syntax {
         body: Vec<Syntax>,
     },
 
-    ForI {
-        position: TokenPosition,
-        ident: Box<Syntax>,
+    Range {
         start: Box<Syntax>,
-        step: Box<Syntax>,
         end: Box<Syntax>,
-        body: Vec<Syntax>,
+        step: Option<Box<Syntax>>
     },
 
     Break {
@@ -196,14 +190,30 @@ pub enum Syntax {
 
     Call {
         position: TokenPosition,
-        name: Box<Syntax>,
-        input: Vec<Syntax>,
+        target: Box<Syntax>,
+        args: Vec<Syntax>,
     },
 
     Return {
         position: TokenPosition,
         expr: Option<Box<Syntax>>,
     },
+
+    Property {
+        position: TokenPosition,
+        name: Box<Syntax>
+    },
+    ArrayAccess {
+        position: TokenPosition,
+        target: Box<Syntax>,
+        index: Box<Syntax>
+    },
+    MemberAccess {
+        position: TokenPosition,
+        target: Box<Syntax>,
+        index: Box<Syntax>
+    },
+    StaticAccess { position: TokenPosition, target: Box<Syntax>, index: Box<Syntax> },
 }
 
 pub enum Visibility {
@@ -215,6 +225,7 @@ impl Display for Syntax {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let str = match self {
             Syntax::Identifier { name, .. } => name.to_string(),
+            Syntax::Variable { name, .. } => name.to_string(),
             Syntax::String(s) => s.to_string(),
             _ => unimplemented!("Token::to_string() not implemented for {:?}", self)
         };

@@ -1,4 +1,6 @@
 use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
+use crate::compiler::parser::lexer::lexer::LexerError;
+use crate::compiler::parser::lexer::Token;
 
 #[derive(Debug, PartialEq)]
 pub struct ParserError {
@@ -23,9 +25,24 @@ pub enum ParserErrorType {
         reason: IdentifierError,
     },
     IdentifierStartsWithNumber(String),
-    UnexpectedToken(String),
+    UnexpectedToken {
+        expected: Token,
+        found: Token,
+    },
+    UnwantedToken(Token),
     InvalidArgumentName { name: String, reason: IdentifierError },
+    UnexpectedParserError(LexerError),
+    NoMatchFound,
     UnexpectedError,
+    InvalidLiteral(String),
+    InvalidExpressionItem(String),
+    InvalidChainedItem(String),
+    UnexpectedEnd,
+    InvalidArrayAccess,
+    InvalidMemberAccess,
+    InvalidStaticAccess,
+    InvalidNewObject,
+    InvalidMapItem(String),
 }
 
 #[derive(Debug, PartialEq)]
@@ -42,7 +59,7 @@ pub struct CompilerError {
 
 #[derive(Debug, PartialEq)]
 pub enum CompilerErrorType {
-    ParseError,
+    ParseError(ParserErrorType),
     NoTokens,
 
     GlobalNotFound(String),
@@ -88,5 +105,7 @@ pub enum CompilerErrorType {
     UnableToCreateNewObjectFrom(Box<Syntax>),
     UnableToIterateOver(Box<Syntax>),
     NoIteratorJumpsFound,
-    InvalidExpressionItem(Box<Syntax>)
+    InvalidExpressionItem(Box<Syntax>),
+    InvalidIteratorVariable,
+    InvalidMatch,
 }

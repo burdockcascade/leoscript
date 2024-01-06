@@ -1,8 +1,8 @@
 use std::collections::HashMap;
-use crate::runtime::error::RuntimeError;
 
+use crate::runtime::error::RuntimeError;
 use crate::runtime::ir::variant::Variant;
-use crate::runtime::stdlib::{PARAM_1, PARAM_2};
+use crate::runtime::stdlib::{PARAM_0, PARAM_1};
 use crate::runtime::vm::thread::Thread;
 
 pub fn compile_math_module(t: &mut Thread) {
@@ -20,8 +20,8 @@ pub fn compile_math_module(t: &mut Thread) {
 }
 
 fn math_max(p: Vec<Variant>) -> Result<Option<Variant>, RuntimeError> {
-    if let Variant::Integer(i) = p[PARAM_1] {
-        if let Variant::Integer(j) = p[PARAM_2] {
+    if let Variant::Integer(i) = p[PARAM_0] {
+        if let Variant::Integer(j) = p[PARAM_1] {
             return Ok(Some(Variant::Integer(i.max(j))));
         }
     }
@@ -29,8 +29,8 @@ fn math_max(p: Vec<Variant>) -> Result<Option<Variant>, RuntimeError> {
 }
 
 fn math_min(p: Vec<Variant>) -> Result<Option<Variant>, RuntimeError> {
-    if let Variant::Integer(i) = p[PARAM_1] {
-        if let Variant::Integer(j) = p[PARAM_2] {
+    if let Variant::Integer(i) = p[PARAM_0] {
+        if let Variant::Integer(j) = p[PARAM_1] {
             return Ok(Some(Variant::Integer(i.min(j))));
         }
     }
@@ -38,14 +38,14 @@ fn math_min(p: Vec<Variant>) -> Result<Option<Variant>, RuntimeError> {
 }
 
 fn math_sqrt(p: Vec<Variant>) -> Result<Option<Variant>, RuntimeError> {
-    if let Variant::Integer(i) = p[PARAM_1] {
+    if let Variant::Integer(i) = p[PARAM_0] {
         return Ok(Some(Variant::Float((i as f64).sqrt())));
     }
     Err(RuntimeError::UnknownNativeParameterToken)
 }
 
 fn math_abs(p: Vec<Variant>) -> Result<Option<Variant>, RuntimeError> {
-    if let Variant::Integer(i) = p[PARAM_1] {
+    if let Variant::Integer(i) = p[PARAM_0] {
         return Ok(Some(Variant::Integer(i.abs())));
     }
     Err(RuntimeError::UnknownNativeParameterToken)
@@ -58,7 +58,6 @@ mod tests {
     #[test]
     fn test_math_max() {
         let input = vec![
-            Variant::Module(std::collections::HashMap::new()),
             Variant::Integer(1),
             Variant::Integer(2),
         ];
@@ -74,7 +73,6 @@ mod tests {
     #[test]
     fn test_math_min() {
         let input = vec![
-            Variant::Module(std::collections::HashMap::new()),
             Variant::Integer(1),
             Variant::Integer(2),
         ];
@@ -90,7 +88,6 @@ mod tests {
     #[test]
     fn test_math_abs() {
         let input = vec![
-            Variant::Module(std::collections::HashMap::new()),
             Variant::Integer(-1),
         ];
 
@@ -105,7 +102,6 @@ mod tests {
     #[test]
     fn test_math_sqrt() {
         let input = vec![
-            Variant::Module(std::collections::HashMap::new()),
             Variant::Integer(4),
         ];
 

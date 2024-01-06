@@ -3,7 +3,7 @@ use crate::runtime::ir::program::Program;
 use crate::runtime::ir::variant::Variant;
 use crate::runtime::vm::thread::{ExecutionResult, Thread};
 
-mod stdlib;
+pub mod stdlib;
 mod vm;
 pub mod ir;
 pub mod error;

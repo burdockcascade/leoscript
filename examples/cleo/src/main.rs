@@ -1,8 +1,5 @@
 use clap::{arg, Command};
-
-use leoscript::{run_script, run_script_from_file, run_script_from_string};
-
-mod tokenizer;
+use leoscript::run_script;
 
 fn cli() -> Command {
     Command::new("git")

@@ -12,10 +12,10 @@ fn for_loop() {
             var counter = 0
 
             -- set start to 1
-            var start_at as Integer = 1
+            var start_at = 1
 
             -- set target to 3
-            var target as Integer = 20
+            var target = 20
 
             var stepi = 1
 

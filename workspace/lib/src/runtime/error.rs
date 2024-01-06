@@ -43,4 +43,11 @@ pub enum RuntimeError {
     UnknownNativeParameterToken,
     InvalidNativeFunction(String),
     ExpectedSelfForNativeFunction,
+    ObjectIndexNotFound(String),
+    ModuleIndexNotFound(String),
+    EnumIndexNotFound(String),
+    ExpectedMemberNameOnStack,
+    InvalidCollectionKey(Variant),
+    InvalidVariableIndex(usize),
+    InfiniteLoop,
 }
