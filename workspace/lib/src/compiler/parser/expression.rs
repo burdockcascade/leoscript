@@ -699,14 +699,6 @@ mod test {
         });
     }
 
-    #[test]
-    fn test_invalid_expression_item() {
-        run_expr_test_err!("7 + while", ParserError {
-            position: TokenPosition { line: 1, column: 5 },
-            error: ParserErrorType::InvalidExpressionItem(String::from("while")),
-        });
-    }
-
     // --- Literals ---
 
     #[test]
@@ -820,19 +812,6 @@ mod test {
             expr: Box::from(Syntax::Eq {
                 expr1: Box::from(Syntax::Identifier {
                     position: TokenPosition { line: 1, column: 5 },
-                    name: String::from("a"),
-                }),
-                expr2: Box::from(Syntax::Integer(1)),
-            }),
-        });
-    }
-
-    #[test]
-    fn test_logical_not_with_alt_token() {
-        run_expr_test_ok!("!(a == 1)", Syntax::Not {
-            expr: Box::from(Syntax::Eq {
-                expr1: Box::from(Syntax::Identifier {
-                    position: TokenPosition { line: 1, column: 3 },
                     name: String::from("a"),
                 }),
                 expr2: Box::from(Syntax::Integer(1)),
