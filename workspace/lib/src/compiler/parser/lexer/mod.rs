@@ -1,7 +1,7 @@
 use lexer::Matcher;
 
 use crate::{ignore_regex, match_regex, match_token};
-use crate::compiler::parser::lexer::lexer::{Lexer, LexerOptions};
+use crate::compiler::parser::lexer::lexer::Lexer;
 
 pub mod lexer;
 
@@ -9,7 +9,6 @@ pub mod lexer;
 pub enum Token {
     Function,
     Enum,
-    New,
     Import,
     Class,
     Constructor,
@@ -99,7 +98,6 @@ pub fn get_lexer(input: &str) -> Lexer<Token> {
         match_token!("constructor", Token::Constructor),
         match_token!("enum", Token::Enum),
         match_token!("class", Token::Class),
-        match_token!("new", Token::New),
         match_token!("module", Token::Module),
         match_token!("import", Token::Import),
         match_token!("return", Token::Return),
@@ -175,7 +173,5 @@ pub fn get_lexer(input: &str) -> Lexer<Token> {
         match_regex!("^[a-zA-Z0-9_]+", Token::Identifier),
     ];
 
-    Lexer::new(input, tokens, LexerOptions {
-        ignore_whitespace: true,
-    })
+    Lexer::new(input, tokens)
 }

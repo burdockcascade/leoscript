@@ -10,10 +10,9 @@ use crate::compiler::error::{CompilerError, CompilerErrorType};
 use crate::compiler::parser::Parser;
 use crate::compiler::warning::{CompilerWarning, CompilerWarningType};
 use crate::runtime::ir::instruction::Instruction;
-use crate::runtime::ir::variant::Variant;
+use crate::runtime::ir::variant::{CLASS_CONSTRUCTOR_NAME, Variant};
 
 const FILE_EXTENSION: &str = ".leo";
-pub const CONSTRUCTOR_NAME: &str = "constructor";
 pub const SELF_CONSTANT: &str = "self";
 
 #[derive(Debug)]
@@ -218,7 +217,7 @@ pub fn generate_class(position: TokenPosition, name: Box<Syntax>, attributes: Ve
         _ => generate_constructor(position, vec![], vec![], attributes)?
     };
 
-    c.structure.insert(String::from(CONSTRUCTOR_NAME), Variant::FunctionPointer(c.instructions.len() + ip_offset));
+    c.structure.insert(String::from(CLASS_CONSTRUCTOR_NAME), Variant::FunctionPointer(c.instructions.len() + ip_offset));
     c.instructions.append(&mut f.instructions.clone());
 
     // Methods
@@ -294,7 +293,7 @@ fn generate_constructor(position: TokenPosition, mut input: Vec<Syntax>, mut bod
         }
     }
 
-    Function::new(position, String::from(CONSTRUCTOR_NAME), input, body)
+    Function::new(position, String::from(CLASS_CONSTRUCTOR_NAME), input, body)
 }
 
 pub fn generate_module(syntax: Syntax, ip_offset: usize) -> Result<CodeStructure, CompilerError> {

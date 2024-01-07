@@ -1,8 +1,6 @@
 use leoscript::compiler::codegen::syntax::TokenPosition;
 use leoscript::compiler::error::{CompilerError, CompilerErrorType};
 use leoscript::error::ScriptError;
-use leoscript::run_script;
-use leoscript::runtime::ir::variant::Variant;
 
 mod common;
 

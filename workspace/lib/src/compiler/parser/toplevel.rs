@@ -204,14 +204,6 @@ impl Parser {
         let attribute_kw = self.next_token_or_error()?;
         let attribute_name = self.match_next_token_or_error(Token::Identifier)?;
 
-        let as_type = if self.peek_next_token_match(Token::As) {
-            self.skip_next_token_or_error()?;
-            let expr = self.parse_expression()?;
-            Some(expr)
-        } else {
-            None
-        };
-
         let value = if self.peek_next_token_match(Token::SingleEquals) {
             self.skip_next_token_or_error()?;
             let expr = self.parse_expression()?;

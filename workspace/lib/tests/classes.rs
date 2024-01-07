@@ -1,20 +1,19 @@
-use leoscript::run_script;
 use leoscript::runtime::ir::variant::Variant;
 
 mod common;
 
 #[test]
-fn class_with_constructor_and_parameters() {
+fn class_with_no_constructor() {
 
     let script = r#"
-        class Book
-            attribute pages = 0
-        end
-
         function main(x)
-            var d = new Book()
+            var d = Book()
             d.pages = x
             return d.pages == x
+        end
+
+        class Book
+            attribute pages = 0
         end
 
     "#;
@@ -38,7 +37,7 @@ fn class_with_fields_but_without_constructor() {
         end
 
         function main()
-            var svc = new myservice()
+            var svc = myservice()
             return svc.get_magic_number()
         end
 
@@ -67,7 +66,7 @@ fn pass_object_as_parameter() {
         end
 
         function main()
-            var svc = new myservice()
+            var svc = myservice()
             do_something_with_service(svc)
             return svc.get_magic_number() == 24
         end

@@ -7,7 +7,7 @@ use crate::runtime::ir::counter::Counter;
 use crate::runtime::ir::instruction::Instruction;
 use crate::runtime::ir::program::Program;
 use crate::runtime::ir::stacktrace::StackTrace;
-use crate::runtime::ir::variant::Variant;
+use crate::runtime::ir::variant::{CLASS_CONSTRUCTOR_NAME, Variant};
 use crate::runtime::stdlib::NativeFunctionType;
 use crate::runtime::vm::frame::Frame;
 
@@ -343,7 +343,7 @@ impl Thread {
                 Instruction::Call(arg_len) => {
 
                     // cut args from stack and then reverse order
-                    let mut args: Vec<Variant> = Vec::default();
+                    let mut args: Vec<Variant> = Vec::with_capacity(*arg_len);
                     for _ in 0..*arg_len {
                         args.push(pop_tos!(stack, trace));
                     }
@@ -360,6 +360,30 @@ impl Thread {
                             self.program.globals.get(&ident).unwrap().clone()
                         }
 
+                        Variant::Class(class_template) => {
+
+                            // create new object
+                            let new_object = Variant::Object(Rc::new(RefCell::new(class_template.clone())));
+
+                            // push self into arguments
+                            args.insert(0, new_object);
+
+                            let Some(fp) = class_template.get(CLASS_CONSTRUCTOR_NAME) else {
+                                return Err(RuntimeError::ConstructorNotFound);
+                            };
+
+                            fp.clone()
+                        }
+
+                        // do nothing
+                        Variant::FunctionPointer(_) => tos,
+                        Variant::NativeFunctionRef(_) => tos,
+
+                        _ => return Err(RuntimeError::InvalidCallOnStack(tos))
+                    };
+
+                    match tos {
+
                         // is FunctionRef and in native_functions
                         Variant::NativeFunctionRef(ident) if self.native_functions.contains_key(&ident) => {
                             let func = self.native_functions.get(&ident).unwrap();
@@ -375,16 +399,7 @@ impl Thread {
                             }
 
                             ip += 1;
-                            continue;
                         }
-
-                        // do nothing
-                        Variant::FunctionPointer(_) => tos,
-
-                        _ => return Err(RuntimeError::InvalidFunctionOnStack(tos))
-                    };
-
-                    match tos {
 
                         // jump to function pointer
                         Variant::FunctionPointer(fptr) => {
@@ -432,26 +447,6 @@ impl Thread {
                             }
                         }
                     }
-                }
-
-                //==================================================================================
-                // Objects
-
-                Instruction::CreateObject => {
-                    let tos = pop_tos!(stack, trace);
-
-                    // get class
-                    let Variant::Class(class_template) = tos else {
-                        return Err(RuntimeError::ExpectedClassOnStack);
-                    };
-
-                    // create new object
-                    let new_object = Variant::Object(Rc::new(RefCell::new(class_template.clone())));
-
-                    // push new object onto stack
-                    stack.push(new_object.clone());
-
-                    ip += 1;
                 }
 
                 //==================================================================================

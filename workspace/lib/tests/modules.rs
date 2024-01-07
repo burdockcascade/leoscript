@@ -1,6 +1,3 @@
-use leoscript::run_script;
-use leoscript::runtime::ir::variant::Variant;
-
 mod common;
 
 #[test]
@@ -58,8 +55,8 @@ fn module_with_class() {
         function main()
 
             -- vector fun
-            var v1 = new Graphics::Vector2(10, 20)
-            var v2 = new Graphics::Vector2(20, 30)
+            var v1 =  Graphics::Vector2(10, 20)
+            var v2 =  Graphics::Vector2(20, 30)
             var v3 = v1.add(v2)
             var length = v3.length()
             return length == v3.length()
@@ -78,19 +75,19 @@ fn module_with_class() {
                 end
 
                 function add(other)
-                    return new Graphics::Vector2(self.x + other.x, self.y + other.y)
+                    return  Graphics::Vector2(self.x + other.x, self.y + other.y)
                 end
 
                 function sub(other)
-                    return new Graphics::Vector2(self.x - other.x, self.y - other.y)
+                    return  Graphics::Vector2(self.x - other.x, self.y - other.y)
                 end
 
                 function mul(other)
-                    return new Graphics::Vector2(self.x * other.x, self.y * other.y)
+                    return  Graphics::Vector2(self.x * other.x, self.y * other.y)
                 end
 
                 function div(other)
-                    return new Graphics::Vector2(self.x / other.x, self.y / other.y)
+                    return  Graphics::Vector2(self.x / other.x, self.y / other.y)
                 end
 
                 function dot(other)
@@ -107,7 +104,7 @@ fn module_with_class() {
 
                 function normalize()
                     var l = self.length()
-                    return new Graphics::Vector2(self.x / l, self.y / l)
+                    return  Graphics::Vector2(self.x / l, self.y / l)
                 end
 
                 function to_string()

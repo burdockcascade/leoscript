@@ -10,6 +10,8 @@ use log::error;
 
 use crate::runtime::ir::counter::Counter;
 
+pub const CLASS_CONSTRUCTOR_NAME: &str = "constructor";
+
 // Value
 #[derive(Clone, PartialEq, Debug)]
 pub enum Variant {
@@ -46,31 +48,6 @@ pub enum Variant {
     Type(String),
 
     Identifier(String),
-}
-
-#[derive(Clone, PartialEq, Debug)]
-pub enum ValueType {
-    Null,
-    Any,
-    Integer,
-    Float,
-    Bool,
-    String,
-    Array,
-    Dictionary,
-    Global(String),
-}
-
-impl ValueType {
-    pub fn default_value(&self) -> Variant {
-        match self {
-            ValueType::Integer => Variant::Integer(0),
-            ValueType::Float => Variant::Float(0.0),
-            ValueType::Bool => Variant::Bool(false),
-            ValueType::String => Variant::String("".to_string()),
-            _ => Variant::Null
-        }
-    }
 }
 
 impl Display for Variant {

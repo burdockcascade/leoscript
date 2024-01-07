@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
 use crate::compiler::error::CompilerError;
 use crate::runtime::ir::instruction::Instruction;
-use crate::runtime::ir::variant::ValueType;
 
 mod expression;
 mod stacktrace;

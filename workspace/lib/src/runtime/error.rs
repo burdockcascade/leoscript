@@ -10,7 +10,7 @@ pub enum RuntimeError {
     ExpectedIntegerOnStack,
     ExpectedIteratorOnStack,
     ExpectedObjectOnStack,
-    InvalidFunctionOnStack(Variant),
+    InvalidCallOnStack(Variant),
 
     InstructionPointerOutOfBounds(usize),
     EntryPointNotFound(String),
@@ -50,4 +50,5 @@ pub enum RuntimeError {
     InvalidCollectionKey(Variant),
     InvalidVariableIndex(usize),
     InfiniteLoop,
+    ConstructorNotFound,
 }

@@ -99,25 +99,6 @@ impl Function {
                 self.instructions.push(Instruction::PushFunctionRef(func_name));
             }
 
-            Syntax::NewObject { target: name, args: input, position } => {
-                self.generate_expression(position, name)?;
-
-                // create object
-                self.instructions.push(Instruction::CreateObject);
-                self.instructions.push(Instruction::PushIdentifier(String::from("constructor")));
-                self.instructions.push(Instruction::LoadMember);
-
-                let param_len = input.len() + 1;
-
-                // compile the arguments
-                for arg in input {
-                    self.generate_expression(position, Box::new(arg))?;
-                }
-
-                // call the constructor
-                self.instructions.push(Instruction::Call(param_len));
-            }
-
             Syntax::Call { position, target, args } => {
 
                 //self.generate_stack_trace_push(position.line)?;
@@ -245,7 +226,6 @@ mod test {
     use crate::compiler::codegen::function::Variable;
     use crate::compiler::codegen::syntax::Syntax;
     use crate::runtime::ir::instruction::Instruction;
-    use crate::runtime::ir::variant::ValueType;
 
     macro_rules! test_expression_ok {
         ($token:expr, $expected:expr) => {
@@ -494,96 +474,6 @@ mod test {
         );
     }
 
-    // new object expressions
-
-    #[test]
-    fn new_object_no_variables() {
-        // new myservice()
-        test_expression_ok!(
-            Syntax::NewObject {
-                target: Box::new(Syntax::Identifier {
-                    name: String::from("myservice"),
-                    position: Default::default()
-                }),
-                args: vec![],
-                position: Default::default(),
-            },
-            vec![
-                Instruction::LoadGlobal(String::from("myservice")),
-                Instruction::CreateObject,
-                Instruction::PushIdentifier(String::from("constructor")),
-                Instruction::LoadMember,
-                Instruction::Call(1),
-            ]
-        );
-    }
-
-    #[test]
-    fn new_object_with_variables() {
-        // new myservice(1, a)
-        test_expression_ok!(
-            Syntax::NewObject {
-                target: Box::new(Syntax::Identifier {
-                    name: String::from("myservice"),
-                    position: Default::default()
-                }),
-                args: vec![
-                    Syntax::Integer(1),
-                    Syntax::Identifier {
-                        name: String::from("a"),
-                        position: Default::default()
-                    },
-                ],
-                position: Default::default(),
-            },
-            vec![
-                Instruction::LoadGlobal(String::from("myservice")),
-                Instruction::CreateObject,
-                Instruction::PushIdentifier(String::from("constructor")),
-                Instruction::LoadMember,
-                Instruction::PushInteger(1),
-                Instruction::LoadLocalVariable(0),
-                Instruction::Call(3),
-            ]
-        );
-    }
-
-    #[test]
-    fn new_object_with_arguments_from_module() {
-        // new mymod::myservice(1, 2)
-        test_expression_ok!(
-            Syntax::NewObject {
-                target: Box::new(Syntax::StaticAccess {
-                    position: Default::default(),
-                    target: Box::new(Syntax::Identifier {
-                        name: String::from("mymod"),
-                        position: Default::default()
-                    }),
-                    index: Box::new(Syntax::Identifier {
-                        name: String::from("myservice"),
-                        position: Default::default()
-                    }),
-                }),
-                args: vec![
-                    Syntax::Integer(1),
-                    Syntax::Integer(2),
-                ],
-                position: Default::default(),
-            },
-            vec![
-                Instruction::LoadGlobal(String::from("mymod")),
-                Instruction::PushIdentifier(String::from("myservice")),
-                Instruction::GetCollectionItem,
-                Instruction::CreateObject,
-                Instruction::PushIdentifier(String::from("constructor")),
-                Instruction::LoadMember,
-                Instruction::PushInteger(1),
-                Instruction::PushInteger(2),
-                Instruction::Call(3),
-            ]
-        );
-    }
-
     // call expressions
 
     #[test]
@@ -664,13 +554,13 @@ mod test {
 
     #[test]
     fn call_function_on_new_object_from_module() {
-        // new mymod::myservice(1, 2).print()
+        // mymod::myservice(1, 2).print()
         test_expression_ok!(
             Syntax::Call {
                 position: Default::default(),
                 target: Box::new(Syntax::MemberAccess {
                     position: Default::default(),
-                    target: Box::new(Syntax::NewObject {
+                    target: Box::new(Syntax::Call {
                         target: Box::new(Syntax::StaticAccess {
                             position: Default::default(),
                             target: Box::new(Syntax::Identifier {
@@ -699,12 +589,9 @@ mod test {
                 Instruction::LoadGlobal(String::from("mymod")),
                 Instruction::PushIdentifier(String::from("myservice")),
                 Instruction::GetCollectionItem,
-                Instruction::CreateObject,
-                Instruction::PushIdentifier(String::from("constructor")),
-                Instruction::LoadMember,
                 Instruction::PushInteger(1),
                 Instruction::PushInteger(2),
-                Instruction::Call(3),
+                Instruction::Call(2),
                 Instruction::PushIdentifier(String::from("print")),
                 Instruction::LoadMember,
                 Instruction::Call(1),

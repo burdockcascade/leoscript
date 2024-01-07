@@ -1,6 +1,3 @@
-use leoscript::run_script;
-use leoscript::runtime::ir::variant::Variant;
-
 mod common;
 
 #[test]
@@ -8,7 +5,7 @@ pub fn dict_new() {
 
     test_success!(r#"
         function main()
-            var d = new Dictionary({a: 1, b: 2, c: 3})
+            var d =  Dictionary({a: 1, b: 2, c: 3})
             return d.length() == 3 and d.get("a") == 1 and d.get("b") == 2 and d.get("c") == 3
         end
     "#);
@@ -19,7 +16,7 @@ pub fn dict_set() {
 
     test_success!(r#"
         function main()
-            var d = new Dictionary()
+            var d =  Dictionary()
             d.set("a", 1)
             d.set("b", 2)
             d.set("c", 3)
@@ -33,7 +30,7 @@ pub fn dict_length() {
 
     test_success!(r#"
         function main()
-            var d = new Dictionary()
+            var d =  Dictionary()
             d.set("a", 1)
             d.set("b", 2)
             d.set("c", 3)
@@ -47,7 +44,7 @@ pub fn dict_remove() {
 
     test_success!(r#"
         function main()
-            var d = new Dictionary()
+            var d =  Dictionary()
             d.set("a", 1)
             d.set("b", 2)
             d.set("c", 3)
@@ -62,7 +59,7 @@ pub fn dict_clear() {
 
     test_success!(r#"
         function main()
-            var d = new Dictionary()
+            var d =  Dictionary()
             d.set("a", 1)
             d.set("b", 2)
             d.set("c", 3)
@@ -77,8 +74,8 @@ pub fn dicts_2() {
 
     test_success!(r#"
         function main()
-            var d1 = new Dictionary()
-            var d2 = new Dictionary()
+            var d1 =  Dictionary()
+            var d2 =  Dictionary()
             d1.set("a", 1)
             d1.set("b", 2)
             d1.set("c", 3)

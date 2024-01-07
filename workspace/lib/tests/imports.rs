@@ -1,6 +1,3 @@
-use leoscript::run_script;
-use leoscript::runtime::ir::variant::Variant;
-
 mod common;
 
 #[test]
@@ -11,12 +8,12 @@ fn test_import_module() {
 
         function main()
 
-            var vectors = new Dictionary()
-            vectors.set("point1", new Graphics::Vector2(1,5))
-            vectors.set("point2", new Graphics::Vector2(6,4))
-            vectors.set("point3", new Graphics::Vector2(6,3))
+            var vectors = Dictionary()
+            vectors.set("point1", Graphics::Vector2(1,5))
+            vectors.set("point2", Graphics::Vector2(6,4))
+            vectors.set("point3", Graphics::Vector2(6,3))
 
-            var d = new Graphics::Dimension(10, 20)
+            var d = Graphics::Dimension(10, 20)
             var a = d.area()
 
             return a == (10 * 20)

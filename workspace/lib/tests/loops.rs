@@ -1,6 +1,3 @@
-use leoscript::run_script;
-use leoscript::runtime::ir::variant::Variant;
-
 mod common;
 
 #[test]
@@ -113,7 +110,7 @@ fn for_in_dict() {
 
             var counter = 0
 
-            var numbers = new Dictionary()
+            var numbers =  Dictionary()
             numbers.set("one", 1)
             numbers.set("two", 2)
             numbers.set("three", 3)
@@ -139,7 +136,7 @@ fn for_in_dict_with_continue() {
             var counter = 0
 
             -- set an array of numbers
-            var numbers = new Dictionary()
+            var numbers =  Dictionary()
             numbers.set("one", 1)
             numbers.set("two", 2)
             numbers.set("three", 3)
@@ -171,7 +168,7 @@ fn while_loop() {
     test_success!(r#"
          function main()
 
-            var b as Integer = 0
+            var b = 0
 
             while b < 10 do
 

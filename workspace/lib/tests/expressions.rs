@@ -40,7 +40,7 @@ fn attribute_with_default_and_then_set_using_method() {
         end
 
         function main()
-            var svc = new myservice()
+            var svc =  myservice()
             var x = svc.get_magic_number()
             return svc.get_magic_number() == 22
         end
@@ -53,13 +53,11 @@ fn attribute_with_default_and_then_set() {
 
     test_success!(r#"
         class myservice
-
             attribute magic_number = 22
-
         end
 
         function main()
-            var svc = new myservice()
+            var svc =  myservice()
             svc.magic_number = 23
             return svc.magic_number == 23
         end
@@ -71,13 +69,11 @@ fn attribute_with_default_and_then_set() {
 fn attribute_with_default_and_then_set_using_array_access() {
     test_success!(r#"
         class myservice
-
             attribute magic_numbers = [11, 22, 33, 0]
-
         end
 
         function main()
-            var svc = new myservice()
+            var svc =  myservice()
             svc.magic_numbers[3] = 44
             return svc.magic_numbers[3] == 44
         end

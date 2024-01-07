@@ -293,7 +293,6 @@ impl Parser {
             Token::Float => Ok(Syntax::Float(matched.text.parse::<f64>().unwrap())),
             Token::Boolean => Ok(Syntax::Bool(matched.text.parse::<bool>().unwrap())),
             Token::Null => Ok(Syntax::Null),
-            Token::New => self.parse_new_object(matched),
             Token::String => Ok(Parser::parse_string(matched)),
             Token::Identifier => Ok(Syntax::Identifier {
                 position: TokenPosition {
@@ -373,23 +372,6 @@ impl Parser {
         Syntax::String(text)
     }
 
-    fn parse_new_object(&mut self, matched: MatchedToken<Token>) -> Result<Syntax, ParserError> {
-
-        // get class name
-        let Syntax::Call { target, args, .. } = self.parse_expression()? else {
-            return parse_error!(matched.cursor, ParserErrorType::InvalidNewObject);
-        };
-
-        Ok(Syntax::NewObject {
-            position: TokenPosition {
-                line: matched.cursor.line,
-                column: matched.cursor.column,
-            },
-            target: target,
-            args: args,
-        })
-    }
-
     fn parse_arguments(&mut self) -> Result<Vec<Syntax>, ParserError> {
         let mut args = vec![];
 
@@ -451,7 +433,6 @@ impl Parser {
             Token::Null => true,
             Token::LeftParenthesis => true,
             Token::Not => true,
-            Token::New => true,
             _ => false
         }
     }
@@ -761,6 +742,22 @@ mod test {
                 name: String::from("a"),
             }),
             args: vec![Syntax::Integer(1), Syntax::Integer(2)],
+        });
+    }
+
+    #[test]
+    fn test_double_call() {
+        run_expr_test_ok!("a()()", Syntax::Call {
+            position: TokenPosition { line: 1, column: 1 },
+            target: Box::from(Syntax::Call {
+                position: TokenPosition { line: 1, column: 1 },
+                target: Box::from(Syntax::Identifier {
+                    position: TokenPosition { line: 1, column: 1 },
+                    name: String::from("a"),
+                }),
+                args: vec![],
+            }),
+            args: vec![],
         });
     }
 
@@ -1108,65 +1105,24 @@ mod test {
         });
     }
 
-    // --- New object ---
-
-    #[test]
-    fn test_new_object() {
-        run_expr_test_ok!(r#"new Book("Frankenstein")"#, Syntax::NewObject {
-            position: TokenPosition { line: 1, column: 1 },
-            target: Box::from(Syntax::Identifier {
-                position: TokenPosition { line: 1, column: 5 },
-                name: String::from("Book"),
-            }),
-            args: vec![
-                Syntax::String(String::from("Frankenstein")),
-            ],
-        });
-    }
-
     #[test]
     fn new_object_from_module() {
-        run_expr_test_ok!(r#"new Library::Book("Frankenstein")"#, Syntax::NewObject {
-            position: TokenPosition { line: 1, column: 1 },
+        run_expr_test_ok!(r#"Library::Book("Frankenstein")"#, Syntax::Call {
+            position: TokenPosition { line: 1, column: 10 },
             target: Box::from(Syntax::StaticAccess {
-                position: TokenPosition { line: 1, column: 14 },
+                position: TokenPosition { line: 1, column: 10 },
                 index: Box::from(Syntax::Identifier {
-                    position: TokenPosition { line: 1, column: 14 },
+                    position: TokenPosition { line: 1, column: 10 },
                     name: String::from("Book"),
                 }),
                 target: Box::from(Syntax::Identifier {
-                    position: TokenPosition { line: 1, column: 5 },
+                    position: TokenPosition { line: 1, column: 1 },
                     name: String::from("Library"),
                 }),
             }),
             args: vec![
                 Syntax::String(String::from("Frankenstein")),
             ],
-        });
-    }
-
-    #[test]
-    fn test_member_call_on_new_object() {
-        run_expr_test_ok!(r#"new Book("Christmas Carol").publish()"#, Syntax::Call {
-            position: TokenPosition { line: 1, column: 29 },
-            target: Box::from(Syntax::MemberAccess {
-                position: TokenPosition { line: 1, column: 29 },
-                index: Box::from(Syntax::Identifier {
-                    position: TokenPosition { line: 1, column: 29 },
-                    name: String::from("publish"),
-                }),
-                target: Box::from(Syntax::NewObject {
-                    position: TokenPosition { line: 1, column: 1 },
-                    target: Box::from(Syntax::Identifier {
-                        position: TokenPosition { line: 1, column: 5 },
-                        name: String::from("Book"),
-                    }),
-                    args: vec![
-                        Syntax::String(String::from("Christmas Carol")),
-                    ],
-                }),
-            }),
-            args: vec![],
         });
     }
 

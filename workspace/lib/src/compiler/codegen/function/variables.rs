@@ -2,7 +2,6 @@ use crate::compiler::codegen::function::{Function, Variable};
 use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
 use crate::compiler::error::{CompilerError, CompilerErrorType};
 use crate::runtime::ir::instruction::Instruction;
-use crate::runtime::ir::variant::ValueType;
 
 impl Function {
     pub(crate) fn generate_parameters(&mut self, parameters: Vec<Syntax>) -> Result<(), CompilerError> {

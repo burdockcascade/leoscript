@@ -4,7 +4,6 @@ macro_rules! test_success {
     ($script:expr, $parameters:expr, $expected:expr) => {
         {
             use leoscript::run_script;
-            use leoscript::runtime::ir::variant::Variant;
             match run_script($script, "main", $parameters) {
                 Ok(result) => {
                     assert_eq!(result.result, Some($expected));
@@ -17,11 +16,17 @@ macro_rules! test_success {
     };
 
     ($script:expr, $parameters:expr) => {
-        test_success!($script, $parameters, Variant::Bool(true))
+        {
+            use leoscript::runtime::ir::variant::Variant;
+            test_success!($script, $parameters, Variant::Bool(true))
+        }
     };
 
     ($script:expr) => {
-        test_success!($script, None, Variant::Bool(true))
+        {
+            use leoscript::runtime::ir::variant::Variant;
+            test_success!($script, None, Variant::Bool(true))
+        }
     };
 }
 
@@ -38,15 +43,19 @@ macro_rules! test_success_matrix {
 #[macro_export]
 macro_rules! test_failure {
     ($script:expr, $parameters:expr, $expected:expr) => {
-        match run_script($script, "main", $parameters) {
-            Ok(result) => {
-                assert!(false, "Expected error, got: {:?}", result);
-            }
-            Err(e) => {
-                assert_eq!(
-                    e,
-                    $expected
-                );
+        {
+            use leoscript::run_script;
+            use leoscript::error::ScriptError;
+            match run_script($script, "main", $parameters) {
+                Ok(result) => {
+                    assert!(false, "Expected error, got: {:?}", result);
+                }
+                Err(e) => {
+                    assert_eq!(
+                        e,
+                        $expected
+                    );
+                }
             }
         }
     };

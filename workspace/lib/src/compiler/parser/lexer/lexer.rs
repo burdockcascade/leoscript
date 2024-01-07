@@ -1,6 +1,5 @@
 use std::cmp::min;
 use std::fmt::Debug;
-use std::mem::needs_drop;
 
 use regex::{Error, Regex};
 
@@ -16,19 +15,6 @@ pub struct Cursor {
     pub position: usize,
     pub line: usize,
     pub column: usize,
-}
-
-#[derive(Clone, Debug)]
-pub struct LexerOptions {
-    pub ignore_whitespace: bool,
-}
-
-impl Default for LexerOptions {
-    fn default() -> Self {
-        Self {
-            ignore_whitespace: false,
-        }
-    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -92,7 +78,7 @@ macro_rules! ignore_token {
 macro_rules! match_regex {
     ($condition:expr, $value:expr) => {
         {
-            use regex::{Error, Regex};
+            use regex::Regex;
             Matcher::MatchRegex {
                 condition: match Regex::new($condition) {
                      Ok(re) => re,
@@ -108,7 +94,7 @@ macro_rules! match_regex {
 macro_rules! ignore_regex {
     ($condition:expr) => {
         {
-            use regex::{Error, Regex};
+            use regex::Regex;
             Matcher::IgnoreRegex {
                 condition: match Regex::new($condition) {
                      Ok(re) => re,
@@ -143,7 +129,6 @@ pub enum Matcher<T> {
 pub struct Lexer<T> {
     matchers: Vec<Matcher<T>>,
     source: String,
-    options: LexerOptions,
     cursor: Cursor,
     cached: Option<MatchCache<T>>,
 }
@@ -159,7 +144,6 @@ impl<T> Default for Lexer<T> {
         Self {
             matchers: Vec::new(),
             source: String::new(),
-            options: LexerOptions::default(),
             cursor: Cursor {
                 position: 0,
                 line: 1,
@@ -171,11 +155,10 @@ impl<T> Default for Lexer<T> {
 }
 
 impl<T: Clone + PartialEq + Debug> Lexer<T> {
-    pub fn new(input: &str, matchers: Vec<Matcher<T>>, options: LexerOptions) -> Self {
+    pub fn new(input: &str, matchers: Vec<Matcher<T>>) -> Self {
         Self {
             matchers,
             source: String::from(input),
-            options,
             cursor: Cursor {
                 position: 0,
                 line: 1,
@@ -416,7 +399,7 @@ mod test {
             match_regex!("^[a-zA-Z]+", MyTokens::Text),
         ];
 
-        let mut t = Lexer::new("Mary had a little lamb", tokens, LexerOptions { ignore_whitespace: true });
+        let mut t = Lexer::new("Mary had a little lamb", tokens);
 
         let expected = MatchedToken { token: MyTokens::Mary, text: String::from("Mary"), cursor: Cursor { position: 0, line: 1, column: 1 } };
         assert_peek_and_next!(t, expected);
@@ -448,7 +431,7 @@ mod test {
             match_regex!("^[a-zA-Z]+", MyTokens::Text),
         ];
 
-        let mut t = Lexer::new("Merry Christmas", tokens, LexerOptions { ignore_whitespace: true });
+        let mut t = Lexer::new("Merry Christmas", tokens);
 
         let expected = MatchedToken { token: MyTokens::Text, text: String::from("Merry"), cursor: Cursor { position: 0, line: 1, column: 1 } };
         assert_peek_and_next!(t, expected);
@@ -469,7 +452,7 @@ mod test {
             match_regex!("^[a-zA-Z]+", MyTokens::Text),
         ];
 
-        let mut t = Lexer::new("Baa baa black sheep", tokens, LexerOptions { ignore_whitespace: true });
+        let mut t = Lexer::new("Baa baa black sheep", tokens);
 
         let expected = MatchedToken { token: MyTokens::Baa, text: String::from("Baa"), cursor: Cursor { position: 0, line: 1, column: 1 } };
         assert_peek_and_next!(t, expected);
@@ -503,7 +486,7 @@ mod test {
         -- this is a comment
         function main()
         end
-        "#, tokens, LexerOptions { ignore_whitespace: true });
+        "#, tokens);
 
         let expected = MatchedToken { token: MyTokens::Comment, text: String::from("-- this is a comment"), cursor: Cursor { position: 9, line: 2, column: 9 } };
         assert_peek_and_next!(t, expected);

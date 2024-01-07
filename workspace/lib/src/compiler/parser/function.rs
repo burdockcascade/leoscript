@@ -389,7 +389,7 @@ mod test {
             body: vec![
                 Syntax::Return {
                     position: TokenPosition { line: 3, column: 13 },
-                    expr: Some(Box::new(Syntax::NewObject {
+                    expr: Some(Box::new(Syntax::Call {
                         position: TokenPosition { line: 3, column: 20 },
                         target: Box::new(Syntax::Identifier {
                             position: TokenPosition { line: 3, column: 24 },

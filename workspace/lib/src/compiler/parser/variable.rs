@@ -10,20 +10,6 @@ impl Parser {
         // get variable name as identifier
         let variable_name = self.match_next_token_or_error(Token::Identifier)?;
 
-        // todo support this?
-        // as type
-        let as_type = if self.peek_next_token_match(Token::As) {
-            // consume as
-            self.skip_next_token_or_error()?;
-
-            // get type
-            let type_name = self.match_next_token_or_error(Token::Identifier)?;
-
-            Some(type_name.text)
-        } else {
-            None
-        };
-
         // value is optional
         let v = if self.peek_next_token_match(Token::SingleEquals) {
 

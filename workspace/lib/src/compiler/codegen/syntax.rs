@@ -87,12 +87,6 @@ pub enum Syntax {
         value: Box<Syntax>,
     },
 
-    NewObject {
-        position: TokenPosition,
-        target: Box<Syntax>,
-        args: Vec<Syntax>,
-    },
-
     Assign {
         position: TokenPosition,
         target: Box<Syntax>,
