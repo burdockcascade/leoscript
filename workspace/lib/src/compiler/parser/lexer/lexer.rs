@@ -1,4 +1,6 @@
 use std::cmp::min;
+use std::fmt::Debug;
+use std::mem::needs_drop;
 
 use regex::{Error, Regex};
 
@@ -9,14 +11,14 @@ pub enum LexerError {
     InvalidRegularExpression(Error),
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct Cursor {
     pub position: usize,
     pub line: usize,
     pub column: usize,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct LexerOptions {
     pub ignore_whitespace: bool,
 }
@@ -29,7 +31,7 @@ impl Default for LexerOptions {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct MatchedToken<T> {
     pub token: T,
     pub text: String,
@@ -37,15 +39,17 @@ pub struct MatchedToken<T> {
 }
 
 macro_rules! track_position_by_char {
-    ($cursor:expr, $c:expr) => {
-        match $c {
-            '\n' => {
-                $cursor.line += 1;
-                $cursor.column = 1;
-            },
-            _ => {
-                $cursor.column += 1;
-            },
+    ($text:ident, $cursor:expr) => {
+        for c in $text.chars() {
+            match c {
+                '\n' => {
+                    $cursor.line += 1;
+                    $cursor.column = 1;
+                },
+                _ => {
+                    $cursor.column += 1;
+                },
+            }
         }
     };
 }
@@ -87,9 +91,15 @@ macro_rules! ignore_token {
 #[macro_export]
 macro_rules! match_regex {
     ($condition:expr, $value:expr) => {
-        Matcher::MatchRegex {
-            condition: String::from($condition),
-            value: $value,
+        {
+            use regex::{Error, Regex};
+            Matcher::MatchRegex {
+                condition: match Regex::new($condition) {
+                     Ok(re) => re,
+                     Err(e) => panic!("Invalid regular expression: {}", e)
+                },
+                value: $value,
+            }
         }
     };
 }
@@ -97,13 +107,19 @@ macro_rules! match_regex {
 #[macro_export]
 macro_rules! ignore_regex {
     ($condition:expr) => {
-        Matcher::IgnoreRegex {
-            condition: String::from($condition)
+        {
+            use regex::{Error, Regex};
+            Matcher::IgnoreRegex {
+                condition: match Regex::new($condition) {
+                     Ok(re) => re,
+                     Err(e) => panic!("Invalid regular expression: {}", e)
+                }
+            }
         }
     };
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub enum Matcher<T> {
     MatchToken {
         condition: String,
@@ -111,7 +127,7 @@ pub enum Matcher<T> {
         value: T,
     },
     MatchRegex {
-        condition: String,
+        condition: Regex,
         value: T,
     },
     IgnoreToken {
@@ -119,15 +135,22 @@ pub enum Matcher<T> {
         case_sensitive: bool,
     },
     IgnoreRegex {
-        condition: String,
+        condition: Regex,
     },
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct Lexer<T> {
     matchers: Vec<Matcher<T>>,
     source: String,
     options: LexerOptions,
+    cursor: Cursor,
+    peeked: Option<MatchCache<T>>,
+}
+
+#[derive(Clone, Debug)]
+struct MatchCache<T> {
+    matched: Option<Result<MatchedToken<T>, LexerError>>,
     cursor: Cursor,
 }
 
@@ -142,11 +165,12 @@ impl<T> Default for Lexer<T> {
                 line: 1,
                 column: 1,
             },
+            peeked: None,
         }
     }
 }
 
-impl<T: Clone + PartialEq> Lexer<T> {
+impl<T: Clone + PartialEq + Debug> Lexer<T> {
     pub fn new(input: &str, matchers: Vec<Matcher<T>>, options: LexerOptions) -> Self {
         Self {
             matchers,
@@ -157,6 +181,7 @@ impl<T: Clone + PartialEq> Lexer<T> {
                 line: 1,
                 column: 1,
             },
+            peeked: None,
         }
     }
 
@@ -165,6 +190,14 @@ impl<T: Clone + PartialEq> Lexer<T> {
         // check for EOF
         if self.is_eof() {
             return None;
+        }
+
+        // check for peeked token
+        if let Some(peeked) = &self.peeked {
+            let p = peeked.clone();
+            self.cursor = p.cursor.clone();
+            self.peeked = None;
+            return p.matched.clone();
         }
 
         let mut v: Option<Result<MatchedToken<T>, LexerError>> = None;
@@ -200,9 +233,7 @@ impl<T: Clone + PartialEq> Lexer<T> {
                         // increment cursor
                         self.cursor.position += condition.len();
 
-                        for c in text.chars() {
-                            track_position_by_char!(self.cursor, c);
-                        }
+                        track_position_by_char!(text, self.cursor);
 
                         // end search for matching token
                         break;
@@ -213,13 +244,13 @@ impl<T: Clone + PartialEq> Lexer<T> {
 
                     // get slice of condition length
                     let slice_end = min(cursor_position + condition.len(), self.source.len());
-                    let slice = &self.source[cursor_position..slice_end];
+                    let text = &self.source[cursor_position..slice_end];
 
                     // compare slice to condition
                     let token_match = if *case_sensitive {
-                        slice == condition
+                        text == condition
                     } else {
-                        slice.to_uppercase() == condition.to_uppercase()
+                        text.to_uppercase() == condition.to_uppercase()
                     };
 
                     // compare slice to condition
@@ -228,9 +259,7 @@ impl<T: Clone + PartialEq> Lexer<T> {
                         // increment cursor
                         self.cursor.position += condition.len();
 
-                        for c in slice.chars() {
-                            track_position_by_char!(self.cursor, c);
-                        }
+                        track_position_by_char!(text, self.cursor);
 
                         return self.next();
                     }
@@ -238,14 +267,7 @@ impl<T: Clone + PartialEq> Lexer<T> {
                 Matcher::MatchRegex { condition, value } => {
                     let cursor_position = self.cursor.position;
 
-                    let re = match Regex::new(condition) {
-                        Ok(re) => re,
-                        Err(e) => {
-                            return Some(Err(LexerError::InvalidRegularExpression(e)));
-                        }
-                    };
-
-                    let caps = re.captures(&self.source[cursor_position..]);
+                    let caps = condition.captures(&self.source[cursor_position..]);
 
                     if let Some(caps) = caps {
 
@@ -265,9 +287,7 @@ impl<T: Clone + PartialEq> Lexer<T> {
                         // increment cursor
                         self.cursor.position += caps_len;
 
-                        for c in text.chars() {
-                            track_position_by_char!(self.cursor, c);
-                        }
+                        track_position_by_char!(text, self.cursor);
 
                         // end search for matching token
                         break;
@@ -276,14 +296,7 @@ impl<T: Clone + PartialEq> Lexer<T> {
                 Matcher::IgnoreRegex { condition } => {
                     let cursor_position = self.cursor.position;
 
-                    let re = match Regex::new(condition) {
-                        Ok(re) => re,
-                        Err(e) => {
-                            return Some(Err(LexerError::InvalidRegularExpression(e)));
-                        }
-                    };
-
-                    let caps = re.captures(&self.source[cursor_position..]);
+                    let caps = condition.captures(&self.source[cursor_position..]);
 
                     if let Some(caps) = caps {
 
@@ -296,9 +309,7 @@ impl<T: Clone + PartialEq> Lexer<T> {
                         // increment cursor
                         self.cursor.position += caps_len;
 
-                        for c in text.chars() {
-                            track_position_by_char!(self.cursor, c);
-                        }
+                        track_position_by_char!(text, self.cursor);
 
                         return self.next();
                     }
@@ -313,8 +324,14 @@ impl<T: Clone + PartialEq> Lexer<T> {
     }
 
     pub fn peek(&mut self) -> Option<Result<MatchedToken<T>, LexerError>> {
+
         if self.is_eof() {
             return None;
+        }
+
+        // check for peeked token
+        if let Some(peeked) = &self.peeked {
+            return peeked.matched.clone();
         }
 
         // remember current position
@@ -322,6 +339,14 @@ impl<T: Clone + PartialEq> Lexer<T> {
 
         // get next token
         let token = self.next();
+
+        // cache token
+        if token.is_some() {
+            self.peeked = MatchCache {
+                matched: token.clone(),
+                cursor: self.cursor.clone(),
+            }.into();
+        }
 
         // restore position
         self.cursor = current_cursor;
@@ -374,9 +399,17 @@ mod test {
         Identifier,
     }
 
+    macro_rules! assert_peek_and_next {
+        ($t:expr, $expected:expr) => {
+            assert_eq!($t.peek(), Some(Ok($expected.clone())), "Peek Expected {:?}", $expected);
+            assert_eq!($t.next(), Some(Ok($expected.clone())), "Next Expected {:?}", $expected);
+        };
+    }
+
     #[test]
     fn test_mary_had_a_little_lamb() {
         let tokens = vec![
+            ignore_regex!(r"^\s+"),
             match_token!("Mary", MyTokens::Mary),
             match_token!("lamb", MyTokens::Lamb),
             match_regex!("^[0-9]+", MyTokens::Numeric),
@@ -386,23 +419,23 @@ mod test {
         let mut t = Lexer::new("Mary had a little lamb", tokens, LexerOptions { ignore_whitespace: true });
 
         let expected = MatchedToken { token: MyTokens::Mary, text: String::from("Mary"), cursor: Cursor { position: 0, line: 1, column: 1 } };
-        assert_eq!(t.next(), Some(Ok(expected)), "Expected Mary");
+        assert_peek_and_next!(t, expected);
         assert!(t.has_more_tokens(), "Not expected EOF");
 
         let expected = MatchedToken { token: MyTokens::Text, text: String::from("had"), cursor: Cursor { position: 5, line: 1, column: 6 } };
-        assert_eq!(t.next(), Some(Ok(expected)), "Expected had");
+        assert_peek_and_next!(t, expected);
         assert!(t.has_more_tokens(), "Not expected EOF");
 
         let expected = MatchedToken { token: MyTokens::Text, text: String::from("a"), cursor: Cursor { position: 9, line: 1, column: 10 } };
-        assert_eq!(t.next(), Some(Ok(expected)), "Expected a");
+        assert_peek_and_next!(t, expected);
         assert!(t.has_more_tokens(), "Not expected EOF");
 
         let expected = MatchedToken { token: MyTokens::Text, text: String::from("little"), cursor: Cursor { position: 11, line: 1, column: 12 } };
-        assert_eq!(t.next(), Some(Ok(expected)), "Expected little");
+        assert_peek_and_next!(t, expected);
         assert!(t.has_more_tokens(), "Not expected EOF");
 
         let expected = MatchedToken { token: MyTokens::Lamb, text: String::from("lamb"), cursor: Cursor { position: 18, line: 1, column: 19 } };
-        assert_eq!(t.next(), Some(Ok(expected)), "Expected lamb");
+        assert_peek_and_next!(t, expected);
 
         assert!(!t.has_more_tokens(), "No more tokens expected");
         assert!(t.is_eof(), "Expected EOF");
@@ -411,19 +444,18 @@ mod test {
     #[test]
     fn test_peek_token() {
         let tokens = vec![
+            ignore_regex!(r"^\s+"),
             match_regex!("^[a-zA-Z]+", MyTokens::Text),
         ];
 
         let mut t = Lexer::new("Merry Christmas", tokens, LexerOptions { ignore_whitespace: true });
 
         let expected = MatchedToken { token: MyTokens::Text, text: String::from("Merry"), cursor: Cursor { position: 0, line: 1, column: 1 } };
-        assert_eq!(t.peek(), Some(Ok(expected.clone())), "Expected Merry");
-        assert_eq!(t.next(), Some(Ok(expected.clone())), "Expected Merry");
+        assert_peek_and_next!(t, expected);
         assert!(t.has_more_tokens(), "Not expected EOF");
 
         let expected = MatchedToken { token: MyTokens::Text, text: String::from("Christmas"), cursor: Cursor { position: 6, line: 1, column: 7 } };
-        assert_eq!(t.peek(), Some(Ok(expected.clone())), "Expected Christmas");
-        assert_eq!(t.next(), Some(Ok(expected.clone())), "Expected Christmas");
+        assert_peek_and_next!(t, expected);
 
         assert!(!t.has_more_tokens(), "No more tokens expected");
         assert!(t.is_eof(), "Expected EOF");
@@ -432,6 +464,7 @@ mod test {
     #[test]
     fn test_baa_baa() {
         let tokens = vec![
+            ignore_regex!(r"^\s+"),
             match_token!("Baa", MyTokens::Baa, false),
             match_regex!("^[a-zA-Z]+", MyTokens::Text),
         ];
@@ -439,16 +472,16 @@ mod test {
         let mut t = Lexer::new("Baa baa black sheep", tokens, LexerOptions { ignore_whitespace: true });
 
         let expected = MatchedToken { token: MyTokens::Baa, text: String::from("Baa"), cursor: Cursor { position: 0, line: 1, column: 1 } };
-        assert_eq!(t.next(), Some(Ok(expected)), "Expected Baa");
+        assert_peek_and_next!(t, expected);
 
         let expected = MatchedToken { token: MyTokens::Baa, text: String::from("baa"), cursor: Cursor { position: 4, line: 1, column: 5 } };
-        assert_eq!(t.next(), Some(Ok(expected)), "Expected baa");
+        assert_peek_and_next!(t, expected);
 
         let expected = MatchedToken { token: MyTokens::Text, text: String::from("black"), cursor: Cursor { position: 8, line: 1, column: 9 } };
-        assert_eq!(t.next(), Some(Ok(expected)), "Expected black");
+        assert_peek_and_next!(t, expected);
 
         let expected = MatchedToken { token: MyTokens::Text, text: String::from("sheep"), cursor: Cursor { position: 14, line: 1, column: 15 } };
-        assert_eq!(t.next(), Some(Ok(expected)), "Expected sheep");
+        assert_peek_and_next!(t, expected);
 
         assert!(!t.has_more_tokens(), "No more tokens expected");
         assert!(t.is_eof(), "Expected EOF");
@@ -457,12 +490,13 @@ mod test {
     #[test]
     fn test_function_declaration() {
         let tokens = vec![
-            Matcher::MatchToken { value: MyTokens::Function, condition: String::from("function"), case_sensitive: true },
-            Matcher::MatchToken { value: MyTokens::End, condition: String::from("end"), case_sensitive: false },
-            Matcher::MatchRegex { value: MyTokens::Comment, condition: String::from(r"^--[^\n]*") },
-            //Matcher::Regex { value: MyTokens::MultlineComment, condition: String::from(r"^--\[\[[^\]\]]*\]\]") },
-            Matcher::MatchToken { value: MyTokens::NoArgs, condition: String::from("()"), case_sensitive: false },
-            Matcher::MatchRegex { value: MyTokens::Identifier, condition: String::from(r"^[a-zA-Z_][a-zA-Z0-9_]*") },
+            ignore_regex!(r"^\s+"),
+            match_token!("function", MyTokens::Function),
+            match_token!("main", MyTokens::Identifier),
+            match_regex!(r"^--[^\n]*", MyTokens::Comment),
+            match_token!("()", MyTokens::NoArgs),
+            match_token!("end", MyTokens::End),
+            match_regex!("^[a-zA-Z]+", MyTokens::Text),
         ];
 
         let mut t = Lexer::new(r#"
@@ -472,22 +506,22 @@ mod test {
         "#, tokens, LexerOptions { ignore_whitespace: true });
 
         let expected = MatchedToken { token: MyTokens::Comment, text: String::from("-- this is a comment"), cursor: Cursor { position: 9, line: 2, column: 9 } };
-        assert_eq!(t.next(), Some(Ok(expected)), "Expected comment");
+        assert_peek_and_next!(t, expected);
 
         let expected = MatchedToken { token: MyTokens::Function, text: String::from("function"), cursor: Cursor { position: 38, line: 3, column: 9 } };
-        assert_eq!(t.next(), Some(Ok(expected)), "Expected function");
+        assert_peek_and_next!(t, expected);
 
         let expected = MatchedToken { token: MyTokens::Identifier, text: String::from("main"), cursor: Cursor { position: 47, line: 3, column: 18 } };
-        assert_eq!(t.next(), Some(Ok(expected)), "Expected main");
+        assert_peek_and_next!(t, expected);
 
         let expected = MatchedToken { token: MyTokens::NoArgs, text: String::from("()"), cursor: Cursor { position: 51, line: 3, column: 22 } };
-        assert_eq!(t.next(), Some(Ok(expected)), "Expected ()");
+        assert_peek_and_next!(t, expected);
 
         // let expected = MatchedToken { token: MyTokens::MultlineComment, text: String::from("--[[\n        this is a multiline comment\n        ]]"), cursor: Cursor { position: 55, line: 4, column: 9 } };
         // assert_eq!(t.next(), Some(Ok(expected)), "Expected multiline comment");
 
-        let exepected = MatchedToken { token: MyTokens::End, text: String::from("end"), cursor: Cursor { position: 62, line: 4, column: 9 } };
-        assert_eq!(t.next(), Some(Ok(exepected)), "Expected end");
+        let expected = MatchedToken { token: MyTokens::End, text: String::from("end"), cursor: Cursor { position: 62, line: 4, column: 9 } };
+        assert_peek_and_next!(t, expected);
 
         assert!(!t.has_more_tokens(), "No more tokens expected");
     }
