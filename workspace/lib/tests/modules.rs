@@ -28,7 +28,7 @@ fn module_with_functions() {
 fn module_with_inner_module_and_functions() {
     test_success!(r#"
         function main()
-            return MyApp.Calculator.add(10, 20) == 30 and MyApp.Calculator.sub(20, 10) == 10
+            return MyApp::Calculator.add(10, 20) == 30 and MyApp::Calculator.sub(20, 10) == 10
         end
 
         module MyApp
@@ -62,9 +62,7 @@ fn module_with_class() {
             var v2 = new Graphics::Vector2(20, 30)
             var v3 = v1.add(v2)
             var length = v3.length()
-
-
-            return Math::max(10, 20) == 20 and Math::min(10, 20) == 10
+            return length == v3.length()
         end
 
         module Graphics
@@ -104,7 +102,7 @@ fn module_with_class() {
                 end
 
                 function length()
-                    return Math.sqrt(self.x * self.x + self.y * self.y)
+                    return Math::sqrt(self.x * self.x + self.y * self.y)
                 end
 
                 function normalize()

@@ -296,7 +296,115 @@ mod test {
                     value: Some(Box::new(Syntax::Integer(1))),
                 },
             ],
-        }
-        )
+        })
+    }
+
+    #[test]
+    fn return_nothing() {
+        let mut p = Parser::new(r#"
+        function main()
+            return
+        end"#);
+
+        let r = match p.parse_function() {
+            Ok(r) => r,
+            Err(e) => {
+                assert!(false, "bad parse: {:?}", e);
+                return;
+            }
+        };
+
+        assert_eq!(r, Syntax::Function {
+            position: TokenPosition { line: 2, column: 9 },
+            function_name: Box::new(Syntax::Identifier {
+                position: TokenPosition { line: 2, column: 18 },
+                name: String::from("main"),
+            }),
+            is_static: false,
+            scope: None,
+            return_type: None,
+            parameters: vec![],
+            body: vec![
+                Syntax::Return {
+                    position: TokenPosition { line: 3, column: 13 },
+                    expr: None,
+                },
+            ],
+        })
+    }
+
+    #[test]
+    fn return_something() {
+        let mut p = Parser::new(r#"
+        function main()
+            return true
+        end"#);
+
+        let r = match p.parse_function() {
+            Ok(r) => r,
+            Err(e) => {
+                assert!(false, "bad parse: {:?}", e);
+                return;
+            }
+        };
+
+        assert_eq!(r, Syntax::Function {
+            position: TokenPosition { line: 2, column: 9 },
+            function_name: Box::new(Syntax::Identifier {
+                position: TokenPosition { line: 2, column: 18 },
+                name: String::from("main"),
+            }),
+            is_static: false,
+            scope: None,
+            return_type: None,
+            parameters: vec![],
+            body: vec![
+                Syntax::Return {
+                    position: TokenPosition { line: 3, column: 13 },
+                    expr: Some(Box::new(Syntax::Bool(true))),
+                },
+            ],
+        })
+    }
+
+    #[test]
+    fn return_new_object() {
+        let mut p = Parser::new(r#"
+        function get_object()
+            return new Object()
+        end"#);
+
+        let r = match p.parse_function() {
+            Ok(r) => r,
+            Err(e) => {
+                assert!(false, "bad parse: {:?}", e);
+                return;
+            }
+        };
+
+        assert_eq!(r, Syntax::Function {
+            position: TokenPosition { line: 2, column: 9 },
+            function_name: Box::new(Syntax::Identifier {
+                position: TokenPosition { line: 2, column: 18 },
+                name: String::from("get_object"),
+            }),
+            is_static: false,
+            scope: None,
+            return_type: None,
+            parameters: vec![],
+            body: vec![
+                Syntax::Return {
+                    position: TokenPosition { line: 3, column: 13 },
+                    expr: Some(Box::new(Syntax::NewObject {
+                        position: TokenPosition { line: 3, column: 20 },
+                        name: Box::new(Syntax::Identifier {
+                            position: TokenPosition { line: 3, column: 24 },
+                            name: String::from("Object"),
+                        }),
+                        input: vec![],
+                    })),
+                },
+            ],
+        })
     }
 }

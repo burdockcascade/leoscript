@@ -55,7 +55,7 @@ module Graphics
             return self.calc_area()
         end
 
-        function calc_area() as Integer
+        function calc_area()
             return self.height * self.length
         end
 

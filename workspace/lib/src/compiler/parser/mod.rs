@@ -3,8 +3,9 @@ use crate::compiler::codegen::syntax::TokenPosition;
 use crate::compiler::error::{ParserError, ParserErrorType};
 use crate::compiler::parser::lexer::{get_lexer, Token};
 use crate::compiler::parser::lexer::lexer::Lexer;
+use crate::parse_error;
 
-pub mod script;
+pub mod toplevel;
 mod function;
 mod variable;
 mod expression;
@@ -34,19 +35,6 @@ impl Default for Parser {
     }
 }
 
-#[macro_export]
-macro_rules! parse_error {
-    ($cursor:expr, $error:expr) => {
-        Err(ParserError {
-            error: $error,
-            position: TokenPosition {
-                line: $cursor.line,
-                column: $cursor.column,
-            },
-        })
-    };
-}
-
 impl Parser {
     pub fn new(src: &str) -> Self {
         Parser {
@@ -65,9 +53,10 @@ impl Parser {
 
             let syntax = match matched.token {
                 Token::Class => p.parse_class()?,
-                //Token::Module => p.parse_module()?,
+                Token::Module => p.parse_module()?,
                 Token::Function => p.parse_function()?,
                 Token::Enum => p.parse_enum()?,
+                Token::Import => p.parse_import()?,
                 _ => return parse_error!(matched.cursor, ParserErrorType::UnwantedToken(matched.token))
             };
 

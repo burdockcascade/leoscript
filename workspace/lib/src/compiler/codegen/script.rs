@@ -16,6 +16,7 @@ const FILE_EXTENSION: &str = ".leo";
 pub const CONSTRUCTOR_NAME: &str = "constructor";
 pub const SELF_CONSTANT: &str = "self";
 
+#[derive(Debug)]
 pub struct CodeStructure {
     pub structure: HashMap<String, Variant>,
     pub instructions: Vec<Instruction>,
@@ -165,7 +166,11 @@ pub fn generate_script(source: &str, offset: usize) -> Result<CodeGenerationResu
                 script.globals.insert(function_name.to_string(), Variant::FunctionPointer(local_offset));
                 script.instructions.append(&mut func.instructions.clone());
             }
-            //Syntax::Module { .. } => generate_module(script, token, local_offset)?,
+            Syntax::Module { .. } => {
+                let module = generate_module(token, local_offset)?;
+                script.globals.insert(module.structure.get(TYPE_FIELD).unwrap().to_string(), Variant::Module(module.structure));
+                script.instructions.append(&mut module.instructions.clone());
+            },
             Syntax::Class { position, class_name, constructor, attributes, methods } => {
                 let class_name_as_string = class_name.to_string();
                 let class_struct = generate_class(position, class_name, attributes, constructor, methods, local_offset)?;
@@ -294,10 +299,10 @@ fn generate_constructor(position: TokenPosition, mut input: Vec<Syntax>, mut bod
     Function::new(position, String::from(CONSTRUCTOR_NAME), input, body)
 }
 
-pub fn generate_module(script: &mut CodeGenerationResult, syntax: Syntax, ip_offset: usize) -> Result<CodeStructure, CompilerError> {
+pub fn generate_module(syntax: Syntax, ip_offset: usize) -> Result<CodeStructure, CompilerError> {
     let mut fgroup = CodeStructure::default();
 
-    let Syntax::Module { position: _, module_name, constants: _, functions, classes, enums, modules, imports: _ } = syntax else {
+    let Syntax::Module { position: _, module_name, constants, functions, classes, enums, modules, imports } = syntax else {
         panic!("generate_module called with non-module syntax")
     };
 
@@ -357,10 +362,9 @@ pub fn generate_module(script: &mut CodeGenerationResult, syntax: Syntax, ip_off
     for module in modules {
         match module {
             Syntax::Module { .. } => {
-                let module_name_as_string = module_name.to_string();
-                let module_struct = generate_module(script, module, fgroup.instructions.len() + ip_offset)?;
+                let module_struct = generate_module(module, fgroup.instructions.len() + ip_offset)?;
 
-                fgroup.structure.insert(module_name_as_string, Variant::Module(module_struct.structure));
+                fgroup.structure.insert(module_struct.structure.get(TYPE_FIELD).unwrap().to_string(), Variant::Module(module_struct.structure));
                 fgroup.instructions.append(&mut module_struct.instructions.clone());
             }
             _ => {}

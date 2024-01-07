@@ -3,6 +3,18 @@ use std::fmt::Display;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Syntax {
+
+    Module {
+        position: TokenPosition,
+        module_name: Box<Syntax>,
+        constants: Vec<Syntax>,
+        functions: Vec<Syntax>,
+        classes: Vec<Syntax>,
+        enums: Vec<Syntax>,
+        modules: Vec<Syntax>,
+        imports: Vec<Syntax>,
+    },
+
     Import {
         position: TokenPosition,
         source: Vec<Syntax>,
@@ -42,17 +54,6 @@ pub enum Syntax {
         position: TokenPosition,
         input: Vec<Syntax>,
         body: Vec<Syntax>,
-    },
-
-    Module {
-        position: TokenPosition,
-        module_name: Box<Syntax>,
-        constants: Vec<Syntax>,
-        functions: Vec<Syntax>,
-        classes: Vec<Syntax>,
-        enums: Vec<Syntax>,
-        modules: Vec<Syntax>,
-        imports: Vec<Syntax>,
     },
 
     Class {

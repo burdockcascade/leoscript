@@ -451,6 +451,7 @@ impl Parser {
             Token::Null => true,
             Token::LeftParenthesis => true,
             Token::Not => true,
+            Token::New => true,
             _ => false
         }
     }

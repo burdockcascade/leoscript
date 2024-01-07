@@ -14,19 +14,7 @@ pub mod script;
 pub mod syntax;
 mod function;
 
-#[macro_export]
-macro_rules! compiler_error {
-    ($cursor:expr, $error:expr) => {
-        Err(CompilerError {
-            error: $error,
-            position: TokenPosition {
-                line: $cursor.line,
-                column: $cursor.column,
-            },
-        })
-    };
-}
-
+#[derive(Debug)]
 pub struct CodeGenerationResult {
     pub instructions: Vec<Instruction>,
     pub globals: HashMap<String, Variant>,

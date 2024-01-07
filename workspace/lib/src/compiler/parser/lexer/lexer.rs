@@ -11,7 +11,7 @@ pub enum LexerError {
     InvalidRegularExpression(Error),
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Cursor {
     pub position: usize,
     pub line: usize,
@@ -31,7 +31,7 @@ impl Default for LexerOptions {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct MatchedToken<T> {
     pub token: T,
     pub text: String,

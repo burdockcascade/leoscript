@@ -83,6 +83,7 @@ impl Display for Variant {
             Variant::String(string) => write!(f, "{string}"),
             Variant::Array(_val) => write!(f, "Array"),
             Variant::FunctionRef(i) => write!(f, "{i}"),
+            Variant::Type(t) => write!(f, "{t}"),
             _ => write!(f, "todo for {:?}", self),
         }
     }

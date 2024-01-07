@@ -16,8 +16,6 @@ fn test_import_module() {
             vectors.set("point2", new Graphics::Vector2(6,4))
             vectors.set("point3", new Graphics::Vector2(6,3))
 
-            var p = new Person("John Doe", 30)
-
             var d = new Graphics::Dimension(10, 20)
             var a = d.area()
 

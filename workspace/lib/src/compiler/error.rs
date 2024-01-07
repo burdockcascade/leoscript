@@ -2,6 +2,19 @@ use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
 use crate::compiler::parser::lexer::lexer::LexerError;
 use crate::compiler::parser::lexer::Token;
 
+#[macro_export]
+macro_rules! parse_error {
+    ($cursor:expr, $error:expr) => {
+        Err(ParserError {
+            error: $error,
+            position: TokenPosition {
+                line: $cursor.line,
+                column: $cursor.column,
+            },
+        })
+    };
+}
+
 #[derive(Debug, PartialEq)]
 pub struct ParserError {
     pub error: ParserErrorType,
@@ -49,6 +62,19 @@ pub enum ParserErrorType {
 pub enum IdentifierError {
     InvalidIdentifier(String),
     IdentifierStartsWithNumber(String),
+}
+
+#[macro_export]
+macro_rules! compiler_error {
+    ($cursor:expr, $error:expr) => {
+        Err(CompilerError {
+            error: $error,
+            position: TokenPosition {
+                line: $cursor.line,
+                column: $cursor.column,
+            },
+        })
+    };
 }
 
 #[derive(Debug, PartialEq)]
