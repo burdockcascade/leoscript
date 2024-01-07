@@ -145,7 +145,7 @@ pub struct Lexer<T> {
     source: String,
     options: LexerOptions,
     cursor: Cursor,
-    peeked: Option<MatchCache<T>>,
+    cached: Option<MatchCache<T>>,
 }
 
 #[derive(Clone, Debug)]
@@ -165,7 +165,7 @@ impl<T> Default for Lexer<T> {
                 line: 1,
                 column: 1,
             },
-            peeked: None,
+            cached: None,
         }
     }
 }
@@ -181,7 +181,7 @@ impl<T: Clone + PartialEq + Debug> Lexer<T> {
                 line: 1,
                 column: 1,
             },
-            peeked: None,
+            cached: None,
         }
     }
 
@@ -193,11 +193,11 @@ impl<T: Clone + PartialEq + Debug> Lexer<T> {
         }
 
         // check for peeked token
-        if let Some(peeked) = &self.peeked {
-            let p = peeked.clone();
-            self.cursor = p.cursor.clone();
-            self.peeked = None;
-            return p.matched.clone();
+        if let Some(peeked) = &self.cached {
+            let cache = peeked.clone();
+            self.cursor = cache.cursor.clone();
+            self.cached = None;
+            return cache.matched.clone();
         }
 
         let mut v: Option<Result<MatchedToken<T>, LexerError>> = None;
@@ -330,7 +330,7 @@ impl<T: Clone + PartialEq + Debug> Lexer<T> {
         }
 
         // check for peeked token
-        if let Some(peeked) = &self.peeked {
+        if let Some(peeked) = &self.cached {
             return peeked.matched.clone();
         }
 
@@ -342,7 +342,7 @@ impl<T: Clone + PartialEq + Debug> Lexer<T> {
 
         // cache token
         if token.is_some() {
-            self.peeked = MatchCache {
+            self.cached = MatchCache {
                 matched: token.clone(),
                 cursor: self.cursor.clone(),
             }.into();

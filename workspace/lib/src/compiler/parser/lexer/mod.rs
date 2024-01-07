@@ -112,7 +112,6 @@ pub fn get_lexer(input: &str) -> Lexer<Token> {
         match_token!("attribute ", Token::Attribute),
 
         // Symbols
-        match_token!(";", Token::Semicolon),
         match_token!("(", Token::LeftParenthesis),
         match_token!(")", Token::RightParenthesis),
         match_token!("[", Token::LeftSquareBracket),
@@ -168,11 +167,8 @@ pub fn get_lexer(input: &str) -> Lexer<Token> {
 
         // Logical operators
         match_token!("not", Token::Not),
-        match_token!("!", Token::Not),
         match_token!("and", Token::And),
-        match_token!("&&", Token::And),
         match_token!("or", Token::Or),
-        match_token!("||", Token::Or),
         match_token!("=", Token::SingleEquals),
 
         // always last because its greedy
