@@ -14,7 +14,7 @@ impl Function {
 
         match *var {
             Syntax::Identifier { .. } => {
-                self.generate_variable_with_value(position, var.clone(), None, None)?;
+                self.generate_variable_with_value(position, var.clone(), None)?;
             }
             _ => return Err(CompilerError {
                 error: CompilerErrorType::InvalidIteratorVariable,

@@ -72,14 +72,12 @@ pub enum Syntax {
     Variable {
         position: TokenPosition,
         name: Box<Syntax>,
-        as_type: Option<String>,
         value: Option<Box<Syntax>>,
     },
 
     Attribute {
         position: TokenPosition,
         name: Box<Syntax>,
-        as_type: Option<Box<Syntax>>,
         value: Option<Box<Syntax>>,
     },
 
@@ -91,8 +89,8 @@ pub enum Syntax {
 
     NewObject {
         position: TokenPosition,
-        name: Box<Syntax>,
-        input: Vec<Syntax>,
+        target: Box<Syntax>,
+        args: Vec<Syntax>,
     },
 
     Assign {
@@ -214,7 +212,11 @@ pub enum Syntax {
         target: Box<Syntax>,
         index: Box<Syntax>
     },
-    StaticAccess { position: TokenPosition, target: Box<Syntax>, index: Box<Syntax> },
+    StaticAccess {
+        position: TokenPosition,
+        target: Box<Syntax>,
+        index: Box<Syntax>
+    },
 }
 
 pub enum Visibility {

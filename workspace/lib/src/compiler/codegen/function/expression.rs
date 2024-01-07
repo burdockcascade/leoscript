@@ -99,7 +99,7 @@ impl Function {
                 self.instructions.push(Instruction::PushFunctionRef(func_name));
             }
 
-            Syntax::NewObject { name, input, position } => {
+            Syntax::NewObject { target: name, args: input, position } => {
                 self.generate_expression(position, name)?;
 
                 // create object
@@ -255,22 +255,18 @@ mod test {
             variables.insert(String::from("a"), Variable {
                 slot_index: 0,
                 name: String::from("a"),
-                as_type: ValueType::Any
             });
             variables.insert(String::from("b"), Variable {
                 slot_index: 1,
                 name: String::from("b"),
-                as_type: ValueType::Any
             });
             variables.insert(String::from("c"), Variable {
                 slot_index: 2,
                 name: String::from("c"),
-                as_type: ValueType::Any
             });
             variables.insert(String::from("d"), Variable {
                 slot_index: 3,
                 name: String::from("d"),
-                as_type: ValueType::Any
             });
 
             let mut generator = Function::default();
@@ -505,11 +501,11 @@ mod test {
         // new myservice()
         test_expression_ok!(
             Syntax::NewObject {
-                name: Box::new(Syntax::Identifier {
+                target: Box::new(Syntax::Identifier {
                     name: String::from("myservice"),
                     position: Default::default()
                 }),
-                input: vec![],
+                args: vec![],
                 position: Default::default(),
             },
             vec![
@@ -527,11 +523,11 @@ mod test {
         // new myservice(1, a)
         test_expression_ok!(
             Syntax::NewObject {
-                name: Box::new(Syntax::Identifier {
+                target: Box::new(Syntax::Identifier {
                     name: String::from("myservice"),
                     position: Default::default()
                 }),
-                input: vec![
+                args: vec![
                     Syntax::Integer(1),
                     Syntax::Identifier {
                         name: String::from("a"),
@@ -557,7 +553,7 @@ mod test {
         // new mymod::myservice(1, 2)
         test_expression_ok!(
             Syntax::NewObject {
-                name: Box::new(Syntax::StaticAccess {
+                target: Box::new(Syntax::StaticAccess {
                     position: Default::default(),
                     target: Box::new(Syntax::Identifier {
                         name: String::from("mymod"),
@@ -568,7 +564,7 @@ mod test {
                         position: Default::default()
                     }),
                 }),
-                input: vec![
+                args: vec![
                     Syntax::Integer(1),
                     Syntax::Integer(2),
                 ],
@@ -675,7 +671,7 @@ mod test {
                 target: Box::new(Syntax::MemberAccess {
                     position: Default::default(),
                     target: Box::new(Syntax::NewObject {
-                        name: Box::new(Syntax::StaticAccess {
+                        target: Box::new(Syntax::StaticAccess {
                             position: Default::default(),
                             target: Box::new(Syntax::Identifier {
                                 name: String::from("mymod"),
@@ -686,7 +682,7 @@ mod test {
                                 position: Default::default()
                             }),
                         }),
-                        input: vec![
+                        args: vec![
                             Syntax::Integer(1),
                             Syntax::Integer(2),
                         ],

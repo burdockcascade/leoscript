@@ -16,7 +16,7 @@ impl Function {
     // compile a statement
     fn generate_statement(&mut self, statement: Box<Syntax>) -> Result<(), CompilerError> {
         match *statement.clone() {
-            Syntax::Variable { position, name, as_type, value } => self.generate_variable_with_value_else_default(position, name, as_type, value)?,
+            Syntax::Variable { position, name, value } => self.generate_variable_with_value_else_default(position, name, value)?,
             Syntax::Assign { position, target, value } => self.generate_assignment(position, target, value)?,
             Syntax::Call { position, .. } => self.generate_expression(position, statement.clone())?,
             Syntax::Return { position, expr } => self.generate_return(position, expr)?,

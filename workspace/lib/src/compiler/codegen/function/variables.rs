@@ -7,8 +7,8 @@ use crate::runtime::ir::variant::ValueType;
 impl Function {
     pub(crate) fn generate_parameters(&mut self, parameters: Vec<Syntax>) -> Result<(), CompilerError> {
         for param in parameters {
-            if let Syntax::Variable { position, name, as_type, value } = param.clone() {
-                self.generate_variable_with_value(position, name, as_type, value)?;
+            if let Syntax::Variable { position, name, value } = param.clone() {
+                self.generate_variable_with_value(position, name, value)?;
             } else {
                 return Err(CompilerError {
                     error: CompilerErrorType::UnableToCompileParameterVariable(param),
@@ -20,10 +20,10 @@ impl Function {
         Ok(())
     }
 
-    pub(crate) fn generate_variable_with_value_else_default(&mut self, position: TokenPosition, name: Box<Syntax>, as_type: Option<String>, value: Option<Box<Syntax>>) -> Result<(), CompilerError> {
+    pub(crate) fn generate_variable_with_value_else_default(&mut self, position: TokenPosition, name: Box<Syntax>, value: Option<Box<Syntax>>) -> Result<(), CompilerError> {
 
         // create the variable
-        self.generate_variable_with_value(position, name.clone(), as_type, value.clone())?;
+        self.generate_variable_with_value(position, name.clone(), value.clone())?;
         let slot_index = self.variables.get(&name.to_string()).unwrap().slot_index;
 
         // set default value
@@ -35,7 +35,7 @@ impl Function {
         Ok(())
     }
 
-    pub(crate) fn generate_variable_with_value(&mut self, position: TokenPosition, name: Box<Syntax>, as_type: Option<String>, value: Option<Box<Syntax>>) -> Result<(), CompilerError> {
+    pub(crate) fn generate_variable_with_value(&mut self, position: TokenPosition, name: Box<Syntax>, value: Option<Box<Syntax>>) -> Result<(), CompilerError> {
 
         // check if variable already exists
         if self.variables.contains_key(name.to_string().as_str()) {
@@ -48,22 +48,6 @@ impl Function {
         // create the variable
         let v = Variable {
             name: name.to_string(),
-            as_type: match as_type {
-                Some(t) => {
-                    match t.to_lowercase().as_str() {
-                        "integer" => ValueType::Integer,
-                        "float" => ValueType::Float,
-                        "string" => ValueType::String,
-                        "boolean" => ValueType::Bool,
-                        "array" => ValueType::Array,
-                        "dictionary" => ValueType::Dictionary,
-                        _ => ValueType::Global(t)
-                    }
-                }
-                None => {
-                    ValueType::Any
-                }
-            },
             slot_index: self.variables.len(),
         };
 

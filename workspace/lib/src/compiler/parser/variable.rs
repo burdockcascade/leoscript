@@ -49,7 +49,6 @@ impl Parser {
                 },
                 name: variable_name.text,
             }),
-            as_type,
             value: v.map(|v| Box::new(v)),
         })
     }
@@ -82,7 +81,6 @@ mod test {
                 },
                 name: "fruit".to_string(),
             }),
-            as_type: None,
             value: None,
         });
     }
@@ -111,7 +109,6 @@ mod test {
                 },
                 name: "apples".to_string(),
             }),
-            as_type: None,
             value: Some(Box::new(Syntax::Integer(3))),
         });
     }

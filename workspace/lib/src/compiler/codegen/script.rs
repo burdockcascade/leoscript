@@ -234,7 +234,6 @@ pub fn generate_class(position: TokenPosition, name: Box<Syntax>, attributes: Ve
                             position: TokenPosition::default(),
                             name: String::from(SELF_CONSTANT),
                         }),
-                        as_type: None,
                         value: None,
                     });
                 }
@@ -259,7 +258,6 @@ fn generate_constructor(position: TokenPosition, mut input: Vec<Syntax>, mut bod
             position: TokenPosition::default(),
             name: String::from(SELF_CONSTANT),
         }),
-        as_type: None,
         value: None,
     });
 
@@ -321,7 +319,6 @@ pub fn generate_module(syntax: Syntax, ip_offset: usize) -> Result<CodeStructure
                             name: String::from(SELF_CONSTANT),
                         }
                     ),
-                    as_type: None,
                     value: None,
                 });
 

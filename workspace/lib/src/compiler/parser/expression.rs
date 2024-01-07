@@ -385,8 +385,8 @@ impl Parser {
                 line: matched.cursor.line,
                 column: matched.cursor.column,
             },
-            name: target,
-            input: args,
+            target: target,
+            args: args,
         })
     }
 
@@ -1114,11 +1114,11 @@ mod test {
     fn test_new_object() {
         run_expr_test_ok!(r#"new Book("Frankenstein")"#, Syntax::NewObject {
             position: TokenPosition { line: 1, column: 1 },
-            name: Box::from(Syntax::Identifier {
+            target: Box::from(Syntax::Identifier {
                 position: TokenPosition { line: 1, column: 5 },
                 name: String::from("Book"),
             }),
-            input: vec![
+            args: vec![
                 Syntax::String(String::from("Frankenstein")),
             ],
         });
@@ -1128,7 +1128,7 @@ mod test {
     fn new_object_from_module() {
         run_expr_test_ok!(r#"new Library::Book("Frankenstein")"#, Syntax::NewObject {
             position: TokenPosition { line: 1, column: 1 },
-            name: Box::from(Syntax::StaticAccess {
+            target: Box::from(Syntax::StaticAccess {
                 position: TokenPosition { line: 1, column: 14 },
                 index: Box::from(Syntax::Identifier {
                     position: TokenPosition { line: 1, column: 14 },
@@ -1139,7 +1139,7 @@ mod test {
                     name: String::from("Library"),
                 }),
             }),
-            input: vec![
+            args: vec![
                 Syntax::String(String::from("Frankenstein")),
             ],
         });
@@ -1157,11 +1157,11 @@ mod test {
                 }),
                 target: Box::from(Syntax::NewObject {
                     position: TokenPosition { line: 1, column: 1 },
-                    name: Box::from(Syntax::Identifier {
+                    target: Box::from(Syntax::Identifier {
                         position: TokenPosition { line: 1, column: 5 },
                         name: String::from("Book"),
                     }),
-                    input: vec![
+                    args: vec![
                         Syntax::String(String::from("Christmas Carol")),
                     ],
                 }),

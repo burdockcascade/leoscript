@@ -232,7 +232,6 @@ impl Parser {
                 },
                 name: attribute_name.text,
             }),
-            as_type: as_type.map(Box::new),
             value: value.map(Box::new),
         })
     }
@@ -341,7 +340,6 @@ mod test {
                         position: TokenPosition { line: 3, column: 27 },
                         name: String::from("red"),
                     }),
-                    as_type: None,
                     value: None,
                 },
                 Syntax::Attribute {
@@ -350,7 +348,6 @@ mod test {
                         position: TokenPosition { line: 4, column: 27 },
                         name: String::from("green"),
                     }),
-                    as_type: None,
                     value: None,
                 },
                 Syntax::Attribute {
@@ -359,7 +356,6 @@ mod test {
                         position: TokenPosition { line: 5, column: 27 },
                         name: String::from("blue"),
                     }),
-                    as_type: None,
                     value: None,
                 },
             ],
