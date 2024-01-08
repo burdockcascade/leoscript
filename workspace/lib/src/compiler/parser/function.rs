@@ -33,8 +33,6 @@ impl Parser {
                 name: ident.text,
             }),
             is_static: false,
-            scope: None,
-            return_type: None,
             parameters,
             body,
         })
@@ -182,8 +180,6 @@ mod test {
                 name: String::from("main"),
             }),
             is_static: false,
-            scope: None,
-            return_type: None,
             parameters: vec![
                 Syntax::Variable {
                     position: TokenPosition { line: 2, column: 27 },
@@ -268,8 +264,6 @@ mod test {
                 name: String::from("main"),
             }),
             is_static: false,
-            scope: None,
-            return_type: None,
             parameters: vec![
                 Syntax::Variable {
                     position: TokenPosition { line: 2, column: 23 },
@@ -315,8 +309,6 @@ mod test {
                 name: String::from("main"),
             }),
             is_static: false,
-            scope: None,
-            return_type: None,
             parameters: vec![],
             body: vec![
                 Syntax::Return {
@@ -349,8 +341,6 @@ mod test {
                 name: String::from("main"),
             }),
             is_static: false,
-            scope: None,
-            return_type: None,
             parameters: vec![],
             body: vec![
                 Syntax::Return {
@@ -383,8 +373,6 @@ mod test {
                 name: String::from("get_object"),
             }),
             is_static: false,
-            scope: None,
-            return_type: None,
             parameters: vec![],
             body: vec![
                 Syntax::Return {

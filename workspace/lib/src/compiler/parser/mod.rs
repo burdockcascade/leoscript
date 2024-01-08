@@ -14,6 +14,7 @@ mod helper;
 mod branching;
 mod identifier;
 pub mod lexer;
+mod import;
 
 #[derive(Debug)]
 pub struct ParserResult {
@@ -48,20 +49,7 @@ impl Parser {
 
         let mut p = Parser::new(source);
 
-        while p.lexer.has_more_tokens() {
-            let matched = p.peek_next_token_or_error()?;
-
-            let syntax = match matched.token {
-                Token::Class => p.parse_class()?,
-                Token::Module => p.parse_module()?,
-                Token::Function => p.parse_function()?,
-                Token::Enum => p.parse_enum()?,
-                Token::Import => p.parse_import()?,
-                _ => return parse_error!(matched.cursor, ParserErrorType::UnwantedToken(matched.token))
-            };
-
-            p.syntax_tree.push(syntax);
-        }
+        p.parse_script()?;
 
         Ok(ParserResult {
             syntax_tree: p.syntax_tree,

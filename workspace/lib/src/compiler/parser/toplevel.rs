@@ -5,28 +5,46 @@ use crate::compiler::parser::Parser;
 use crate::parse_error;
 
 impl Parser {
+
+    pub fn parse_script(&mut self) -> Result<(), ParserError> {
+        let mut body = vec![];
+
+        while self.lexer.has_more_tokens() {
+            let peeked = self.peek_next_token_or_error()?;
+
+            match peeked.token {
+                Token::Import => body.extend(self.parse_import()?),
+                Token::Enum => body.push(self.parse_enum()?),
+                Token::Class => body.push(self.parse_class()?),
+                Token::Function => body.push(self.parse_function()?),
+                Token::Module => body.push(self.parse_module()?),
+                _ => return parse_error!(peeked.cursor, ParserErrorType::UnwantedToken(peeked.token)),
+            }
+        }
+
+        self.syntax_tree.extend(body);
+
+        Ok(())
+    }
+
     pub(crate) fn parse_module(&mut self) -> Result<Syntax, ParserError> {
         let module_keyword = self.next_token_or_error()?;
 
         let module_name = self.match_next_token_or_error(Token::Identifier)?;
 
-        let mut constants = vec![];
-        let mut functions = vec![];
-        let mut classes = vec![];
-        let mut enums = vec![];
-        let mut modules = vec![];
+        let mut body    = vec![];
         let mut imports = vec![];
 
         while self.lexer.has_more_tokens() {
             let peeked = self.peek_next_token_or_error()?;
 
             match peeked.token {
-                Token::Import => imports.push(self.parse_import()?),
-                Token::Constant => constants.push(self.parse_constant()?),
-                Token::Enum => enums.push(self.parse_enum()?),
-                Token::Class => classes.push(self.parse_class()?),
-                Token::Function => functions.push(self.parse_function()?),
-                Token::Module => modules.push(self.parse_module()?),
+                Token::Import => imports = self.parse_import()?,
+                Token::Constant => body.push(self.parse_constant()?),
+                Token::Enum => body.push(self.parse_enum()?),
+                Token::Class => body.push(self.parse_class()?),
+                Token::Function => body.push(self.parse_function()?),
+                Token::Module => body.push(self.parse_module()?),
                 Token::End => {
                     self.skip_next_token_or_error()?; // skip end
                     break;
@@ -47,50 +65,7 @@ impl Parser {
                 },
                 name: module_name.text,
             }),
-            constants,
-            functions,
-            classes,
-            enums,
-            modules,
-            imports,
-        })
-    }
-
-    pub(crate) fn parse_import(&mut self) -> Result<Syntax, ParserError> {
-
-        let import_keyword = self.next_token_or_error()?;
-
-        let mut path = vec![];
-
-        while self.lexer.has_more_tokens() {
-
-            let peeked = self.peek_next_token_or_error()?;
-
-            match peeked.token {
-                Token::Identifier => {
-                    let identifier = self.next_token_or_error()?;
-                    path.push(Syntax::Identifier {
-                        position: TokenPosition {
-                            line: identifier.cursor.line,
-                            column: identifier.cursor.column,
-                        },
-                        name: identifier.text,
-                    });
-                    if self.peek_next_token_match(Token::Dot) {
-                        self.skip_next_token_or_error()?;
-                    }
-                },
-                _ => break,
-            }
-
-        }
-
-        Ok(Syntax::Import {
-            position: TokenPosition {
-                line: import_keyword.cursor.line,
-                column: import_keyword.cursor.column,
-            },
-            source: path,
+            body
         })
     }
 
@@ -439,8 +414,6 @@ mod test {
                         name: String::from("print"),
                     }),
                     is_static: false,
-                    scope: None,
-                    return_type: None,
                     parameters: vec![],
                     body: vec![
                         Syntax::Call {
@@ -459,38 +432,4 @@ mod test {
         });
     }
 
-    #[test]
-    fn import_path() {
-        let source = r#"
-            import tests.scripts.graphics
-        "#;
-
-        let mut p = Parser::new(source);
-
-        let r = match p.parse_import() {
-            Ok(r) => r,
-            Err(e) => {
-                assert!(false, "bad parse: {:?}", e);
-                return;
-            }
-        };
-
-        assert_eq!(r, Syntax::Import {
-            position: TokenPosition { line: 2, column: 13 },
-            source: vec![
-                Syntax::Identifier {
-                    position: TokenPosition { line: 2, column: 20 },
-                    name: String::from("tests"),
-                },
-                Syntax::Identifier {
-                    position: TokenPosition { line: 2, column: 26 },
-                    name: String::from("scripts"),
-                },
-                Syntax::Identifier {
-                    position: TokenPosition { line: 2, column: 34 },
-                    name: String::from("graphics"),
-                },
-            ],
-        });
-    }
 }

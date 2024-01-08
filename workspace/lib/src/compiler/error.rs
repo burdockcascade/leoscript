@@ -56,6 +56,8 @@ pub enum ParserErrorType {
     InvalidStaticAccess,
     InvalidNewObject,
     InvalidMapItem(String),
+    InvalidImportPath(String),
+    InvalidSyntax,
 }
 
 #[derive(Debug, PartialEq)]

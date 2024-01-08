@@ -7,12 +7,7 @@ pub enum Syntax {
     Module {
         position: TokenPosition,
         module_name: Box<Syntax>,
-        constants: Vec<Syntax>,
-        functions: Vec<Syntax>,
-        classes: Vec<Syntax>,
-        enums: Vec<Syntax>,
-        modules: Vec<Syntax>,
-        imports: Vec<Syntax>,
+        body: Vec<Syntax>,
     },
 
     Import {
@@ -44,8 +39,6 @@ pub enum Syntax {
         position: TokenPosition,
         function_name: Box<Syntax>,
         is_static: bool,
-        scope: Option<Box<Syntax>>,
-        return_type: Option<Box<Syntax>>,
         parameters: Vec<Syntax>,
         body: Vec<Syntax>,
     },
@@ -206,6 +199,7 @@ pub enum Syntax {
         target: Box<Syntax>,
         index: Box<Syntax>
     },
+    Script { body: Vec<Syntax> },
 }
 
 pub enum Visibility {

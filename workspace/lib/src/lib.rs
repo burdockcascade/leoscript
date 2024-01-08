@@ -23,7 +23,7 @@ pub fn run_script(source: &str, entrypoint: &str, args: Option<Vec<Variant>>) ->
 
     let compiler_result = match compile(source) {
         Ok(result) => result,
-        Err(e) => return Err(ScriptError::CompilerError(e)),
+        Err(e) => return Err(e),
     };
 
     match run_program(compiler_result.program, entrypoint, args) {
