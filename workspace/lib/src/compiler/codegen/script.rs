@@ -89,7 +89,7 @@ impl Script {
         }
 
         // Constructor
-        let f = match constructor {
+        let v = match constructor {
             Some(c) => {
                 let Syntax::Constructor { position, input, body } = *c else { todo!() };
                 self.generate_constructor(position, input, body, attributes)?
@@ -97,8 +97,7 @@ impl Script {
             _ => self.generate_constructor(position, vec![], vec![], attributes)?
         };
 
-        structure.insert(String::from(CLASS_CONSTRUCTOR_NAME), Variant::FunctionPointer(self.instructions.len()));
-        self.instructions.append(&mut f.instructions.clone());
+        structure.insert(String::from(CLASS_CONSTRUCTOR_NAME), v);
 
         // Methods
         for method in methods.clone() {
@@ -120,17 +119,7 @@ impl Script {
         Ok(Variant::Class(structure))
     }
 
-    fn generate_constructor(&mut self, position: TokenPosition, mut input: Vec<Syntax>, mut body: Vec<Syntax>, attributes: Vec<Syntax>) -> Result<Function, CodegenError> {
-
-        // first parameter is always self
-        input.insert(0, Syntax::Variable {
-            position: TokenPosition::default(),
-            name: Box::new(Syntax::Identifier {
-                position: TokenPosition::default(),
-                name: String::from(SELF_CONSTANT),
-            }),
-            value: None,
-        });
+    fn generate_constructor(&mut self, position: TokenPosition, mut input: Vec<Syntax>, mut body: Vec<Syntax>, attributes: Vec<Syntax>) -> Result<Variant, CodegenError> {
 
         // constructor returns self
         body.push(Syntax::Return {
@@ -165,7 +154,7 @@ impl Script {
             }
         }
 
-        Function::new(position, String::from(CLASS_CONSTRUCTOR_NAME), input, body)
+        self.generate_method(position, String::from(CLASS_CONSTRUCTOR_NAME), input, body)
     }
 
     pub fn generate_module(&mut self, position: TokenPosition, name: String, body: Vec<Syntax>) -> Result<Variant, CodegenError> {
