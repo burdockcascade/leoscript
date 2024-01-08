@@ -1,6 +1,5 @@
 use leoscript::compiler::codegen::syntax::TokenPosition;
 use leoscript::compiler::error::{CodegenError, CodegenErrorType};
-use leoscript::error::ScriptError;
 
 mod common;
 

@@ -32,13 +32,12 @@ impl Parser {
         let module_name = self.match_next_token_or_error(Token::Identifier)?;
 
         let mut body = vec![];
-        let mut imports = vec![];
 
         while self.lexer.has_more_tokens() {
             let peeked = self.peek_next_token_or_error()?;
 
             match peeked.token {
-                Token::Import => imports = self.parse_import()?,
+                Token::Import => body.extend(self.parse_import()?),
                 Token::Constant => body.push(self.parse_constant()?),
                 Token::Enum => body.push(self.parse_enum()?),
                 Token::Class => body.push(self.parse_class()?),

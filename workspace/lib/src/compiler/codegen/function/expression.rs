@@ -212,12 +212,11 @@ impl Function {
 }
 
 mod test {
-    use std::collections::HashMap;
-
-    use crate::compiler::codegen::function::Function;
     use crate::compiler::codegen::function::Variable;
     use crate::compiler::codegen::syntax::Syntax;
     use crate::runtime::ir::instruction::Instruction;
+    use crate::compiler::codegen::function::Function;
+    use std::collections::HashMap;
 
     macro_rules! test_expression_ok {
         ($token:expr, $expected:expr) => {

@@ -136,7 +136,7 @@ mod test {
                     name: String::from("rooms"),
                 });
 
-                g.generate_assignment(TokenPosition::default(), $target, $value);
+                let _ = g.generate_assignment(TokenPosition::default(), $target, $value);
                 assert_eq!(g.instructions, $expected);
             }
         };

@@ -6,7 +6,6 @@ use crate::compiler::error::CodegenError;
 use crate::runtime::ir::instruction::Instruction;
 use crate::runtime::ir::variant::{CLASS_CONSTRUCTOR_NAME, Variant};
 
-const FILE_EXTENSION: &str = ".leo";
 pub const SELF_CONSTANT: &str = "self";
 const TYPE_FIELD: &str = "_type";
 
@@ -40,7 +39,7 @@ impl Script {
                     self.structure.insert(class_name.to_string(), v);
                 }
                 Syntax::Enum { position, name, items } => {
-                    let v = self.generate_enum(position, name.to_string(), items)?;
+                    let v = self.generate_enum(position, items)?;
                     self.structure.insert(name.to_string(), v);
                 }
                 _ => {}
@@ -116,7 +115,7 @@ impl Script {
         Ok(Variant::Class(structure))
     }
 
-    fn generate_constructor(&mut self, position: TokenPosition, mut input: Vec<Syntax>, mut body: Vec<Syntax>, attributes: Vec<Syntax>) -> Result<Variant, CodegenError> {
+    fn generate_constructor(&mut self, position: TokenPosition, input: Vec<Syntax>, mut body: Vec<Syntax>, attributes: Vec<Syntax>) -> Result<Variant, CodegenError> {
 
         // constructor returns self
         body.push(Syntax::Return {
@@ -154,7 +153,7 @@ impl Script {
         self.generate_method(position, String::from(CLASS_CONSTRUCTOR_NAME), input, body)
     }
 
-    pub fn generate_module(&mut self, position: TokenPosition, name: String, body: Vec<Syntax>) -> Result<Variant, CodegenError> {
+    pub fn generate_module(&mut self, _position: TokenPosition, name: String, body: Vec<Syntax>) -> Result<Variant, CodegenError> {
         let mut structure = HashMap::default();
 
         // set module type
@@ -172,7 +171,7 @@ impl Script {
                     structure.insert(class_name.to_string(), v);
                 }
                 Syntax::Enum { position, name, items } => {
-                    let v = self.generate_enum(position, name.to_string(), items)?;
+                    let v = self.generate_enum(position, items)?;
                     structure.insert(name.to_string(), v);
                 }
                 Syntax::Module { position, module_name, body } => {
@@ -186,7 +185,7 @@ impl Script {
         Ok(Variant::Module(structure))
     }
 
-    pub fn generate_enum(&mut self, _position: TokenPosition, name: String, items: Vec<Syntax>) -> Result<Variant, CodegenError> {
+    pub fn generate_enum(&mut self, _position: TokenPosition, items: Vec<Syntax>) -> Result<Variant, CodegenError> {
         let mut enum_def = HashMap::default();
 
         let mut index = 0;

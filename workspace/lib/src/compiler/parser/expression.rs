@@ -387,31 +387,6 @@ impl Parser {
         Ok(args)
     }
 
-    fn parse_array_access(&mut self) -> Result<Syntax, ParserError> {
-        let mut expr = None;
-
-        while self.lexer.has_more_tokens() {
-            let matched = self.peek_next_token_or_error()?;
-
-            match matched.token {
-                Token::LeftSquareBracket => {
-                    self.skip_next_token_or_error()?;
-                    continue;
-                }
-                Token::RightSquareBracket => {
-                    self.skip_next_token_or_error()?;
-                    break;
-                }
-                _ => expr = Some(self.parse_expression()?),
-            }
-        }
-
-        match expr {
-            Some(expr) => Ok(expr),
-            None => parser_error!(self.lexer.get_cursor(), ParserErrorType::InvalidArrayAccess)
-        }
-    }
-
     pub fn is_expression_token(token: Token) -> bool {
         match token {
             Token::Integer => true,
