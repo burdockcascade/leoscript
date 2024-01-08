@@ -165,8 +165,8 @@ pub fn get_lexer(input: &str) -> Lexer<Token> {
 
         // Logical operators
         match_token!("not", Token::Not),
-        match_token!("and", Token::And),
-        match_token!("or", Token::Or),
+        match_token!("and ", Token::And),
+        match_token!("or ", Token::Or),
         match_token!("=", Token::SingleEquals),
 
         // always last because its greedy

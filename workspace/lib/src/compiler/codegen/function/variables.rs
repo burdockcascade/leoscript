@@ -1,16 +1,16 @@
 use crate::compiler::codegen::function::{Function, Variable};
 use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
-use crate::compiler::error::{CompilerError, CompilerErrorType};
+use crate::compiler::error::{CodegenError, CodegenErrorType};
 use crate::runtime::ir::instruction::Instruction;
 
 impl Function {
-    pub(crate) fn generate_parameters(&mut self, parameters: Vec<Syntax>) -> Result<(), CompilerError> {
+    pub(crate) fn generate_parameters(&mut self, parameters: Vec<Syntax>) -> Result<(), CodegenError> {
         for param in parameters {
             if let Syntax::Variable { position, name, value } = param.clone() {
                 self.generate_variable_with_value(position, name, value)?;
             } else {
-                return Err(CompilerError {
-                    error: CompilerErrorType::UnableToCompileParameterVariable(param),
+                return Err(CodegenError {
+                    error: CodegenErrorType::UnableToCompileParameterVariable(param),
                     position: Default::default(),
                 }); // fixme add position
             };
@@ -19,7 +19,7 @@ impl Function {
         Ok(())
     }
 
-    pub(crate) fn generate_variable_with_value_else_default(&mut self, position: TokenPosition, name: Box<Syntax>, value: Option<Box<Syntax>>) -> Result<(), CompilerError> {
+    pub(crate) fn generate_variable_with_value_else_default(&mut self, position: TokenPosition, name: Box<Syntax>, value: Option<Box<Syntax>>) -> Result<(), CodegenError> {
 
         // create the variable
         self.generate_variable_with_value(position, name.clone(), value.clone())?;
@@ -34,12 +34,12 @@ impl Function {
         Ok(())
     }
 
-    pub(crate) fn generate_variable_with_value(&mut self, position: TokenPosition, name: Box<Syntax>, value: Option<Box<Syntax>>) -> Result<(), CompilerError> {
+    pub(crate) fn generate_variable_with_value(&mut self, position: TokenPosition, name: Box<Syntax>, value: Option<Box<Syntax>>) -> Result<(), CodegenError> {
 
         // check if variable already exists
         if self.variables.contains_key(name.to_string().as_str()) {
-            return Err(CompilerError {
-                error: CompilerErrorType::VariableAlreadyDeclared(name.to_string()),
+            return Err(CodegenError {
+                error: CodegenErrorType::VariableAlreadyDeclared(name.to_string()),
                 position,
             });
         }
@@ -62,14 +62,14 @@ impl Function {
     }
 
     // compile assignment
-    pub(crate) fn generate_assignment(&mut self, position: TokenPosition, target: Box<Syntax>, value: Box<Syntax>) -> Result<(), CompilerError> {
+    pub(crate) fn generate_assignment(&mut self, position: TokenPosition, target: Box<Syntax>, value: Box<Syntax>) -> Result<(), CodegenError> {
         match *target.clone() {
 
             // store value in variable
             Syntax::Identifier { position, name } => {
                 if self.variables.contains_key(&name) == false {
-                    return Err(CompilerError {
-                        error: CompilerErrorType::VariableNotDeclared(name),
+                    return Err(CodegenError {
+                        error: CodegenErrorType::VariableNotDeclared(name),
                         position,
                     });
                 }
@@ -97,8 +97,8 @@ impl Function {
                 self.instructions.push(Instruction::SetCollectionItem);
             }
 
-            _ => return Err(CompilerError {
-                error: CompilerErrorType::UnableToAssignItem(target),
+            _ => return Err(CodegenError {
+                error: CodegenErrorType::UnableToAssignItem(target),
                 position,
             })
         }

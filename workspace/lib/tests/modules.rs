@@ -4,7 +4,7 @@ mod common;
 fn module_with_functions() {
     test_success!(r#"
         function main()
-            return Calculator.add(10, 20) == 30 and Calculator.sub(20, 10) == 10
+            return Calculator::add(10, 20) == 30 and Calculator::sub(20, 10) == 10
         end
 
         module Calculator
@@ -25,7 +25,7 @@ fn module_with_functions() {
 fn module_with_inner_module_and_functions() {
     test_success!(r#"
         function main()
-            return MyApp::Calculator.add(10, 20) == 30 and MyApp::Calculator.sub(20, 10) == 10
+            return MyApp::Calculator::add(10, 20) == 30 and MyApp::Calculator::sub(20, 10) == 10
         end
 
         module MyApp

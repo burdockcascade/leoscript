@@ -1,5 +1,5 @@
 use leoscript::compiler::codegen::syntax::TokenPosition;
-use leoscript::compiler::error::{CompilerError, CompilerErrorType};
+use leoscript::compiler::error::{CodegenError, CodegenErrorType};
 use leoscript::error::ScriptError;
 
 mod common;
@@ -78,9 +78,9 @@ fn variable_declared_already_error() {
              var a
              return a
          end
-    "#, None, ScriptError::CompilerError(
-        CompilerError {
-            error: CompilerErrorType::VariableAlreadyDeclared(String::from("a")),
+    "#, None, ScriptError::CodegenError(
+        CodegenError {
+            error: CodegenErrorType::VariableAlreadyDeclared(String::from("a")),
             position: TokenPosition {
                 line: 4,
                 column: 14,
@@ -96,9 +96,9 @@ fn variable_is_not_declared_error() {
              a = 5
              return a
          end
-    "#, None, ScriptError::CompilerError(
-        CompilerError {
-            error: CompilerErrorType::VariableNotDeclared(String::from("a")),
+    "#, None, ScriptError::CodegenError(
+        CodegenError {
+            error: CodegenErrorType::VariableNotDeclared(String::from("a")),
             position: TokenPosition {
                 line: 3,
                 column: 14,

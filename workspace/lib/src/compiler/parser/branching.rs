@@ -2,7 +2,7 @@ use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
 use crate::compiler::error::{ParserError, ParserErrorType};
 use crate::compiler::parser::lexer::Token;
 use crate::compiler::parser::Parser;
-use crate::parse_error;
+use crate::parser_error;
 
 impl Parser {
     pub fn parse_if(&mut self) -> Result<Syntax, ParserError> {
@@ -132,7 +132,7 @@ impl Parser {
                 Token::End => {
                     break;
                 }
-                _ => return parse_error!(next.cursor, ParserErrorType::UnwantedToken(next.token))
+                _ => return parser_error!(next.cursor, ParserErrorType::UnwantedToken(next.token))
             };
         }
 

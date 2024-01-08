@@ -2,11 +2,11 @@ use log::trace;
 
 use crate::compiler::codegen::function::{Function, IteratorTracker};
 use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
-use crate::compiler::error::{CompilerError, CompilerErrorType};
+use crate::compiler::error::{CodegenError, CodegenErrorType};
 use crate::runtime::ir::instruction::Instruction;
 
 impl Function {
-    pub(crate) fn generate_iterator(&mut self, position: TokenPosition, var: Box<Syntax>, target: Box<Syntax>, block: Vec<Syntax>) -> Result<(), CompilerError> {
+    pub(crate) fn generate_iterator(&mut self, position: TokenPosition, var: Box<Syntax>, target: Box<Syntax>, block: Vec<Syntax>) -> Result<(), CodegenError> {
         self.iterators.push(IteratorTracker {
             breaks: vec![],
             continues: vec![],
@@ -16,8 +16,8 @@ impl Function {
             Syntax::Identifier { .. } => {
                 self.generate_variable_with_value(position, var.clone(), None)?;
             }
-            _ => return Err(CompilerError {
-                error: CompilerErrorType::InvalidIteratorVariable,
+            _ => return Err(CodegenError {
+                error: CodegenErrorType::InvalidIteratorVariable,
                 position,
             })
         }
@@ -75,7 +75,7 @@ impl Function {
     }
 
     // compile while loop
-    pub(crate) fn generate_while_loop(&mut self, position: TokenPosition, expr: Box<Syntax>, block: Vec<Syntax>) -> Result<(), CompilerError> {
+    pub(crate) fn generate_while_loop(&mut self, position: TokenPosition, expr: Box<Syntax>, block: Vec<Syntax>) -> Result<(), CodegenError> {
         self.iterators.push(IteratorTracker {
             breaks: vec![],
             continues: vec![],
@@ -106,11 +106,11 @@ impl Function {
         Ok(())
     }
 
-    fn update_iterator_jumps(&mut self, position: TokenPosition, start_ins_ptr: usize) -> Result<(), CompilerError> {
+    fn update_iterator_jumps(&mut self, position: TokenPosition, start_ins_ptr: usize) -> Result<(), CodegenError> {
         // get iterator
         let Some(it) = self.iterators.pop() else {
-            return Err(CompilerError {
-                error: CompilerErrorType::NoIteratorJumpsFound,
+            return Err(CodegenError {
+                error: CodegenErrorType::NoIteratorJumpsFound,
                 position,
             });
         };
@@ -130,26 +130,26 @@ impl Function {
         Ok(())
     }
 
-    pub(crate) fn generate_break(&mut self, position: TokenPosition) -> Result<(), CompilerError> {
+    pub(crate) fn generate_break(&mut self, position: TokenPosition) -> Result<(), CodegenError> {
         if let Some(iter) = self.iterators.last_mut() {
             iter.breaks.push(self.instructions.len());
             self.instructions.push(Instruction::NoOperation);
         } else {
-            return Err(CompilerError {
-                error: CompilerErrorType::BreakOutsideOfLoop,
+            return Err(CodegenError {
+                error: CodegenErrorType::BreakOutsideOfLoop,
                 position,
             });
         }
         Ok(())
     }
 
-    pub(crate) fn generate_continue(&mut self, position: TokenPosition) -> Result<(), CompilerError> {
+    pub(crate) fn generate_continue(&mut self, position: TokenPosition) -> Result<(), CodegenError> {
         if let Some(iter) = self.iterators.last_mut() {
             iter.continues.push(self.instructions.len());
             self.instructions.push(Instruction::NoOperation);
         } else {
-            return Err(CompilerError {
-                error: CompilerErrorType::ContinueOutsideOfLoop,
+            return Err(CodegenError {
+                error: CodegenErrorType::ContinueOutsideOfLoop,
                 position,
             });
         }

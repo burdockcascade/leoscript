@@ -1,14 +1,14 @@
 use crate::compiler::codegen::function::Function;
 use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
-use crate::compiler::error::{CompilerError, CompilerErrorType};
+use crate::compiler::error::{CodegenError, CodegenErrorType};
 use crate::runtime::ir::instruction::Instruction;
 
 impl Function {
-    pub(crate) fn generate_if_else(&mut self, syntax: Box<Syntax>) -> Result<(), CompilerError> {
+    pub(crate) fn generate_if_else(&mut self, syntax: Box<Syntax>) -> Result<(), CodegenError> {
 
         let Syntax::IfChain { position: _, arms } = *syntax else {
-            return Err(CompilerError {
-                error: CompilerErrorType::IfStatementInvalid,
+            return Err(CodegenError {
+                error: CodegenErrorType::IfStatementInvalid,
                 position: TokenPosition::default(),
             });
         };
@@ -39,8 +39,8 @@ impl Function {
                 Syntax::Else { body, .. } => {
                     self.generate_statements(body)?;
                 }
-                _ => return Err(CompilerError {
-                    error: CompilerErrorType::IfStatementInvalid,
+                _ => return Err(CodegenError {
+                    error: CodegenErrorType::IfStatementInvalid,
                     position: TokenPosition::default(),
                 })
             }
@@ -57,12 +57,12 @@ impl Function {
     //==============================================================================================
     // MATCH
 
-    pub(crate) fn generate_match(&mut self, syntax: Box<Syntax>) -> Result<(), CompilerError> {
+    pub(crate) fn generate_match(&mut self, syntax: Box<Syntax>) -> Result<(), CodegenError> {
         let mut jump_to_end = vec![];
 
         let Syntax::Match { position, expr, arms, default } = *syntax else {
-            return Err(CompilerError {
-                error: CompilerErrorType::InvalidMatch,
+            return Err(CodegenError {
+                error: CodegenErrorType::InvalidMatch,
                 position: Default::default(),
             });
         };
@@ -94,8 +94,8 @@ impl Function {
                     // Update Jump to next condition
                     self.instructions[jump_to_next] = Instruction::JumpForwardIfFalse(self.instructions.len() - jump_to_next);
                 }
-                _ => return Err(CompilerError {
-                    error: CompilerErrorType::InvalidMatchArm,
+                _ => return Err(CodegenError {
+                    error: CodegenErrorType::InvalidMatchArm,
                     position,
                 })
             }
@@ -107,8 +107,8 @@ impl Function {
                 Syntax::DefaultCase { body, .. } => {
                     self.generate_statements(body)?;
                 }
-                _ => return Err(CompilerError {
-                    error: CompilerErrorType::InvalidDefaultCase,
+                _ => return Err(CodegenError {
+                    error: CodegenErrorType::InvalidDefaultCase,
                     position: Default::default(),
                 })
             }

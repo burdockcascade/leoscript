@@ -1,10 +1,10 @@
 use crate::compiler::codegen::function::Function;
 use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
-use crate::compiler::error::{CompilerError, CompilerErrorType};
+use crate::compiler::error::{CodegenError, CodegenErrorType};
 use crate::runtime::ir::instruction::Instruction;
 
 impl Function {
-    pub fn generate_expression(&mut self, position: TokenPosition, token: Box<Syntax>) -> Result<(), CompilerError> {
+    pub fn generate_expression(&mut self, position: TokenPosition, token: Box<Syntax>) -> Result<(), CodegenError> {
         match *token {
             Syntax::Null => {
                 self.instructions.push(Instruction::PushNull);
@@ -202,8 +202,8 @@ impl Function {
             Syntax::Range { .. } => unimplemented!("range not implemented"),
 
             // handle unreadable token and print what it is
-            _ => return Err(CompilerError {
-                error: CompilerErrorType::InvalidExpressionItem(token),
+            _ => return Err(CodegenError {
+                error: CodegenErrorType::InvalidExpressionItem(token),
                 position,
             })
         }

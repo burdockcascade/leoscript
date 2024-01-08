@@ -2,7 +2,7 @@ use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
 use crate::compiler::error::{ParserError, ParserErrorType};
 use crate::compiler::parser::lexer::Token;
 use crate::compiler::parser::Parser;
-use crate::parse_error;
+use crate::parser_error;
 
 impl Parser {
 
@@ -18,7 +18,7 @@ impl Parser {
                 Token::Class => body.push(self.parse_class()?),
                 Token::Function => body.push(self.parse_function()?),
                 Token::Module => body.push(self.parse_module()?),
-                _ => return parse_error!(peeked.cursor, ParserErrorType::UnwantedToken(peeked.token)),
+                _ => return parser_error!(peeked.cursor, ParserErrorType::UnwantedToken(peeked.token)),
             }
         }
 
@@ -49,7 +49,7 @@ impl Parser {
                     self.skip_next_token_or_error()?; // skip end
                     break;
                 }
-                _ => return parse_error!(peeked.cursor, ParserErrorType::UnwantedToken(peeked.token)),
+                _ => return parser_error!(peeked.cursor, ParserErrorType::UnwantedToken(peeked.token)),
             }
         }
 
@@ -111,7 +111,7 @@ impl Parser {
                     name: token.text,
                 },
                 Token::End => break,
-                _ => return parse_error!(token.cursor, ParserErrorType::UnexpectedError),
+                _ => return parser_error!(token.cursor, ParserErrorType::UnexpectedError),
             };
 
             items.push(item);
@@ -153,7 +153,7 @@ impl Parser {
                     self.skip_next_token_or_error()?; // skip end
                     break;
                 }
-                _ => return parse_error!(peeked.cursor, ParserErrorType::UnwantedToken(peeked.token)),
+                _ => return parser_error!(peeked.cursor, ParserErrorType::UnwantedToken(peeked.token)),
             }
         }
 

@@ -4,7 +4,7 @@ use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
 use crate::compiler::error::{ParserError, ParserErrorType};
 use crate::compiler::parser::{Parser, ParserResult};
 use crate::compiler::parser::lexer::Token;
-use crate::{compiler_error, parse_error};
+use crate::{codegen_error, parser_error};
 
 const FILE_EXTENSION: &str = ".leo";
 
@@ -39,7 +39,7 @@ impl Parser {
 
         // does file exist?
         if !Path::new(&path).exists() {
-            return parse_error!(TokenPosition { line: import_keyword.cursor.line,column: import_keyword.cursor.column, }, ParserErrorType::InvalidImportPath(path));
+            return parser_error!(TokenPosition { line: import_keyword.cursor.line,column: import_keyword.cursor.column, }, ParserErrorType::InvalidImportPath(path));
         }
 
         // read imported file

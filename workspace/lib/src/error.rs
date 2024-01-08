@@ -1,4 +1,4 @@
-use crate::compiler::error::{CompilerError, ParserError};
+use crate::compiler::error::{CodegenError, ParserError};
 use crate::runtime::error::RuntimeError;
 
 #[derive(Debug, PartialEq)]
@@ -8,7 +8,7 @@ pub enum ScriptError {
     ParserError(ParserError),
 
     #[cfg(feature = "compiler")]
-    CompilerError(CompilerError),
+    CodegenError(CodegenError),
 
     #[cfg(feature = "runtime")]
     RuntimeError(RuntimeError)

@@ -2,7 +2,7 @@ use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
 use crate::compiler::error::{ParserError, ParserErrorType};
 use crate::compiler::parser::lexer::Token;
 use crate::compiler::parser::Parser;
-use crate::parse_error;
+use crate::parser_error;
 
 impl Parser {
     pub fn parse_while_loop(&mut self) -> Result<Syntax, ParserError> {
@@ -70,7 +70,7 @@ impl Parser {
                     step,
                 }
             }
-            _ => return parse_error!(kw.cursor, ParserErrorType::UnwantedToken(kw.token))
+            _ => return parser_error!(kw.cursor, ParserErrorType::UnwantedToken(kw.token))
         }
 
         // do

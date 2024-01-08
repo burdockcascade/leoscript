@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
-use crate::compiler::error::CompilerError;
+use crate::compiler::error::CodegenError;
 use crate::runtime::ir::instruction::Instruction;
 
 mod expression;
@@ -47,7 +47,7 @@ struct IteratorTracker {
 }
 
 impl Function {
-    pub fn new(position: TokenPosition, name: String, parameters: Vec<Syntax>, body: Vec<Syntax>) -> Result<Self, CompilerError> {
+    pub fn new(position: TokenPosition, name: String, parameters: Vec<Syntax>, body: Vec<Syntax>) -> Result<Self, CodegenError> {
         let mut f = Function {
             name,
             instructions: vec![],

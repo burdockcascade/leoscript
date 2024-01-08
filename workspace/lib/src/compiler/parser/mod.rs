@@ -3,7 +3,7 @@ use crate::compiler::codegen::syntax::TokenPosition;
 use crate::compiler::error::{ParserError, ParserErrorType};
 use crate::compiler::parser::lexer::{get_lexer, Token};
 use crate::compiler::parser::lexer::lexer::Lexer;
-use crate::parse_error;
+use crate::parser_error;
 
 pub mod toplevel;
 mod function;

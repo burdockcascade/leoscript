@@ -1,4 +1,5 @@
-
+import examples.scripts.fibonacci
+import examples.scripts.graphics
 
 function main()
 
@@ -6,13 +7,4 @@ function main()
 
 end
 
-function fib(n)
-
-  if (n <= 1) then
-    return n
-  end
-
-  return fib(n - 1) + fib(n - 2)
-
-end
 

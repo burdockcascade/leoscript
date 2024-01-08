@@ -6,7 +6,7 @@ use crate::compiler::error::{ParserError, ParserErrorType};
 use crate::compiler::parser::lexer::lexer::MatchedToken;
 use crate::compiler::parser::lexer::Token;
 use crate::compiler::parser::Parser;
-use crate::parse_error;
+use crate::parser_error;
 
 impl Parser {
     // entry point into expression parsing
@@ -243,7 +243,7 @@ impl Parser {
                             let primary = self.parse_primary()?;
                             match primary {
                                 Syntax::Identifier { .. } => Box::from(primary),
-                                _ => return parse_error!(position.cursor, ParserErrorType::InvalidMemberAccess)
+                                _ => return parser_error!(position.cursor, ParserErrorType::InvalidMemberAccess)
                             }
                         },
                     }
@@ -261,7 +261,7 @@ impl Parser {
                             let primary = self.parse_primary()?;
                             match primary {
                                 Syntax::Identifier { .. } => Box::from(primary),
-                                _ => return parse_error!(position.cursor, ParserErrorType::InvalidStaticAccess)
+                                _ => return parser_error!(position.cursor, ParserErrorType::InvalidStaticAccess)
                             }
                         },
                     }
@@ -298,7 +298,7 @@ impl Parser {
                 Ok(expr)
             }
 
-            _ => parse_error!(matched.cursor, ParserErrorType::InvalidExpressionItem(matched.text))
+            _ => parser_error!(matched.cursor, ParserErrorType::InvalidExpressionItem(matched.text))
         }
     }
 
@@ -345,7 +345,7 @@ impl Parser {
                     let value = self.parse_expression()?;
                     items.insert(key.text, value);
                 }
-                _ => return parse_error!(matched.cursor, ParserErrorType::InvalidMapItem(matched.text))
+                _ => return parser_error!(matched.cursor, ParserErrorType::InvalidMapItem(matched.text))
             }
         }
 
@@ -408,7 +408,7 @@ impl Parser {
 
         match expr {
             Some(expr) => Ok(expr),
-            None => parse_error!(self.lexer.get_cursor(), ParserErrorType::InvalidArrayAccess)
+            None => parser_error!(self.lexer.get_cursor(), ParserErrorType::InvalidArrayAccess)
         }
     }
 

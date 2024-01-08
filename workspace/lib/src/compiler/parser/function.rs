@@ -3,7 +3,7 @@ use crate::compiler::error::ParserError;
 use crate::compiler::error::ParserErrorType;
 use crate::compiler::parser::lexer::Token;
 use crate::compiler::parser::Parser;
-use crate::parse_error;
+use crate::parser_error;
 
 impl Parser {
     pub fn parse_function(&mut self) -> Result<Syntax, ParserError> {
@@ -62,7 +62,7 @@ impl Parser {
                 Token::LeftParenthesis => continue,
                 Token::Comma => continue,
                 Token::RightParenthesis => break,
-                _ => return parse_error!(matched.cursor, ParserErrorType::UnwantedToken(matched.token))
+                _ => return parser_error!(matched.cursor, ParserErrorType::UnwantedToken(matched.token))
             }
         }
 
@@ -124,7 +124,7 @@ impl Parser {
             // fixme: cannot return new object
             Token::Return => self.parse_return(),
 
-            _ => parse_error!(peeked.cursor, ParserErrorType::UnwantedToken(peeked.token)),
+            _ => parser_error!(peeked.cursor, ParserErrorType::UnwantedToken(peeked.token)),
         }
     }
 

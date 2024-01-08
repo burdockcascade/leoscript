@@ -3,7 +3,7 @@ use crate::compiler::parser::lexer::lexer::LexerError;
 use crate::compiler::parser::lexer::Token;
 
 #[macro_export]
-macro_rules! parse_error {
+macro_rules! parser_error {
     ($cursor:expr, $error:expr) => {
         Err(ParserError {
             error: $error,
@@ -67,9 +67,9 @@ pub enum IdentifierError {
 }
 
 #[macro_export]
-macro_rules! compiler_error {
+macro_rules! codegen_error {
     ($cursor:expr, $error:expr) => {
-        Err(CompilerError {
+        Err(CodegenError {
             error: $error,
             position: TokenPosition {
                 line: $cursor.line,
@@ -80,14 +80,13 @@ macro_rules! compiler_error {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct CompilerError {
-    pub error: CompilerErrorType,
+pub struct CodegenError {
+    pub error: CodegenErrorType,
     pub position: TokenPosition,
 }
 
 #[derive(Debug, PartialEq)]
-pub enum CompilerErrorType {
-    ParseError(ParserErrorType),
+pub enum CodegenErrorType {
     NoTokens,
 
     GlobalNotFound(String),

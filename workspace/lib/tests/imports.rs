@@ -4,7 +4,7 @@ mod common;
 fn test_import_module() {
 
     test_success!(r#"
-        import tests.scripts.graphics
+        import tests.scripts.super
 
         function main()
 

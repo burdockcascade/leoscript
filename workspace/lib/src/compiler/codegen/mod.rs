@@ -4,7 +4,7 @@ use crate::compiler::codegen::script::Script;
 use crate::compiler::codegen::syntax::Syntax;
 
 use crate::compiler::CompilerResult;
-use crate::compiler::error::{CompilerError};
+use crate::compiler::error::{CodegenError};
 use crate::compiler::warning::CompilerWarning;
 use crate::runtime::ir::instruction::Instruction;
 use crate::runtime::ir::program::Program;
@@ -21,7 +21,7 @@ pub struct CodeGenerationResult {
     pub warnings: Vec<CompilerWarning>,
 }
 
-pub fn generate_program(source: Vec<Syntax>) -> Result<CodeGenerationResult, CompilerError> {
+pub fn generate_program(source: Vec<Syntax>) -> Result<CodeGenerationResult, CodegenError> {
 
     let compiler_timer = std::time::Instant::now();
 
