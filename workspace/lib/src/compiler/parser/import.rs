@@ -1,10 +1,11 @@
 use std::fs;
 use std::path::Path;
+
 use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
 use crate::compiler::error::{ParserError, ParserErrorType};
-use crate::compiler::parser::{Parser, ParserResult};
 use crate::compiler::parser::lexer::Token;
-use crate::{codegen_error, parser_error};
+use crate::compiler::parser::Parser;
+use crate::parser_error;
 
 const FILE_EXTENSION: &str = ".leo";
 

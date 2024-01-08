@@ -1,4 +1,5 @@
 use leoscript::runtime::ir::variant::Variant;
+
 mod common;
 
 #[test]

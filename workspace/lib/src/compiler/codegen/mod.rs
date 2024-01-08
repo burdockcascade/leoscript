@@ -1,14 +1,10 @@
-use std::collections::HashMap;
 use std::time::Duration;
+
 use crate::compiler::codegen::script::Script;
 use crate::compiler::codegen::syntax::Syntax;
-
-use crate::compiler::CompilerResult;
-use crate::compiler::error::{CodegenError};
+use crate::compiler::error::CodegenError;
 use crate::compiler::warning::CompilerWarning;
-use crate::runtime::ir::instruction::Instruction;
 use crate::runtime::ir::program::Program;
-use crate::runtime::ir::variant::Variant;
 
 pub mod script;
 pub mod syntax;

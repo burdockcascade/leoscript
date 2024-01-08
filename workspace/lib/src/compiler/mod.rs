@@ -1,7 +1,6 @@
 use std::time::Duration;
 
 use crate::compiler::codegen::generate_program;
-use crate::compiler::error::{CodegenError, CodegenErrorType, ParserError};
 use crate::compiler::parser::Parser;
 use crate::error::ScriptError;
 use crate::runtime::ir::program::Program;

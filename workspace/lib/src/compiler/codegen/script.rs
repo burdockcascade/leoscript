@@ -1,9 +1,8 @@
 use std::collections::HashMap;
-use crate::compiler::codegen::CodeGenerationResult;
+
 use crate::compiler::codegen::function::Function;
 use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
 use crate::compiler::error::CodegenError;
-use crate::compiler::parser::Parser;
 use crate::runtime::ir::instruction::Instruction;
 use crate::runtime::ir::variant::{CLASS_CONSTRUCTOR_NAME, Variant};
 
