@@ -3,7 +3,6 @@ use crate::runtime::error::RuntimeError;
 
 #[derive(Debug, PartialEq)]
 pub enum ScriptError {
-
     #[cfg(feature = "compiler")]
     ParserError(ParserError),
 
@@ -11,7 +10,7 @@ pub enum ScriptError {
     CodegenError(CodegenError),
 
     #[cfg(feature = "runtime")]
-    RuntimeError(RuntimeError)
+    RuntimeError(RuntimeError),
 }
 
 

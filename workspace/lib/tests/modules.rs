@@ -50,7 +50,6 @@ fn module_with_inner_module_and_functions() {
 
 #[test]
 fn module_with_class() {
-
     test_success!(r#"
         function main()
 

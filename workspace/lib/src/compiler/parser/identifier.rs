@@ -92,5 +92,4 @@ mod test {
             value: Box::new(Syntax::Integer(2)),
         }));
     }
-
 }

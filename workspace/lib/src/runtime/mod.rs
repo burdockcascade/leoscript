@@ -9,7 +9,6 @@ pub mod ir;
 pub mod error;
 
 pub fn run_program(program: Program, entrypoint: &str, parameters: Option<Vec<Variant>>) -> Result<ExecutionResult, RuntimeError> {
-
     let mut thread = Thread::load_program(program)?;
 
     stdlib::add_standard_library(&mut thread)?;

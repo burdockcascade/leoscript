@@ -5,7 +5,7 @@ use crate::runtime::ir::variant::Variant;
 pub struct Frame {
     pub return_address: usize,
     pub stack_pointer: usize,
-    pub variables: Vec<Variant>
+    pub variables: Vec<Variant>,
 }
 
 impl Default for Frame {
@@ -13,13 +13,12 @@ impl Default for Frame {
         Frame {
             return_address: 0,
             stack_pointer: 0,
-            variables: Vec::with_capacity(16)
+            variables: Vec::with_capacity(16),
         }
     }
 }
 
 impl Frame {
-
     pub fn set_variable(&mut self, index: usize, value: Variant) -> Result<(), RuntimeError> {
         if index >= self.variables.len() {
             self.variables.resize(index + 1, Variant::Null);
@@ -34,5 +33,4 @@ impl Frame {
         }
         Ok(&self.variables[index])
     }
-
 }

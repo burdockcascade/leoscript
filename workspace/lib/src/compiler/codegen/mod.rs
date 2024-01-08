@@ -18,7 +18,6 @@ pub struct CodeGenerationResult {
 }
 
 pub fn generate_program(source: Vec<Syntax>) -> Result<CodeGenerationResult, CodegenError> {
-
     let compiler_timer = std::time::Instant::now();
 
     let mut s = Script::new();

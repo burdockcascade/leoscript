@@ -2,7 +2,6 @@ mod common;
 
 #[test]
 fn test_assign_to_variable() {
-
     test_success!(r#"
         function main()
             var a = 1
@@ -10,12 +9,10 @@ fn test_assign_to_variable() {
             return a == 2
         end
     "#);
-
 }
 
 #[test]
 fn attribute_with_default_and_then_set_using_method() {
-
     test_success!(r#"
         class myservice
 
@@ -33,12 +30,10 @@ fn attribute_with_default_and_then_set_using_method() {
             return svc.get_magic_number() == 22
         end
     "#);
-
 }
 
 #[test]
 fn attribute_with_default_and_then_set() {
-
     test_success!(r#"
         class myservice
             attribute magic_number = 22
@@ -50,5 +45,4 @@ fn attribute_with_default_and_then_set() {
             return svc.magic_number == 23
         end
     "#);
-
 }

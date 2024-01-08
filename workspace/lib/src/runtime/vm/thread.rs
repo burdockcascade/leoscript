@@ -69,7 +69,6 @@ macro_rules! pop_tos2 {
 
 impl Thread {
     pub fn load_program(program: Program) -> Result<Self, RuntimeError> {
-
         if program.instructions.is_empty() {
             return Err(RuntimeError::NoInstructions);
         }
@@ -112,8 +111,6 @@ impl Thread {
     }
 
     fn execute(&mut self, entry: &str, parameters: Option<Vec<Variant>>) -> Result<Option<Variant>, RuntimeError> {
-
-
         let mut frames: Vec<Frame> = Vec::with_capacity(64);
         let mut stack: Vec<Variant> = Vec::with_capacity(64);
         let mut trace: Vec<StackTrace> = Vec::with_capacity(64);
@@ -287,7 +284,6 @@ impl Thread {
                 // FUNCTIONS
 
                 Instruction::LoadMember(name) => {
-
                     let parent = pop_tos!(stack, trace);
 
                     match parent {
@@ -299,7 +295,7 @@ impl Thread {
                                     match v {
                                         Variant::FunctionPointer(_) => stack.push(Variant::Object(object.clone())),
                                         Variant::NativeFunctionRef(_) => stack.push(Variant::Object(object.clone())),
-                                        _ => {},
+                                        _ => {}
                                     }
                                     ip += 1;
                                 }
@@ -407,7 +403,7 @@ impl Thread {
                             current_frame = Frame {
                                 return_address: ip + 1,
                                 stack_pointer: stack.len(),
-                                variables: Vec::with_capacity(16)
+                                variables: Vec::with_capacity(16),
                             };
 
                             // push args onto stack

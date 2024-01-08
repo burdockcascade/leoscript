@@ -17,7 +17,6 @@ pub struct Script {
 }
 
 impl Script {
-
     pub fn new() -> Self {
         Script {
             structure: HashMap::new(),
@@ -33,11 +32,11 @@ impl Script {
                     self.structure.insert(function_name.to_string(), v);
                 }
                 Syntax::Module { position, module_name, body } => {
-                    let v= self.generate_module(position, module_name.to_string(), body)?;
+                    let v = self.generate_module(position, module_name.to_string(), body)?;
                     self.structure.insert(module_name.to_string(), v);
-                },
+                }
                 Syntax::Class { position, class_name, constructor, attributes, methods } => {
-                    let v= self.generate_class(position, class_name.to_string(), attributes, constructor, methods)?;
+                    let v = self.generate_class(position, class_name.to_string(), attributes, constructor, methods)?;
                     self.structure.insert(class_name.to_string(), v);
                 }
                 Syntax::Enum { position, name, items } => {
@@ -72,7 +71,6 @@ impl Script {
     }
 
     fn generate_class(&mut self, position: TokenPosition, name: String, attributes: Vec<Syntax>, constructor: Option<Box<Syntax>>, methods: Vec<Syntax>) -> Result<Variant, CodegenError> {
-
         let mut structure = HashMap::default();
         structure.insert(String::from(TYPE_FIELD), Variant::Type(name));
 
@@ -82,7 +80,7 @@ impl Script {
             match attr {
                 Syntax::Attribute { name, .. } => {
                     structure.insert(name.to_string(), Variant::Null);
-                },
+                }
                 _ => {}
             }
         }
@@ -92,7 +90,7 @@ impl Script {
             Some(c) => {
                 let Syntax::Constructor { position, input, body } = *c else { todo!() };
                 self.generate_constructor(position, input, body, attributes)?
-            },
+            }
             _ => self.generate_constructor(position, vec![], vec![], attributes)?
         };
 
@@ -157,7 +155,6 @@ impl Script {
     }
 
     pub fn generate_module(&mut self, position: TokenPosition, name: String, body: Vec<Syntax>) -> Result<Variant, CodegenError> {
-
         let mut structure = HashMap::default();
 
         // set module type
@@ -170,7 +167,7 @@ impl Script {
                     let v = self.generate_function(position, function_name.to_string(), input, body)?;
                     structure.insert(function_name.to_string(), v);
                 }
-                Syntax::Class { position, class_name, attributes, constructor, methods} => {
+                Syntax::Class { position, class_name, attributes, constructor, methods } => {
                     let v = self.generate_class(position, class_name.to_string(), attributes, constructor, methods)?;
                     structure.insert(class_name.to_string(), v);
                 }
@@ -201,5 +198,4 @@ impl Script {
 
         Ok(Variant::Enum(enum_def))
     }
-
 }

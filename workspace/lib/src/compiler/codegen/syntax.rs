@@ -3,7 +3,6 @@ use std::fmt::Display;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Syntax {
-
     Module {
         position: TokenPosition,
         module_name: Box<Syntax>,
@@ -54,7 +53,7 @@ pub enum Syntax {
         class_name: Box<Syntax>,
         attributes: Vec<Syntax>,
         constructor: Option<Box<Syntax>>,
-        methods: Vec<Syntax>
+        methods: Vec<Syntax>,
     },
 
     Identifier {
@@ -164,7 +163,7 @@ pub enum Syntax {
     Range {
         start: Box<Syntax>,
         end: Box<Syntax>,
-        step: Option<Box<Syntax>>
+        step: Option<Box<Syntax>>,
     },
 
     Break {
@@ -187,17 +186,17 @@ pub enum Syntax {
 
     Property {
         position: TokenPosition,
-        name: Box<Syntax>
+        name: Box<Syntax>,
     },
     MemberAccess {
         position: TokenPosition,
         target: Box<Syntax>,
-        index: Box<Syntax>
+        index: Box<Syntax>,
     },
     StaticAccess {
         position: TokenPosition,
         target: Box<Syntax>,
-        index: Box<Syntax>
+        index: Box<Syntax>,
     },
     Script { body: Vec<Syntax> },
 }

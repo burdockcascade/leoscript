@@ -4,7 +4,6 @@ mod common;
 
 #[test]
 fn if_true() {
-
     let script = r#"
          function main(input)
             var output = input
@@ -23,12 +22,10 @@ fn if_true() {
     for test in test_matrix {
         test_success!(script, Some(vec![test.0]), test.1);
     }
-
 }
 
 #[test]
 fn if_bool() {
-
     let script = r#"
          function main(input)
             var output = 2
@@ -51,7 +48,6 @@ fn if_bool() {
 
 #[test]
 fn if_not_bool() {
-
     let script = r#"
          function main(input)
 
@@ -79,7 +75,6 @@ fn if_not_bool() {
 
 #[test]
 fn if_not_expression() {
-
     let script = r#"
          function main(input)
 
@@ -115,7 +110,6 @@ fn if_not_expression() {
 
 #[test]
 fn if_and() {
-
     let script = r#"
          function main(input1, input2, input3)
 
@@ -149,7 +143,6 @@ fn if_and() {
 
 #[test]
 fn if_or() {
-
     let script = r#"
          function main(input1, input2, input3)
 
@@ -183,7 +176,6 @@ fn if_or() {
 
 #[test]
 fn if_or_and() {
-
     let script = r#"
          function main(input1, input2, input3)
 
@@ -217,7 +209,6 @@ fn if_or_and() {
 
 #[test]
 fn if_else_if_else() {
-
     let script = r#"
          function main(input)
 
@@ -250,7 +241,6 @@ fn if_else_if_else() {
 
 #[test]
 fn if_else() {
-
     let script = r#"
          function main(input)
 
@@ -281,7 +271,6 @@ fn if_else() {
 
 #[test]
 fn test_match_case_and_default() {
-
     test_success!(r#"
         function main()
 
@@ -312,7 +301,6 @@ fn test_match_case_and_default() {
 
 #[test]
 fn test_match_no_match_and_no_default() {
-
     test_success!(r#"
         function main()
 
@@ -335,7 +323,6 @@ fn test_match_no_match_and_no_default() {
 
 #[test]
 fn test_match_case_with_mixed_values() {
-
     test_success!(r#"
         function main()
 
@@ -370,7 +357,6 @@ fn test_match_case_with_mixed_values() {
 
 #[test]
 fn test_match_case_default() {
-
     test_success!(r#"
         function main()
 
@@ -401,7 +387,6 @@ fn test_match_case_default() {
 
 #[test]
 fn test_match_case_default_out_of_order() {
-
     test_success!(r#"
         function main()
 

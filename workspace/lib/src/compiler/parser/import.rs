@@ -10,16 +10,13 @@ use crate::parser_error;
 const FILE_EXTENSION: &str = ".leo";
 
 impl Parser {
-
     pub(crate) fn parse_import(&mut self) -> Result<Vec<Syntax>, ParserError> {
-
         let import_keyword = self.next_token_or_error()?;
 
         let mut path = String::new();
 
         // read path
         while self.lexer.has_more_tokens() {
-
             let peeked = self.peek_next_token_or_error()?;
 
             match peeked.token {
@@ -32,10 +29,9 @@ impl Parser {
                     } else {
                         path += FILE_EXTENSION;
                     }
-                },
+                }
                 _ => break,
             }
-
         }
 
         // does file exist?
@@ -51,7 +47,6 @@ impl Parser {
 
         Ok(p.syntax_tree)
     }
-
 }
 
 #[cfg(test)]
@@ -60,7 +55,6 @@ mod test {
 
     #[test]
     fn test_imports() {
-
         let main_source = r#"
             import tests.scripts.super
 
@@ -73,7 +67,5 @@ mod test {
         let p = Parser::parse(main_source);
 
         assert!(p.is_ok());
-
     }
-
 }

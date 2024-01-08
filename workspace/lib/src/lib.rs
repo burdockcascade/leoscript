@@ -20,7 +20,6 @@ pub struct ScriptResult {
 }
 
 pub fn run_script(source: &str, entrypoint: &str, args: Option<Vec<Variant>>) -> Result<ScriptResult, ScriptError> {
-
     let compiler_result = match compile(source) {
         Ok(result) => result,
         Err(e) => return Err(e),

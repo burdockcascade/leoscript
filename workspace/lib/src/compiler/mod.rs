@@ -19,7 +19,6 @@ pub struct CompilerResult {
 }
 
 pub fn compile(source: &str) -> Result<CompilerResult, ScriptError> {
-
     let parse_result = match Parser::parse(source) {
         Ok(pr) => pr,
         Err(e) => return Err(ScriptError::ParserError(e)),

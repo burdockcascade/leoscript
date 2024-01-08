@@ -41,7 +41,6 @@ impl Function {
                     Syntax::Identifier { position: _position, name } => self.instructions.push(Instruction::LoadMember(name)),
                     _ => self.generate_expression(position, index)?
                 }
-
             }
 
             Syntax::StaticAccess { position, target, index } => {

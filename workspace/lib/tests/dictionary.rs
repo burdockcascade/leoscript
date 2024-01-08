@@ -2,7 +2,6 @@ mod common;
 
 #[test]
 pub fn dict_new() {
-
     test_success!(r#"
         function main()
             var d =  Dictionary({a: 1, b: 2, c: 3})
@@ -13,7 +12,6 @@ pub fn dict_new() {
 
 #[test]
 pub fn dict_set() {
-
     test_success!(r#"
         function main()
             var d =  Dictionary()
@@ -27,7 +25,6 @@ pub fn dict_set() {
 
 #[test]
 pub fn dict_length() {
-
     test_success!(r#"
         function main()
             var d =  Dictionary()
@@ -41,7 +38,6 @@ pub fn dict_length() {
 
 #[test]
 pub fn dict_remove() {
-
     test_success!(r#"
         function main()
             var d =  Dictionary()
@@ -56,7 +52,6 @@ pub fn dict_remove() {
 
 #[test]
 pub fn dict_clear() {
-
     test_success!(r#"
         function main()
             var d =  Dictionary()
@@ -71,7 +66,6 @@ pub fn dict_clear() {
 
 #[test]
 pub fn dicts_2() {
-
     test_success!(r#"
         function main()
             var d1 =  Dictionary()

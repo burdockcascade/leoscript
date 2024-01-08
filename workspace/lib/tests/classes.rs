@@ -4,7 +4,6 @@ mod common;
 
 #[test]
 fn class_with_no_constructor() {
-
     let script = r#"
         function main(x)
             var d = Book()
@@ -19,12 +18,10 @@ fn class_with_no_constructor() {
     "#;
 
     test_success!(script, Some(vec![Variant::Integer(10)]))
-
 }
 
 #[test]
 fn class_with_fields_but_without_constructor() {
-
     let script = r#"
         class myservice
 
@@ -44,12 +41,10 @@ fn class_with_fields_but_without_constructor() {
     "#;
 
     test_success!(script, None, Variant::Integer(22))
-
 }
 
 #[test]
 fn pass_object_as_parameter() {
-
     test_success!(r#"
         class myservice
 
@@ -71,5 +66,4 @@ fn pass_object_as_parameter() {
             return svc.get_magic_number() == 24
         end
     "#);
-
 }

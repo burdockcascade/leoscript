@@ -33,7 +33,6 @@ pub enum Variant {
     // fixme: deprecated
     FunctionRef(String),
 
-
     FunctionPointer(usize),
 
     // Native Functions

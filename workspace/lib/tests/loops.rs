@@ -32,7 +32,7 @@ fn for_loop() {
 
 #[test]
 fn for_loop_with_continue() {
-   test_success!(r#"
+    test_success!(r#"
          function main()
 
             var counter = 0

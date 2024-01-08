@@ -2,26 +2,22 @@ use crate::runtime::error::RuntimeError;
 use crate::runtime::ir::variant::Variant;
 
 pub trait NativeClass: PartialEq {
-
     fn constructor(&self, params: Vec<Variant>) -> Result<Self, RuntimeError> where Self: Sized;
 
     fn call(&self, name: &str, params: Vec<Variant>) -> Result<Option<Box<Variant>>, RuntimeError>;
-
 }
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct MyClass {
-    value: Vec<Variant>
+    value: Vec<Variant>,
 }
 
 impl MyClass {
-
     pub fn new() -> Self {
         MyClass {
             value: Vec::new()
         }
     }
-
 }
 
 impl PartialEq for MyClass {
@@ -31,7 +27,6 @@ impl PartialEq for MyClass {
 }
 
 impl NativeClass for MyClass {
-
     fn constructor(&self, params: Vec<Variant>) -> Result<Self, RuntimeError> {
         Ok(MyClass {
             value: params
@@ -39,7 +34,6 @@ impl NativeClass for MyClass {
     }
 
     fn call(&self, name: &str, params: Vec<Variant>) -> Result<Option<Box<Variant>>, RuntimeError> {
-
         let Some(Variant::Integer(index)) = params.get(0) else {
             panic!("Invalid parameter type");
         };
@@ -49,7 +43,6 @@ impl NativeClass for MyClass {
             _ => panic!("Unknown method")
         }
     }
-
 }
 
 #[cfg(test)]
@@ -64,5 +57,4 @@ mod test {
         let result = my_class.call("get_value", vec![Variant::Integer(0)]).unwrap();
         assert_eq!(result, Some(Variant::Integer(42)));
     }
-
 }

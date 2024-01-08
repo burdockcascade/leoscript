@@ -307,7 +307,6 @@ impl<T: Clone + PartialEq + Debug> Lexer<T> {
     }
 
     pub fn peek(&mut self) -> Option<Result<MatchedToken<T>, LexerError>> {
-
         if self.is_eof() {
             return None;
         }

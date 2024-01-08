@@ -5,7 +5,6 @@ use crate::runtime::ir::instruction::Instruction;
 
 impl Function {
     pub(crate) fn generate_if_else(&mut self, syntax: Box<Syntax>) -> Result<(), CodegenError> {
-
         let Syntax::IfChain { position: _, arms } = *syntax else {
             return Err(CodegenError {
                 error: CodegenErrorType::IfStatementInvalid,
@@ -150,7 +149,7 @@ mod test {
                         position: Default::default(),
                         expr: Box::new(Syntax::String("two".to_string())),
                     }],
-                }
+                },
             ],
             default: Some(Box::from(Syntax::DefaultCase {
                 position: Default::default(),
@@ -209,7 +208,7 @@ mod test {
             Instruction::JumpForwardIfFalse(4),
             Instruction::PushString("hello".to_string()),
             Instruction::Print,
-            Instruction::JumpForward(1)
+            Instruction::JumpForward(1),
         ]);
     }
 
@@ -232,7 +231,7 @@ mod test {
                         position: Default::default(),
                         expr: Box::new(Syntax::String("world".to_string())),
                     }],
-                }
+                },
             ],
 
         };
@@ -250,5 +249,4 @@ mod test {
             Instruction::Print,
         ]);
     }
-
 }

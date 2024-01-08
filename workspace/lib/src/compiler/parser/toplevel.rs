@@ -5,7 +5,6 @@ use crate::compiler::parser::Parser;
 use crate::parser_error;
 
 impl Parser {
-
     pub fn parse_script(&mut self) -> Result<(), ParserError> {
         let mut body = vec![];
 
@@ -32,7 +31,7 @@ impl Parser {
 
         let module_name = self.match_next_token_or_error(Token::Identifier)?;
 
-        let mut body    = vec![];
+        let mut body = vec![];
         let mut imports = vec![];
 
         while self.lexer.has_more_tokens() {
@@ -65,7 +64,7 @@ impl Parser {
                 },
                 name: module_name.text,
             }),
-            body
+            body,
         })
     }
 
@@ -431,5 +430,4 @@ mod test {
             ],
         });
     }
-
 }
