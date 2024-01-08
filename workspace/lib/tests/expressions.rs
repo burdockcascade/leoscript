@@ -14,18 +14,6 @@ fn test_assign_to_variable() {
 }
 
 #[test]
-fn test_get_value_from_expression() {
-
-    test_success!(r#"
-        function main()
-            var a = [1, 2, 3]
-            return a[1] == 2
-        end
-    "#);
-
-}
-
-#[test]
 fn attribute_with_default_and_then_set_using_method() {
 
     test_success!(r#"
@@ -60,22 +48,6 @@ fn attribute_with_default_and_then_set() {
             var svc =  myservice()
             svc.magic_number = 23
             return svc.magic_number == 23
-        end
-    "#);
-
-}
-
-#[test]
-fn attribute_with_default_and_then_set_using_array_access() {
-    test_success!(r#"
-        class myservice
-            attribute magic_numbers = [11, 22, 33, 0]
-        end
-
-        function main()
-            var svc =  myservice()
-            svc.magic_numbers[3] = 44
-            return svc.magic_numbers[3] == 44
         end
     "#);
 

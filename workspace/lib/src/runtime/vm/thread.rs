@@ -286,11 +286,7 @@ impl Thread {
                 //==================================================================================
                 // FUNCTIONS
 
-                Instruction::LoadMember => {
-
-                    let Variant::Identifier(name) = pop_tos!(stack, trace) else {
-                        return Err(RuntimeError::ExpectedMemberNameOnStack);
-                    };
+                Instruction::LoadMember(name) => {
 
                     let parent = pop_tos!(stack, trace);
 
@@ -561,6 +557,27 @@ impl Thread {
                                 items_borrowed.insert(index, value);
                             } else {
                                 return Err(RuntimeError::InvalidObjectMember);
+                            }
+                        }
+                        Variant::Identifier(index) => unimplemented!("set collection item for module"),
+                        _ => return Err(RuntimeError::InvalidCollection),
+                    }
+
+                    ip += 1;
+                }
+
+                Instruction::SetArrayItem => {
+                    let value = pop_tos!(stack, trace);
+                    let key = pop_tos!(stack, trace);
+                    let collection = pop_tos!(stack, trace);
+
+                    match collection {
+                        Variant::Array(mut items) => {
+                            if let Variant::Integer(index) = key {
+                                items[index as usize] = value;
+                                stack.push(Variant::Array(items));
+                            } else {
+                                return Err(RuntimeError::InvalidArrayIndex);
                             }
                         }
                         _ => return Err(RuntimeError::InvalidCollection),

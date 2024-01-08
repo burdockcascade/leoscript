@@ -34,21 +34,14 @@ impl Function {
                 }
             }
 
-            Syntax::ArrayAccess { position, target, index } => {
-                self.generate_expression(position, target)?;
-                self.generate_expression(position, index)?;
-                self.instructions.push(Instruction::GetCollectionItem);
-            }
-
             Syntax::MemberAccess { position, target, index } => {
                 self.generate_expression(position, target)?;
 
                 match *index {
-                    Syntax::Identifier { position: _position, name } => self.instructions.push(Instruction::PushIdentifier(name)),
+                    Syntax::Identifier { position: _position, name } => self.instructions.push(Instruction::LoadMember(name)),
                     _ => self.generate_expression(position, index)?
                 }
 
-                self.instructions.push(Instruction::LoadMember);
             }
 
             Syntax::StaticAccess { position, target, index } => {
@@ -543,8 +536,7 @@ mod test {
             },
             vec![
                 Instruction::LoadGlobal(String::from("myservice")),
-                Instruction::PushIdentifier(String::from("myfunc")),
-                Instruction::LoadMember,
+                Instruction::LoadMember(String::from("myfunc")),
                 Instruction::PushInteger(1),
                 Instruction::PushInteger(2),
                 Instruction::Call(3),
@@ -592,8 +584,7 @@ mod test {
                 Instruction::PushInteger(1),
                 Instruction::PushInteger(2),
                 Instruction::Call(2),
-                Instruction::PushIdentifier(String::from("print")),
-                Instruction::LoadMember,
+                Instruction::LoadMember(String::from("print")),
                 Instruction::Call(1),
             ]
         );

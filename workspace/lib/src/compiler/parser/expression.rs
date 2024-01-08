@@ -229,18 +229,7 @@ impl Parser {
                         args: self.parse_arguments()?,
                     }
                 }
-                Token::LeftSquareBracket => {
-                    self.skip_next_token_or_error()?;
-                    position = self.peek_next_token_or_error()?;
-                    expr = Syntax::ArrayAccess {
-                        position: TokenPosition {
-                            line: position.cursor.line,
-                            column: position.cursor.column,
-                        },
-                        target: Box::from(expr),
-                        index: Box::from(self.parse_array_access()?),
-                    };
-                }
+                Token::LeftSquareBracket => unimplemented!("array access not supported"),
                 Token::Dot => {
                     self.skip_next_token_or_error()?;
                     position = self.peek_next_token_or_error()?;
@@ -848,96 +837,6 @@ mod test {
     // --- Data access ---
 
     #[test]
-    fn test_array_access() {
-        run_expr_test_ok!("a[1]", Syntax::ArrayAccess {
-            position: TokenPosition { line: 1, column: 3 },
-            target: Box::from(Syntax::Identifier {
-                position: TokenPosition { line: 1, column: 1 },
-                name: String::from("a"),
-            }),
-            index: Box::from(Syntax::Integer(1)),
-        });
-    }
-
-    #[test]
-    fn test_array_access_with_math() {
-        run_expr_test_ok!("a[1] + b[2]", Syntax::Add {
-            expr1: Box::from(Syntax::ArrayAccess {
-                position: TokenPosition { line: 1, column: 3 },
-                target: Box::from(Syntax::Identifier {
-                    position: TokenPosition { line: 1, column: 1 },
-                    name: String::from("a"),
-                }),
-                index: Box::from(Syntax::Integer(1)),
-            }),
-            expr2: Box::from(Syntax::ArrayAccess {
-                position: TokenPosition { line: 1, column: 10 },
-                target: Box::from(Syntax::Identifier {
-                    position: TokenPosition { line: 1, column: 8 },
-                    name: String::from("b"),
-                }),
-                index: Box::from(Syntax::Integer(2)),
-            }),
-        });
-    }
-
-    #[test]
-    fn test_multi_dimension_array_access() {
-        run_expr_test_ok!("a[1][2]", Syntax::ArrayAccess {
-            position: TokenPosition { line: 1, column: 6 },
-            target: Box::from(Syntax::ArrayAccess {
-                position: TokenPosition { line: 1, column: 3 },
-                target: Box::from(Syntax::Identifier {
-                    position: TokenPosition { line: 1, column: 1 },
-                    name: String::from("a"),
-                }),
-                index: Box::from(Syntax::Integer(1)),
-            }),
-            index: Box::from(Syntax::Integer(2)),
-        });
-    }
-
-    #[test]
-    fn test_multi_dimension_array_access_with_function_call() {
-        run_expr_test_ok!("f()[1][2]", Syntax::ArrayAccess {
-            position: TokenPosition { line: 1, column: 8 },
-            target: Box::from(Syntax::ArrayAccess {
-                position: TokenPosition { line: 1, column: 5 },
-                target: Box::from(Syntax::Call {
-                    position: TokenPosition { line: 1, column: 1 },
-                    target: Box::from(Syntax::Identifier {
-                        position: TokenPosition { line: 1, column: 1 },
-                        name: String::from("f"),
-                    }),
-                    args: vec![],
-                }),
-                index: Box::from(Syntax::Integer(1)),
-            }),
-            index: Box::from(Syntax::Integer(2)),
-        });
-    }
-
-    #[test]
-    fn test_multi_dimension_array_access_with_function_call2() {
-        run_expr_test_ok!("f[1]()[2]", Syntax::ArrayAccess {
-            position: TokenPosition { line: 1, column: 8 },
-            target: Box::from(Syntax::Call {
-                position: TokenPosition { line: 1, column: 3 },
-                target: Box::from(Syntax::ArrayAccess {
-                    position: TokenPosition { line: 1, column: 3 },
-                    target: Box::from(Syntax::Identifier {
-                        position: TokenPosition { line: 1, column: 1 },
-                        name: String::from("f"),
-                    }),
-                    index: Box::from(Syntax::Integer(1)),
-                }),
-                args: vec![],
-            }),
-            index: Box::from(Syntax::Integer(2)),
-        });
-    }
-
-    #[test]
     fn test_identifier_chain_simple() {
         run_expr_test_ok!("library.shelves.books", Syntax::MemberAccess {
             position: TokenPosition { line: 1, column: 17 },
@@ -961,26 +860,33 @@ mod test {
 
     #[test]
     fn test_identifier_chain_with_array_int_access() {
-        run_expr_test_ok!("library.shelf[1].books", Syntax::MemberAccess {
-            position: TokenPosition { line: 1, column: 18 },
+        run_expr_test_ok!("library.shelves.get(3).books", Syntax::MemberAccess {
+            position: TokenPosition { line: 1, column: 24 },
             index: Box::from(Syntax::Identifier {
-                position: TokenPosition { line: 1, column: 18 },
+                position: TokenPosition { line: 1, column: 24 },
                 name: String::from("books"),
             }),
-            target: Box::from(Syntax::ArrayAccess {
-                position: TokenPosition { line: 1, column: 15 },
-                index: Box::from(Syntax::Integer(1)),
+            target: Box::from(Syntax::Call {
+                position: TokenPosition { line: 1, column: 17},
                 target: Box::from(Syntax::MemberAccess {
-                    position: TokenPosition { line: 1, column: 9 },
+                    position: TokenPosition { line: 1, column: 17 },
                     index: Box::from(Syntax::Identifier {
-                        position: TokenPosition { line: 1, column: 9 },
-                        name: String::from("shelf"),
+                        position: TokenPosition { line: 1, column: 17 },
+                        name: String::from("get"),
                     }),
-                    target: Box::from(Syntax::Identifier {
-                        position: TokenPosition { line: 1, column: 1 },
-                        name: String::from("library"),
+                    target: Box::from(Syntax::MemberAccess {
+                        position: TokenPosition { line: 1, column: 9 },
+                        index: Box::from(Syntax::Identifier {
+                            position: TokenPosition { line: 1, column: 9 },
+                            name: String::from("shelves"),
+                        }),
+                        target: Box::from(Syntax::Identifier {
+                            position: TokenPosition { line: 1, column: 1 },
+                            name: String::from("library"),
+                        }),
                     }),
                 }),
+                args: vec![Syntax::Integer(3)],
             }),
         });
     }
@@ -1053,56 +959,91 @@ mod test {
 
     #[test]
     fn test_access_index_is_expression() {
-        run_expr_test_ok!("page[chapter + 3]", Syntax::ArrayAccess {
-            position: TokenPosition { line: 1, column: 6 },
-            target: Box::from(Syntax::Identifier {
-                position: TokenPosition { line: 1, column: 1 },
-                name: String::from("page"),
-            }),
-            index: Box::from(Syntax::Add {
-                expr1: Box::from(Syntax::Identifier {
-                    position: TokenPosition { line: 1, column: 6 },
-                    name: String::from("chapter"),
+        run_expr_test_ok!("pages.get(chapter + 3)",
+            Syntax::Call {
+                position: TokenPosition { line: 1, column: 7 },
+                target: Box::from(Syntax::MemberAccess {
+                    position: TokenPosition { line: 1, column: 7 },
+                    index: Box::from(Syntax::Identifier {
+                        position: TokenPosition { line: 1, column: 7 },
+                        name: String::from("get"),
+                    }),
+                    target: Box::from(Syntax::Identifier {
+                        position: TokenPosition { line: 1, column: 1 },
+                        name: String::from("pages"),
+                    }),
                 }),
-                expr2: Box::from(Syntax::Integer(3)),
-            }),
-        });
+                args: vec![
+                    Syntax::Add {
+                        expr1: Box::from(Syntax::Identifier {
+                            position: TokenPosition { line: 1, column: 11 },
+                            name: String::from("chapter"),
+                        }),
+                        expr2: Box::from(Syntax::Integer(3)),
+                    },
+                ],
+            }
+        );
     }
 
     #[test]
     fn array_access_on_class_attribute() {
-        run_expr_test_ok!("book.authors[0]", Syntax::ArrayAccess {
-            position: TokenPosition { line: 1, column: 14 },
-            target: Box::from(Syntax::MemberAccess {
-                position: TokenPosition { line: 1, column: 6 },
-                index: Box::from(Syntax::Identifier {
-                    position: TokenPosition { line: 1, column: 6 },
-                    name: String::from("authors"),
+        run_expr_test_ok!("book.authors.get(0)",
+            Syntax::Call {
+                position: TokenPosition { line: 1, column: 14 },
+                target: Box::from(Syntax::MemberAccess {
+                    position: TokenPosition { line: 1, column: 14 },
+                    index: Box::from(Syntax::Identifier {
+                        position: TokenPosition { line: 1, column: 14 },
+                        name: String::from("get"),
+                    }),
+                    target: Box::from(Syntax::MemberAccess {
+                        position: TokenPosition { line: 1, column: 6 },
+                        index: Box::from(Syntax::Identifier {
+                            position: TokenPosition { line: 1, column: 6 },
+                            name: String::from("authors"),
+                        }),
+                        target: Box::from(Syntax::Identifier {
+                            position: TokenPosition { line: 1, column: 1 },
+                            name: String::from("book"),
+                        }),
+                    }),
                 }),
-                target: Box::from(Syntax::Identifier {
-                    position: TokenPosition { line: 1, column: 1 },
-                    name: String::from("book"),
-                }),
-            }),
-            index: Box::from(Syntax::Integer(0)),
-        });
+                args: vec![
+                    Syntax::Integer(0),
+                ],
+            }
+        );
     }
 
     #[test]
-    fn test_member_access_with_square_brackets
-    () {
-        run_expr_test_ok!(r#"library["shelves"]["books"]"#, Syntax::ArrayAccess {
-            position: TokenPosition { line: 1, column: 20 },
-            index: Box::from(Syntax::String(String::from("books"))),
-            target: Box::from(Syntax::ArrayAccess {
-                position: TokenPosition { line: 1, column: 9 },
-                index: Box::from(Syntax::String(String::from("shelves"))),
-                target: Box::from(Syntax::Identifier {
-                    position: TokenPosition { line: 1, column: 1 },
-                    name: String::from("library"),
+    fn test_member_access_with_square_brackets() {
+        run_expr_test_ok!(r#"library.shelves.get(123)"#,
+            Syntax::Call {
+                position: TokenPosition { line: 1, column: 17 },
+                target: Box::from(Syntax::MemberAccess {
+                    position: TokenPosition { line: 1, column: 17 },
+                    index: Box::from(Syntax::Identifier {
+                        position: TokenPosition { line: 1, column: 17 },
+                        name: String::from("get"),
+                    }),
+                    target: Box::from(Syntax::MemberAccess {
+                        position: TokenPosition { line: 1, column: 9 },
+                        index: Box::from(Syntax::Identifier {
+                            position: TokenPosition { line: 1, column: 9 },
+                            name: String::from("shelves"),
+                        }),
+                        target: Box::from(Syntax::Identifier {
+                            position: TokenPosition { line: 1, column: 1 },
+                            name: String::from("library"),
+                        }),
+                    }),
                 }),
-            }),
-        });
+                args: vec![
+                    Syntax::Integer(123),
+                ],
+            }
+        );
     }
 
     #[test]

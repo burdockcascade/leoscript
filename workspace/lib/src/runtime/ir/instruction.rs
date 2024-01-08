@@ -27,7 +27,7 @@ pub enum Instruction {
     // Global
     LoadGlobal(String),
     LoadClass(String),
-    LoadMember,
+    LoadMember(String),
 
     // Objects
     CreateObject,
@@ -77,6 +77,7 @@ pub enum Instruction {
 
     // Halt Program
     Halt(String),
-    Debug(String)
+    Debug(String),
 
+    SetArrayItem,
 }

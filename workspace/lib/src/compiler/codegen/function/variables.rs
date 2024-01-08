@@ -97,16 +97,6 @@ impl Function {
                 self.instructions.push(Instruction::SetCollectionItem);
             }
 
-            Syntax::ArrayAccess { position, target, index } => {
-                self.generate_expression(position, target)?;
-
-                self.generate_expression(position, index)?;
-
-                self.generate_expression(position, value)?;
-
-                self.instructions.push(Instruction::SetCollectionItem);
-            }
-
             _ => return Err(CompilerError {
                 error: CompilerErrorType::UnableToAssignItem(target),
                 position,
@@ -115,4 +105,99 @@ impl Function {
 
         Ok(())
     }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::compiler::codegen::function::Function;
+    use crate::compiler::codegen::syntax::{Syntax, TokenPosition};
+    use crate::runtime::ir::instruction::Instruction;
+
+    macro_rules! test_assignment_ok {
+        ($target:expr, $value:expr, $expected:expr) => {
+            {
+                use crate::compiler::codegen::function::Variable;
+                let mut g = Function::default();
+
+                g.variables.insert(String::from("a"), Variable {
+                    slot_index: 0,
+                    name: String::from("a"),
+                });
+                g.variables.insert(String::from("b"), Variable {
+                    slot_index: 1,
+                    name: String::from("b"),
+                });
+                g.variables.insert(String::from("c"), Variable {
+                    slot_index: 2,
+                    name: String::from("c"),
+                });
+                g.variables.insert(String::from("rooms"), Variable {
+                    slot_index: 3,
+                    name: String::from("rooms"),
+                });
+
+                g.generate_assignment(TokenPosition::default(), $target, $value);
+                assert_eq!(g.instructions, $expected);
+            }
+        };
+    }
+
+    #[test]
+    fn test_identifier_assignment_with_member_access() {
+        // kitchen.teacups = 2
+        test_assignment_ok!(
+            Box::new(Syntax::MemberAccess {
+                position: TokenPosition::default(),
+                target: Box::new(Syntax::Identifier {
+                    position: TokenPosition::default(),
+                    name: "kitchen".to_string(),
+                }),
+                index: Box::new(Syntax::Identifier {
+                    position: TokenPosition::default(),
+                    name: "teacups".to_string(),
+                }),
+            }),
+            Box::new(Syntax::Integer(2)),
+            vec![
+                Instruction::LoadGlobal("kitchen".to_string()),
+                Instruction::PushIdentifier("teacups".to_string()),
+                Instruction::PushInteger(2),
+                Instruction::SetCollectionItem,
+            ]
+        );
+    }
+
+    #[test]
+    fn test_identifier_assignment_with_double_member_access() {
+        // house.kitchen.teacups = 2
+        test_assignment_ok!(
+            Box::new(Syntax::MemberAccess {
+                position: TokenPosition::default(),
+                target: Box::new(Syntax::MemberAccess {
+                    position: TokenPosition::default(),
+                    target: Box::new(Syntax::Identifier {
+                        position: TokenPosition::default(),
+                        name: "house".to_string(),
+                    }),
+                    index: Box::new(Syntax::Identifier {
+                        position: TokenPosition::default(),
+                        name: "kitchen".to_string(),
+                    }),
+                }),
+                index: Box::new(Syntax::Identifier {
+                    position: TokenPosition::default(),
+                    name: "teacups".to_string(),
+                }),
+            }),
+            Box::new(Syntax::Integer(2)),
+            vec![
+                Instruction::LoadGlobal("house".to_string()),
+                Instruction::LoadMember("kitchen".to_string()),
+                Instruction::PushIdentifier("teacups".to_string()),
+                Instruction::PushInteger(2),
+                Instruction::SetCollectionItem,
+            ]
+        );
+    }
+
 }

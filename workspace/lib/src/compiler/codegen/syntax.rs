@@ -196,11 +196,6 @@ pub enum Syntax {
         position: TokenPosition,
         name: Box<Syntax>
     },
-    ArrayAccess {
-        position: TokenPosition,
-        target: Box<Syntax>,
-        index: Box<Syntax>
-    },
     MemberAccess {
         position: TokenPosition,
         target: Box<Syntax>,

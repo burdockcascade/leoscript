@@ -365,7 +365,7 @@ mod test {
     fn return_new_object() {
         let mut p = Parser::new(r#"
         function get_object()
-            return new Object()
+            return Object()
         end"#);
 
         let r = match p.parse_function() {
@@ -392,7 +392,7 @@ mod test {
                     expr: Some(Box::new(Syntax::Call {
                         position: TokenPosition { line: 3, column: 20 },
                         target: Box::new(Syntax::Identifier {
-                            position: TokenPosition { line: 3, column: 24 },
+                            position: TokenPosition { line: 3, column: 20 },
                             name: String::from("Object"),
                         }),
                         args: vec![],
